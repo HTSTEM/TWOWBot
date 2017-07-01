@@ -1,0 +1,17 @@
+# This argument is required
+token:
+  <BOT TOKEN>
+
+paste.ee:
+  api_key:
+    <PASTE.EE API KEY>
+
+ids:
+  developers:
+    - <DEVELOPER'S IDS>
+
+  developer_role_id:
+    <SEE NAME>
+
+cogs:
+  - cogs.core
