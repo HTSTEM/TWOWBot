@@ -8,3 +8,4 @@ venv/
 config.yml
 
 # state
+games.sqlite

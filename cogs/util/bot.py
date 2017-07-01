@@ -10,6 +10,7 @@ import ruamel.yaml as yaml
 import discord
 
 from .data_uploader import DataUploader
+from .game_manager import Game_Manager
 
 
 class TWOWBot(commands.AutoShardedBot):
@@ -23,6 +24,8 @@ class TWOWBot(commands.AutoShardedBot):
         self.logger = logging.getLogger('bot')
 
         super().__init__(command_prefix='tb!', *args, **kwargs)
+        
+        self.game_manager = Game_Manager(self)
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
