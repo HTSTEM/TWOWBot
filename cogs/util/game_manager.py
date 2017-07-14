@@ -68,6 +68,20 @@ class Game:
         for response in dbcur.fetchall():
             yield response[0], response[1] if not anon else None
     
+    def get_prompt(self):
+        dbcur = self._game_manager._database.cursor()
+        print(str(self._game_uuid.decode("utf-8")))
+        dbcur.execute("""
+            SELECT prompt FROM prompts WHERE uuid='{0}' AND round={1};
+            """.format(str(self._game_uuid), self.round))
+        fo = dbcur.fetchone()
+        if fo:
+            dbcur.close()
+            return fo
+
+        dbcur.close()
+        return None
+    
     def get_slides(self, uid):
         if self.status != "voting":
             return None
@@ -97,6 +111,7 @@ class Game_Manager:
         self._database = sqlite3.connect(self.PATH)
         self.bot = bot
         
+        # Create any tables that don't exist.
         if not self._check_table_exists("games"):
             dbcur = self._database.cursor()
             dbcur.execute("""
@@ -131,6 +146,7 @@ class Game_Manager:
                     v5 INTEGER, v6 INTEGER, v7 INTEGER, v8 INTEGER, v9 INTEGER)""")
             self._database.commit()
 
+    # Game related functions
     def get_all_games(self):
         dbcur = self._database.cursor()
         dbcur.execute("""SELECT uuid, server, channel, round, status, name, finished FROM games""")
@@ -144,9 +160,21 @@ class Game_Manager:
         dbcur = self._database.cursor()
         dbcur.execute("""
             INSERT INTO games(uuid, server, channel, round, status, name, finished)
-            VALUES(?,?,?,?,?,?)
+            VALUES(?,?,?,?,?,?,?)
             """, (game_uuid, server, channel, round, status, name, 0))
         self._database.commit()
+    def get_game(self, channel):
+        dbcur = self._database.cursor()
+        dbcur.execute("""
+            SELECT uuid, server, channel, round, status, name, finished FROM games WHERE channel='{0}';
+            """.format(str(channel).replace('\'', '\'\'')))
+        fo = dbcur.fetchone()
+        if fo:
+            dbcur.close()
+            return Game(*fo, self)
+
+        dbcur.close()
+        return None
             
     def _check_table_exists(self, tablename):
         dbcur = self._database.cursor()
