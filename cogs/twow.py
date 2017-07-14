@@ -37,7 +37,7 @@ class TWOW:
         game = self.gm.get_game(channel_id)
         
         if game is None:
-            self.gm.start_new_game(ctx.guild.id, channel_id, name)
+            self.gm.start_new_game(ctx.guild.id, channel_id, name, ctx.message.author.id)
             await ctx.send('Channel setup to play a mTWOW named `{0}`!'.format(name))
         else:
             await ctx.send('This channel is already setup under the name `{0}`!'.format(game.name))        

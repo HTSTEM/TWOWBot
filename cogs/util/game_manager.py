@@ -3,8 +3,8 @@ The database is in sqlite3 format and stored at `games.sqlite`
 The current format (vTWOWb-1.0) is as follows:
 
     TABLE games:
-    uuid | server | channel | round | status | name | finished
-    -----|--------|---------|-------|--------|------|---------
+    uuid | server | channel | round | status | name | finished | owner
+    -----|--------|---------|-------|--------|------|-----------------
     WHERE status is one of "responding", "voting", "results"
 
     TABLE contestants
@@ -35,13 +35,14 @@ import uuid
 
 
 class Game:
-    def __init__(self, game_uuid, server, channel, round, status, name, finished, gm):
+    def __init__(self, game_uuid, server, channel, round, status, name, finished, owner, gm):
         self.server = server
         self.channel = channel
         self.round = round
         self.status = status
         self.name = name
         self.finished = bool(finished)
+        self.owner = owner
         
         self._game_uuid = game_uuid
         self._game_manager = gm
@@ -70,10 +71,10 @@ class Game:
     
     def get_prompt(self):
         dbcur = self._game_manager._database.cursor()
-        print(str(self._game_uuid.decode("utf-8")))
+        print(self._game_uuid)
         dbcur.execute("""
             SELECT prompt FROM prompts WHERE uuid='{0}' AND round={1};
-            """.format(str(self._game_uuid), self.round))
+            """.format(self._game_uuid, self.round))
         fo = dbcur.fetchone()
         if fo:
             dbcur.close()
@@ -116,32 +117,32 @@ class Game_Manager:
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE games(
-                    uuid BLOB PRIMARY KEY, server INTEGER, channel INTEGER,
-                    round INTEGER, status TEXT, name TEXT, finished INTEGER)""")
+                    uuid TEXT PRIMARY KEY, server INTEGER, channel INTEGER,
+                    round INTEGER, status TEXT, name TEXT, finished INTEGER, owner INTEGER)""")
             self._database.commit()
         if not self._check_table_exists("contestants"):
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE contestants(
-                    uuid BLOB PRIMARY KEY, id INTEGER, status TEXT)""")
+                    uuid TEXT PRIMARY KEY, id INTEGER, status TEXT)""")
             self._database.commit()
         if not self._check_table_exists("responses"):
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE responses(
-                    uuid BLOB PRIMARY KEY, round INTEGER, response TEXT, uid INTEGER)""")
+                    uuid TEXT PRIMARY KEY, round INTEGER, response TEXT, uid INTEGER)""")
             self._database.commit()
         if not self._check_table_exists("prompts"):
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE prompts(
-                    uuid BLOB PRIMARY KEY, round INTEGER, prompt TEXT)""")
+                    uuid TEXT PRIMARY KEY, round INTEGER, prompt TEXT)""")
             self._database.commit()
         if not self._check_table_exists("votes"):
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE votes(
-                    uuid BLOB PRIMARY KEY, round INTEGER, votes INTEGER,
+                    uuid TEXT PRIMARY KEY, round INTEGER, votes INTEGER,
                     v0 INTEGER, v1 INTEGER, v2 INTEGER, v3 INTEGER, v4 INTEGER,
                     v5 INTEGER, v6 INTEGER, v7 INTEGER, v8 INTEGER, v9 INTEGER)""")
             self._database.commit()
@@ -149,24 +150,24 @@ class Game_Manager:
     # Game related functions
     def get_all_games(self):
         dbcur = self._database.cursor()
-        dbcur.execute("""SELECT uuid, server, channel, round, status, name, finished FROM games""")
+        dbcur.execute("""SELECT uuid, server, channel, round, status, name, finished, owner FROM games""")
         for game in dbcur.fetchall():
             yield Game(*game, self)
-    def start_new_game(self, server, channel, name):
-        game_uuid = uuid.uuid4().bytes
+    def start_new_game(self, server, channel, name, owner):
+        game_uuid = uuid.uuid4().hex
         status = 'responding'
         round = 0
         print(game_uuid)
         dbcur = self._database.cursor()
         dbcur.execute("""
-            INSERT INTO games(uuid, server, channel, round, status, name, finished)
-            VALUES(?,?,?,?,?,?,?)
-            """, (game_uuid, server, channel, round, status, name, 0))
+            INSERT INTO games(uuid, server, channel, round, status, name, finished, owner)
+            VALUES(?,?,?,?,?,?,?,?)
+            """, (game_uuid, server, channel, round, status, name, 0, owner))
         self._database.commit()
     def get_game(self, channel):
         dbcur = self._database.cursor()
         dbcur.execute("""
-            SELECT uuid, server, channel, round, status, name, finished FROM games WHERE channel='{0}';
+            SELECT uuid, server, channel, round, status, name, finished, owner FROM games WHERE channel='{0}';
             """.format(str(channel).replace('\'', '\'\'')))
         fo = dbcur.fetchone()
         if fo:
