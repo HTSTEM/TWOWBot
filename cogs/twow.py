@@ -56,6 +56,22 @@ class TWOW:
                 await ctx.send('There\'s no prompt yet for this round!')
             else:
                 await ctx.send('The prompt is {0}'.format(prompt))
+    @commands.command()
+    async def set_prompt(self, ctx, *, prompt):
+        channel_id = ctx.channel.id
+        
+        game = self.gm.get_game(channel_id)
+        
+        if game is None:
+            await ctx.send('No mTWOW running here!')
+        else:
+            res = game.set_prompt(prompt)
+
+            if prompt == game.PROMPT_ALLREADY_SET:
+                await ctx.send('The prompt has allready been set for this round.')
+            else:
+                await ctx.send('The prompt has been set to {0}!'.format(prompt))
+    
 
     @commands.command(aliases=['round'])
     async def get_round(self, ctx):

@@ -35,6 +35,11 @@ import uuid
 
 
 class Game:
+    PROMPT_SET = 0
+    PROMPT_ALLREADY_SET = 1
+    
+    DATABASE_ERROR = -1
+
     def __init__(self, game_uuid, server, channel, round, status, name, finished, owner, gm):
         self.server = server
         self.channel = channel
@@ -69,16 +74,27 @@ class Game:
         for response in dbcur.fetchall():
             yield response[0], response[1] if not anon else None
     
+    def set_prompt(self, prompt):
+        if self.get_prompt() is not None:
+            return self.PROMPT_ALLREADY_SET
+            
+        dbcur = self._game_manager._database.cursor()
+        dbcur.execute("""
+            INSERT INTO prompts(uuid, round, prompt)
+            VALUES(?, ?, ?)""", (self._game_uuid, self.round, prompt))
+        dbcur.close()
+        self._game_manager._database.commit()
+            
+        return self.PROMPT_SET
     def get_prompt(self):
         dbcur = self._game_manager._database.cursor()
-        print(self._game_uuid)
         dbcur.execute("""
             SELECT prompt FROM prompts WHERE uuid='{0}' AND round={1};
             """.format(self._game_uuid, self.round))
         fo = dbcur.fetchone()
         if fo:
             dbcur.close()
-            return fo
+            return fo[0]
 
         dbcur.close()
         return None
@@ -156,7 +172,7 @@ class Game_Manager:
     def start_new_game(self, server, channel, name, owner):
         game_uuid = uuid.uuid4().hex
         status = 'responding'
-        round = 0
+        round = 1
         print(game_uuid)
         dbcur = self._database.cursor()
         dbcur.execute("""
