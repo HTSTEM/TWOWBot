@@ -53,26 +53,37 @@ class Game:
         self._game_manager = gm
         
     def add_response(self, uid, response):
-        while "  " in response:
-            response = response.replace("  ", " ")
-        if len(response.split(" ")) != 10:
-            return "**Response does not appear to the 10 words!** (I counted {0})".format(len(response.split(" ")))
         dbcur = self._game_manager._database.cursor()
-        dbcur.execute("""SELECT response FROM responses WHERE uid='?' AND uuid='?' AND round=?""", uid, self._game_uuid, self.round)
-        responses = dbcur.fetchall()
-        if len(responses) == 0:
+        if self.get_response(uid) is None:
+            print("Add")
             dbcur.execute("""
-                INSERT INTO response(uuid, uid, round, response)
+                INSERT INTO responses(uuid, uid, round, response)
                 VALUES (?, ?, ?, ?)
-                """, self._game_uuid, uid, self.round, response)
+                """, (self._game_uuid, uid, self.round, response))
+            dbcur.close()
             self._game_manager._database.commit()
-            return "**Response Recorded.**"
-        return "**You have already responded**"
+            return True
+        dbcur.close()
+        return False
+    def get_response(self, uid):
+        dbcur = self._game_manager._database.cursor()
+        dbcur.execute("""SELECT response FROM responses WHERE uuid='{0}' AND round={1} AND uid={2}""".format(self._game_uuid, self.round, uid))
+        fo = dbcur.fetchall()
+        if fo:
+            dbcur.close()
+            return fo[0]
+            
+        dbcur.close()
+        return None
     def get_responses(self, anon=True):
         dbcur = self._game_manager._database.cursor()
-        dbcur.execute("""SELECT response, uid FROM games WHERE uuid='?'""", self._game_uuid)
+        dbcur.execute("""SELECT response, uid FROM responses WHERE uuid='{0}'""".format(self._game_uuid))
         for response in dbcur.fetchall():
             yield response[0], response[1] if not anon else None
+        dbcur.close()
+
+    def is_owner(self, id):
+        return id == self.owner
     
     def set_prompt(self, prompt):
         if self.get_prompt() is not None:
@@ -140,25 +151,25 @@ class Game_Manager:
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE contestants(
-                    uuid TEXT PRIMARY KEY, id INTEGER, status TEXT)""")
+                    uuid TEXT, id INTEGER, status TEXT)""")
             self._database.commit()
         if not self._check_table_exists("responses"):
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE responses(
-                    uuid TEXT PRIMARY KEY, round INTEGER, response TEXT, uid INTEGER)""")
+                    uuid TEXT, round INTEGER, response TEXT, uid INTEGER)""")
             self._database.commit()
         if not self._check_table_exists("prompts"):
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE prompts(
-                    uuid TEXT PRIMARY KEY, round INTEGER, prompt TEXT)""")
+                    uuid TEXT, round INTEGER, prompt TEXT)""")
             self._database.commit()
         if not self._check_table_exists("votes"):
             dbcur = self._database.cursor()
             dbcur.execute("""
                 CREATE TABLE votes(
-                    uuid TEXT PRIMARY KEY, round INTEGER, votes INTEGER,
+                    uuid TEXT, round INTEGER, votes INTEGER,
                     v0 INTEGER, v1 INTEGER, v2 INTEGER, v3 INTEGER, v4 INTEGER,
                     v5 INTEGER, v6 INTEGER, v7 INTEGER, v8 INTEGER, v9 INTEGER)""")
             self._database.commit()

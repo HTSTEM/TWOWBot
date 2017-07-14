@@ -65,13 +65,68 @@ class TWOW:
         if game is None:
             await ctx.send('No mTWOW running here!')
         else:
-            res = game.set_prompt(prompt)
-
-            if prompt == game.PROMPT_ALLREADY_SET:
-                await ctx.send('The prompt has allready been set for this round.')
+            if not game.is_owner(ctx.message.author.id):
+                await ctx.send('You don\'t have permission to set the prompt :smirk:')
             else:
-                await ctx.send('The prompt has been set to {0}!'.format(prompt))
+                res = game.set_prompt(prompt)
+
+                if res == game.PROMPT_ALLREADY_SET:
+                    await ctx.send('The prompt has allready been set for this round.')
+                else:
+                    await ctx.send('The prompt has been set to {0}!'.format(prompt))
     
+    @commands.command()
+    async def respond(self, ctx, *, response):
+        # TODO: MAKE THIS MUCH BETTER!!!! THIS RELYS ON THE USER RESPONDING IN CHAT AND IS MORE OF AN
+        #       EXAMPLE OF HOW TO INTERFACE WITH A GAME OBJECT!!!!
+    
+        channel_id = ctx.channel.id
+        
+        game = self.gm.get_game(channel_id)
+        
+        if game is None:
+            await ctx.send('No mTWOW running here!')
+            return
+
+        # TODO: Remove these three lines if you are allowed to change your response
+        if game.get_response(ctx.message.author.id) is not None:
+            await ctx.send('You have already responded this round!')
+            return
+        
+        # TODO: Allow users to force submit
+        if len(response.split(" ")) > 10:
+            await ctx.send('**Warning:** You response appears to be over 10 words! (I counted `{0}`)'.format(len(response.split(" "))))
+            #return
+            
+        ret = game.add_response(ctx.message.author.id, response)
+        print(ret)
+        if ret:
+            await ctx.send(':ok_hand: Response recorded!')
+        else:
+            await ctx.send('Umm.. This is awkward.. Try again? ¯\_(ツ)_/¯')
+    @commands.command(aliases=['responses'])
+    async def get_responses(self, ctx):
+        channel_id = ctx.channel.id
+        
+        game = self.gm.get_game(channel_id)
+        
+        if game is None:
+            await ctx.send('No mTWOW running here!')
+            return
+        if not game.is_owner(ctx.message.author.id):
+            await ctx.send('You though I\'d tell *you* everyone\'s respones? :smirk:')
+            return
+        
+        rs = "**Responses:**\n"
+        resp = list(game.get_responses(anon=False))
+        if len(resp) == 0:
+            rs += "None yet :("
+        else:
+            rs += "\n".join(["{1}: `{0}`".format(r[0], ctx.bot.get_user(r[1]).name) for r in resp])
+            
+        await ctx.message.author.send(rs)
+        await ctx.send(":grin: Check yo' DMs!")
+        
 
     @commands.command(aliases=['round'])
     async def get_round(self, ctx):
