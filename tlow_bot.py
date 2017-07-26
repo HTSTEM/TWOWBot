@@ -3,7 +3,8 @@
 ''' TODO:
 
 [x] Voting [DONE]
-[-] Results [CAN'T TEST]
+[X] Results [DONE]
+[ ] Limit responding to alives
 [ ] Round/Season incrementation
 [ ] Make things like voting only work once everyone's responded
 
@@ -750,7 +751,7 @@ class Bot(discord.Client):
                         variance = sum((i - mean) ** 2 for i in v['raw_borda']) / len(v['raw_borda'])
                         stdev = variance ** 0.5
                     
-                        user = self.get_user(v['name'])
+                        user = message.guild.get_member(v['name'])
                         if user is not None:
                             name = user.mention
                         else:
@@ -776,14 +777,14 @@ class Bot(discord.Client):
                     
                         dead = n > ELIMINATION * len(totals)
                         if dead:
-                            eliminated.append((name, v))
+                            eliminated.append((name, user, v))
                         
                         msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':coffin:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']], name, builtins.round(score, 2), builtins.round(stdev, 2))
 
                         await asyncio.sleep(len(totals) - n / 2)
                         await message.channel.send(msg)
                         
-                    user = self.get_user(totals[0]['name'])
+                    user = message.guild.get_member(totals[0]['name'])
                     if user is not None:
                         name = user.mention
                     else:
@@ -792,6 +793,27 @@ class Bot(discord.Client):
                     await message.channel.send(msg)
                     
                     await message.channel.send('Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
+                    
+                    for role in message.guild.roles:
+                        if role.id == sd['ids']['alive']:
+                            alive_role = role
+                            break
+                    else:
+                        alive_role = None
+                    for role in message.guild.roles:
+                        if role.id == sd['ids']['dead']:
+                            dead_role = role
+                            break
+                    else:
+                        dead_role = None
+                        
+                    if alive_role is not None:
+                        for e in eliminated:
+                            if e[1] is not None:
+                                if alive_role in e[1].roles:
+                                    await e[1].remove_roles(alive_role, reason='Contestant eliminated')
+                                    if dead_role is not None:
+                                        await e[1].add_roles(dead_role, reason='Contestant eliminated')
                     
                 elif command == 'responses':  # List all responses this round
                     if message.guild.id not in self.servers:
