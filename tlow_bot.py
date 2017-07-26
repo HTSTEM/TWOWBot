@@ -4,7 +4,8 @@
 
 [x] Voting [DONE]
 [X] Results [DONE]
-[ ] Limit responding to alives
+[X] Limit responding to alives [DONE]
+[ ] Handle DNPs
 [ ] Round/Season incrementation
 [ ] Make things like voting only work once everyone's responded
 
@@ -121,6 +122,32 @@ class Bot(discord.Client):
                     elif command == 'role_ids':  # DM a list of the IDs of all the roles
                         await message.author.send('\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
                         await message.channel.send(':mailbox_with_mail:')
+                    elif command == 'eval':  # NEEDS TO BE MADE OWNER ONLY!
+                        result = None
+                        env = {
+                            'guild': message.guild,
+                            'author': message.author,
+                            'self': self,
+                            'message': message,
+                            'channel': message.channel,
+                            'save_data': save_data,
+                        }
+                        env.update(globals())
+
+                        try:
+                            result = eval(raw_args, env)
+
+                            if inspect.isawaitable(result):
+                                result = await result
+
+                            colour = 0x00FF00
+                        except Exception as e:
+                            result = type(e).__name__ + ': ' + str(e)
+                            colour = 0xFF0000
+
+                        embed = discord.Embed(colour=colour, title=raw_args, description='```py\n{}```'.format(result))
+                        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
+                        await message.channel.send(embed=embed)
                     
                     # Only works on TLOW
                     elif command == 'set_response_leg':  # Legacy. Replaced by `.respond`.
@@ -129,7 +156,7 @@ class Bot(discord.Client):
                         self.data['responses'][uid] = resp
                         save_data()
                         await message.channel.send('Wubba Lubba Dub Dub!')
-                    elif command == 'gen_slides':
+                    elif command == 'gen_slides_leg':  # Legacy. No longer needed.
                         slides_no = 3
                         per_slide = math.ceil(len(self.data['responses']) / slides_no * 2)
                         
@@ -165,32 +192,6 @@ class Bot(discord.Client):
                         save_data()
                         
                         await send_message(message.channel, 'Wubba Lubba Dub Dub!')
-                    elif command == 'eval':  # TWOW-Bot ready!  NEEDS TO BE MADE OWNER ONLY!
-                        result = None
-                        env = {
-                            'guild': message.guild,
-                            'author': message.author,
-                            'self': self,
-                            'message': message,
-                            'channel': message.channel,
-                            'save_data': save_data,
-                        }
-                        env.update(globals())
-
-                        try:
-                            result = eval(raw_args, env)
-
-                            if inspect.isawaitable(result):
-                                result = await result
-
-                            colour = 0x00FF00
-                        except Exception as e:
-                            result = type(e).__name__ + ': ' + str(e)
-                            colour = 0xFF0000
-
-                        embed = discord.Embed(colour=colour, title=raw_args, description='```py\n{}```'.format(result))
-                        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
-                        await message.channel.send(embed=embed)
                     elif command == 'list_responses_leg':  # Legacy. Replaced by `.responses`.
                         msg = ''
                         for uid, response in self.data['responses'].items():
@@ -303,9 +304,9 @@ class Bot(discord.Client):
 
                         if msg:
                             await message.channel.send(msg)
-                elif command == 'usercount':
+                elif command == 'usercount_leg':
                     await send_message(message.channel, 'There are currenty {} memebers.'.format(message.guild.member_count))
-                elif command == 'contestants':
+                elif command == 'contestants_leg':
                     if message.guild.large:
                         await self.request_offline_members(message.guild)
                     
@@ -329,7 +330,7 @@ class Bot(discord.Client):
                             contestants += 1
                     
                     await send_message(message.channel, 'There are {} contestants so far this season.'.format(contestants))
-                elif command == 'alive':
+                elif command == 'alive_leg':
                     if message.guild.large:
                         await self.request_offline_members(message.guild)
                     
@@ -354,7 +355,7 @@ class Bot(discord.Client):
                             dead += 1
                     
                     await send_message(message.channel, '{} out of {} contestants are alive.'.format(alive, alive + dead))
-                elif command == 'dead':
+                elif command == 'dead_leg':
                     if message.guild.large:
                         await self.request_offline_members(message.guild)
                     
@@ -379,7 +380,7 @@ class Bot(discord.Client):
                             dead += 1
                     
                     await send_message(message.channel, '{} out of {} contestants are dead.'.format(dead, alive + dead))
-                elif command in ['nts', 'needstosubmit']:
+                elif command in ['nts_leg', 'needstosubmit_leg']:
                     if message.guild.large:
                         await self.request_offline_members(message.guild)
                     
@@ -531,7 +532,7 @@ class Bot(discord.Client):
                         await send_message(message.channel, 'There\'s no prompt set yet for this mTWOW.')
                         return
                     
-                    await send_message(message.channel, 'The current prompt is:\n{}\n'.format(round['prompt']))
+                    await send_message(message.channel, 'The current prompt is:\n{}\n'.format(round['prompt'].decode('utf-8')))
                 elif command == 'season':  # Gets the current season number
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
@@ -568,6 +569,10 @@ class Bot(discord.Client):
                         return
                     
                     sd = self.server_data[s_ids[id]]
+                    
+                    if not sd['voting']:
+                        await send_message(message.channel, 'Voting hasn\'t started yet. Sorry.')
+                        return
                     
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -659,7 +664,7 @@ class Bot(discord.Client):
                         return
                     
                     if len(args) < 2:
-                        await send_message(message.channel, 'Usage: `.respond <TWOW id> <response>\nUse `.id` in the server to get the id.')
+                        await send_message(message.channel, 'Usage: `.respond <TWOW id> <response>`\nUse `.id` in the server to get the id.')
                         return
                     
                     id, response = raw_args.split(' ', 1)
@@ -670,6 +675,10 @@ class Bot(discord.Client):
                         return
                     
                     sd = self.server_data[s_ids[id]]
+                    
+                    if sd['voting']:
+                        await send_message(message.channel, 'Voting has already started. Sorry.')
+                        return
                     
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -682,23 +691,70 @@ class Bot(discord.Client):
                         await send_message(message.channel, 'There\'s no prompt.. How can you even?')
                         return
                     
+                    for role in self.get_guild(s_ids[id]).roles:
+                        if role.id == sd['ids']['alive']:
+                            alive_role = role
+                            break
+                    else:
+                        alive_role = None
+                    member = self.get_guild(s_ids[id]).get_member(int(message.author.id))
+                    if sd['round'] > 1 and alive_role not in member.roles:
+                        await send_message(message.channel, 'You are unable to submit this round. Please wait for the next season.')
+                        return
+                    
                     if message.author.id in round['responses']:
                         await send_message(message.channel, '**Warning! Overwriting current response!**')
                     if len(response.split(' ')) > 10:
                         await send_message(message.channel, '**Warning! Your response looks to be over 10 words ({}).**\nThis can be ignored if you are playing a variation TWOW that doesn\'t have this limit'.format(len(response.split(' '))))
                     
-                    round['responses'][message.author.id] = response
+                    changed = False
+                    with open('banned_words.txt') as bw:
+                        banned_w = bw.read().split('\n')
+                    for i in banned_w:
+                        if i:
+                            if i in response:
+                                response = response.replace(i, '\\*' * len(i))
+                                changed = True
+                    if changed:
+                        await send_message(message.channel, '**Due to rude words, your submission has been changed to:**\n{}'.format(response))
+                    
+                    round['responses'][message.author.id] = response.encode('utf-8')
                     await send_message(message.channel, '**Submission recorded**')
                     
                     save_data()
                         
                 # TWOW owner only commands
+                elif command == 'start_voting':
+                    if message.guild.id not in self.servers:
+                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        return
+                    
+                    sd = self.server_data[message.guild.id]
+                    
+                    if sd['owner'] != message.author.id:
+                        return
+                    
+                    if sd['voting']:
+                        await send_message(message.channel, 'Voting is already active.')
+                        return
+                    
+                    sd['voting'] = True
+                    save_data()
+                    await send_message(message.channel, 'Voting has been activated.')
+                    return
                 elif command == 'results':  # Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
                     
                     sd = self.server_data[message.guild.id]
+                    
+                    if sd['owner'] != message.author.id:
+                        return
+                    
+                    if not sd['voting']:
+                        await send_message(message.channel, 'Voting hasn\'t even started yet...')
+                        return
                     
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -743,6 +799,7 @@ class Bot(discord.Client):
                     await message.channel.send(msg)
                     
                     eliminated = []
+                    living = []
                     
                     for n, v in list(enumerate(totals))[::-1]:
                         score = f(v)
@@ -778,8 +835,10 @@ class Bot(discord.Client):
                         dead = n > ELIMINATION * len(totals)
                         if dead:
                             eliminated.append((name, user, v))
+                        else:
+                            living.append((name, user, v))
                         
-                        msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':coffin:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']], name, builtins.round(score, 2), builtins.round(stdev, 2))
+                        msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':coffin:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']].decode('utf-8'), name, builtins.round(score, 2), builtins.round(stdev, 2))
 
                         await asyncio.sleep(len(totals) - n / 2)
                         await message.channel.send(msg)
@@ -806,15 +865,52 @@ class Bot(discord.Client):
                             break
                     else:
                         dead_role = None
-                        
-                    if alive_role is not None:
-                        for e in eliminated:
-                            if e[1] is not None:
-                                if alive_role in e[1].roles:
-                                    await e[1].remove_roles(alive_role, reason='Contestant eliminated')
-                                    if dead_role is not None:
-                                        await e[1].add_roles(dead_role, reason='Contestant eliminated')
                     
+                    # Do all the round incrementing and stuff.
+                    if len(totals) - len(eliminated) <= 1:
+                        await message.channel.send('**This season has ended! The winner was {}!**'.format(name))
+                        sd['round'] = 1
+                        sd['season'] += 1
+                    else:
+                        sd['round'] += 1
+                        await message.channel.send('**We\'re now on round {}!**'.format(sd['round']))
+                        
+                    if 'season-{}'.format(sd['season']) not in sd['seasons']:
+                        sd['seasons']['season-{}'.format(sd['season'])] = {}
+                    if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
+                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+                    
+                    sd['voting'] = False
+                    
+                    save_data()
+                    
+                    # Oh yeah, and kill off dead people
+                    if alive_role is not None:
+                        #for e in eliminated:
+                        #    if e[1] is not None:
+                        #        if alive_role in e[1].roles:
+                        #            await e[1].remove_roles(alive_role, reason='Contestant eliminated')
+                        #            if dead_role is not None:
+                        #                await e[1].add_roles(dead_role, reason='Contestant eliminated')
+                                                
+                        
+                        if message.guild.large:
+                            await self.request_offline_members(message.guild)
+                    
+                        alive_r = None
+                        
+                        for member in message.guild.members:
+                            if alive_r is None:
+                                for role in member.roles:
+                                    if role.id == ALIVE_ID:
+                                        alive_r = role
+                            
+                            if alive_r is not None and alive_r in member.roles:
+                                for i in living:
+                                    if i[1] == member:
+                                        break
+                                else:
+                                    await member.remove_roles(alive_r, reason='Contestant eliminated')
                 elif command == 'responses':  # List all responses this round
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
@@ -839,7 +935,7 @@ class Bot(discord.Client):
                             n = u.name
                         else:
                              n = i[0]
-                        m += '\n**{}**: {}'.format(n, i[1])
+                        m += '\n**{}**: {}'.format(n, i[1].decode('utf-8'))
                         if len(m) > 1500:
                             await message.author.send(m)
                             m = ''
@@ -867,6 +963,7 @@ class Bot(discord.Client):
                             s['owner'] = message.author.id
                             s['round'] = 1
                             s['season'] = 1
+                            s['voting'] = False
                             s['ids'] = {
                                 'dead': None,
                                 'alive': None,
@@ -947,13 +1044,13 @@ class Bot(discord.Client):
                     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
                     
                     if round['prompt'] is None:
-                        round['prompt'] = raw_args.replace('@', '@\u200b').replace('`', '\\`')
+                        round['prompt'] = raw_args.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
                         save_data()
                         await send_message(message.channel, 'The prompt has been set to `{}` for this round.'.format(raw_args.replace('@', '@\u200b').replace('`', '\\`')))
                         return
                     else:
-                        await send_message(message.channel, 'The prompt has been changed from `{}` to `{}` for this round.'.format(round['prompt'], raw_args.replace('@', '@\u200b').replace('`', '\\`')))
-                        round['prompt'] = raw_args.replace('@', '@\u200b').replace('`', '\\`')
+                        await send_message(message.channel, 'The prompt has been changed from `{}` to `{}` for this round.'.format(round['prompt'].decode('utf-8'), raw_args.replace('@', '@\u200b').replace('`', '\\`')))
+                        round['prompt'] = raw_args.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
                         save_data()
                         return
     
