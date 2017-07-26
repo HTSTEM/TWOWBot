@@ -10,8 +10,9 @@
 
 '''
 
-
+import builtins
 import datetime
+import asyncio
 import inspect
 import random
 import string
@@ -27,6 +28,10 @@ TOKEN = open('bot-token.txt').read()
 DEVELOPERS = [161508165672763392, 312615171191341056]
 
 RESPONSES_PER_SLIDE = 8
+
+SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
+
+ELIMINATION = 0.6  # Fraction of results that are safe
 
 # Legacy IDs 'n' stuff
 VOTE_REGEX = '\[(.*?) ([A-{}]*?)\]'
@@ -687,7 +692,7 @@ class Bot(discord.Client):
                     save_data()
                         
                 # TWOW owner only commands
-                elif command == 'results':  # Woah? Results. Let's hope I know how to calculate these..
+                elif command == 'results':  # Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -704,7 +709,7 @@ class Bot(discord.Client):
                     
                     totals = {}
                     for r in round['responses']:
-                        totals[r] = [0, 0]
+                        totals[r] = {'borda': 0, 'votes': 0, 'raw_borda': []}
                     
                     vote_weights = {}
                     
@@ -719,16 +724,75 @@ class Bot(discord.Client):
                     for vote in round['votes']:
                         c = len(vote['vote'])
                         for n, v in enumerate(vote['vote']):
-                            totals[v][0] += c - n
-                            totals[v][1] += 1
+                            bc = c - n - 1
+                            totals[v]['borda'] += bc
+                            totals[v]['votes'] += 1
+                            totals[v]['raw_borda'].append(bc / (c - 1) * 100)
                     
-                    totals = [[i[0], i[1]] for i in totals.items()]
-                    totals.sort(key=lambda v:(v[1][0]/v[1][1]) * 100, reverse=True)
+                    totals = [{'name': i[0], **i[1]} for i in totals.items()]
+                    
+                    def f(v):
+                        return (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
+                    
+                    totals.sort(key=f, reverse=True)
 
-                    for v in totals:
-                        print(v[0], ((v[1][0]/v[1][1]) * 100))
-
+                    msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
+                    
+                    await message.delete()
+                    await message.channel.send(msg)
+                    
+                    eliminated = []
+                    
+                    for n, v in list(enumerate(totals))[::-1]:
+                        score = f(v)
+  
+                        mean = sum(v['raw_borda']) / len(v['raw_borda'])
+                        variance = sum((i - mean) ** 2 for i in v['raw_borda']) / len(v['raw_borda'])
+                        stdev = variance ** 0.5
+                    
+                        user = self.get_user(v['name'])
+                        if user is not None:
+                            name = user.mention
+                        else:
+                            name = str(v['name'])
+                    
+                        if str(n + 1)[-1] == '1':
+                            if n + 1 == 11:
+                                symbol = SUPERSCRIPT[3]
+                            else:
+                                symbol = SUPERSCRIPT[0]
+                        elif str(n + 1)[-1] == '2':
+                            if n + 1 == 12:
+                                symbol = SUPERSCRIPT[3]
+                            else:
+                                symbol = SUPERSCRIPT[1]
+                        elif str(n + 1)[-1] == '3':
+                            if n + 1 == 13:
+                                symbol = SUPERSCRIPT[3]
+                            else:
+                                symbol = SUPERSCRIPT[2]
+                        else:
+                            symbol = SUPERSCRIPT[3]
+                    
+                        dead = n > ELIMINATION * len(totals)
+                        if dead:
+                            eliminated.append((name, v))
                         
+                        msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':coffin:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']], name, builtins.round(score, 2), builtins.round(stdev, 2))
+
+                        await asyncio.sleep(len(totals) - n / 2)
+                        await message.channel.send(msg)
+                        
+                    user = self.get_user(totals[0]['name'])
+                    if user is not None:
+                        name = user.mention
+                    else:
+                        name = str(v['name'])
+                    msg = '{}\nThe winner was {}! Well done!'.format('=' * 50, name)
+                    await message.channel.send(msg)
+                    
+                    await message.channel.send('Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
+                    
                 elif command == 'responses':  # List all responses this round
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
