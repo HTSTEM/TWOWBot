@@ -3,7 +3,7 @@
 ''' TODO:
 
 [x] Voting [DONE]
-[ ] Results
+[-] Results [CAN'T TEST]
 [ ] Round/Season incrementation
 [ ] Make things like voting only work once everyone's responded
 
@@ -26,11 +26,10 @@ import discord
 TOKEN = open('bot-token.txt').read()
 DEVELOPERS = [161508165672763392, 312615171191341056]
 
-VOTE_REGEX = '\[(.*?) ([A-{}]*?)\]'
-
 RESPONSES_PER_SLIDE = 8
 
-# Legacy IDs
+# Legacy IDs 'n' stuff
+VOTE_REGEX = '\[(.*?) ([A-{}]*?)\]'
 DEAD_ID = 329368398356283403
 ALIVE_ID = 329369355936858112
 NTS_ID = 329369440426786818
@@ -167,7 +166,8 @@ class Bot(discord.Client):
                             'author': message.author,
                             'self': self,
                             'message': message,
-                            'channel': message.channel
+                            'channel': message.channel,
+                            'save_data': save_data,
                         }
                         env.update(globals())
 
@@ -646,7 +646,6 @@ class Bot(discord.Client):
                         save_data()
                         
                         await send_message(message.channel, 'Thanks for voting!')
-                    
                 elif command == 'respond':  # Probbly handles the controlling of my kitten army
                     if not isinstance(message.channel, discord.abc.PrivateChannel):
                         await message.delete()
@@ -688,6 +687,48 @@ class Bot(discord.Client):
                     save_data()
                         
                 # TWOW owner only commands
+                elif command == 'results':  # Woah? Results. Let's hope I know how to calculate these..
+                    if message.guild.id not in self.servers:
+                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        return
+                    
+                    sd = self.server_data[message.guild.id]
+                    
+                    if 'season-{}'.format(sd['season']) not in sd['seasons']:
+                        sd['seasons']['season-{}'.format(sd['season'])] = {}
+                    if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
+                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+                    
+                    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+                    
+                    
+                    totals = {}
+                    for r in round['responses']:
+                        totals[r] = [0, 0]
+                    
+                    vote_weights = {}
+                    
+                    for vote in round['votes']:
+                        if vote['voter'] not in vote_weights:
+                            vote_weights['voter'] = 1
+                        else:
+                            vote_weights['voter'] += 1
+                    for i in vote_weights:
+                        vote_weights[i] = 1 / vote_weights[i]
+                    
+                    for vote in round['votes']:
+                        c = len(vote['vote'])
+                        for n, v in enumerate(vote['vote']):
+                            totals[v][0] += c - n
+                            totals[v][1] += 1
+                    
+                    totals = [[i[0], i[1]] for i in totals.items()]
+                    totals.sort(key=lambda v:(v[1][0]/v[1][1]) * 100, reverse=True)
+
+                    for v in totals:
+                        print(v[0], ((v[1][0]/v[1][1]) * 100))
+
+                        
                 elif command == 'responses':  # List all responses this round
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
