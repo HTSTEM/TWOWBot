@@ -35,23 +35,9 @@ SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
 
 ELIMINATION = 0.6  # Fraction of results that are safe
 
-# Legacy IDs 'n' stuff
-VOTE_REGEX = '\[(.*?) ([A-{}]*?)\]'
-DEAD_ID = 329368398356283403
-ALIVE_ID = 329369355936858112
-NTS_ID = 329369440426786818
-DNP_ID = 332647826687524867
-VOTE_COLLECTOR = 161508165672763392
-
 # This is used in error messages where the hoster might need to manually
 # change some of the .yml files
 BOT_HOSTER = 'Bottersnike#3605'
-
-# More legacy stuff
-ROUND = 1
-SLIDE_NAMES = list(map(str.upper, dir(__builtins__)))
-VOTE_URL = 'https://bottersnike.github.io/tlow.html'  # <- Nice site :D
-
 
 class Bot(discord.Client):
     def __init__(self):
