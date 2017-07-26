@@ -1,3 +1,4 @@
 round1.yml
 server_data/*.yml
 bot-token.txt
+__pycache__/
