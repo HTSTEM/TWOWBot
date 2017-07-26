@@ -1,24 +1,13 @@
 # https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot
-#fe80::3455:3ccf:e675:8286
-'''
-Data format:
 
-responses:
- Username: resonse
- Username: 
- Username: response
-slides:
- SlideName:
-  A: Username
-  B: Userber
-  C: Userber
-  D: Userber
-  E: Userber
-  F: Userber
-  G: Userber
-  H: Userber
-  I: Userber
-  J: Userber
+''' TODO:
+
+[x] Voting [DONE]
+[ ] Results
+[ ] Round/Season incrementation
+[ ] Make things like voting only work once everyone's responded
+
+
 '''
 
 
@@ -36,24 +25,26 @@ import discord
 
 TOKEN = open('bot-token.txt').read()
 DEVELOPERS = [161508165672763392, 312615171191341056]
-VOTE_COLLECTOR = 161508165672763392
 
 VOTE_REGEX = '\[(.*?) ([A-{}]*?)\]'
 
+RESPONSES_PER_SLIDE = 8
+
+# Legacy IDs
 DEAD_ID = 329368398356283403
 ALIVE_ID = 329369355936858112
 NTS_ID = 329369440426786818
 DNP_ID = 332647826687524867
+VOTE_COLLECTOR = 161508165672763392
 
-
+# This is used in error messages where the hoster might need to manually
+# change some of the .yml files
 BOT_HOSTER = 'Bottersnike#3605'
 
-
+# More legacy stuff
 ROUND = 1
-
 SLIDE_NAMES = list(map(str.upper, dir(__builtins__)))
-
-VOTE_URL = 'https://bottersnike.github.io/tlow.html'
+VOTE_URL = 'https://bottersnike.github.io/tlow.html'  # <- Nice site :D
 
 
 class Bot(discord.Client):
@@ -104,39 +95,30 @@ class Bot(discord.Client):
             for i in self.server_data.items():
                 with open('server_data/{}.yml'.format(i[0]), 'w') as data_file:
                     self.yaml.dump(i[1], data_file)
-            
-            
-            
-            if self.data['responses'] is None:
-                self.data['responses'] = {}
-            if self.data['slides'] is None:
-                self.data['slides'] = {}
-            if self.data['votes'] is None:
-                self.data['votes'] = {}
-                 
+               
         @self.event
         async def on_message(message):
             if message.content.startswith('.'):
                 raw_command = message.content[1:]
-                command = raw_command.split(' ')[0]
+                command = raw_command.split(' ')[0].lower()
                 
                 raw_args = raw_command[len(command) + 1:].strip()
                 args = raw_args.split(' ')
                 
                 if message.author.id in DEVELOPERS:  # Dev only commands
-                    if command == 'say':
+                    if command == 'say':  # Say somethin'
                         await send_message(message.channel, raw_args)
-                    elif command == 'die':
+                    elif command == 'die':  # Logout
                         await send_message(message.channel, ':wave:')
                         await self.logout()
-                    elif command == 'invite':
+                    elif command == 'invite':  # Get the RickBot invite url
                         await send_message(message.channel, '<https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot>')
-                    elif command == 'role_ids':
+                    elif command == 'role_ids':  # DM a list of the IDs of all the roles
                         await message.author.send('\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
                         await message.channel.send(':mailbox_with_mail:')
                     
                     # Only works on TLOW
-                    elif command == 'set_response':
+                    elif command == 'set_response_leg':  # Legacy. Replaced by `.respond`.
                         uid = args[0]
                         resp = ' '.join(args[1:])
                         self.data['responses'][uid] = resp
@@ -178,7 +160,7 @@ class Bot(discord.Client):
                         save_data()
                         
                         await send_message(message.channel, 'Wubba Lubba Dub Dub!')
-                    elif command == 'eval':  # TWOW-Bot ready!
+                    elif command == 'eval':  # TWOW-Bot ready!  NEEDS TO BE MADE OWNER ONLY!
                         result = None
                         env = {
                             'guild': message.guild,
@@ -203,7 +185,7 @@ class Bot(discord.Client):
                         embed = discord.Embed(colour=colour, title=raw_args, description='```py\n{}```'.format(result))
                         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
                         await message.channel.send(embed=embed)
-                    elif command == 'list_responses':
+                    elif command == 'list_responses_leg':  # Legacy. Replaced by `.responses`.
                         msg = ''
                         for uid, response in self.data['responses'].items():
                             user = self.get_user(int(uid))
@@ -219,7 +201,8 @@ class Bot(discord.Client):
 
                         if msg:
                             await message.channel.send(msg)
-                        
+                
+                # General util                
                 if command == 'help':
                     commands = {
                         'help': 'This message',
@@ -262,9 +245,32 @@ class Bot(discord.Client):
                         
                     d += '\n[ Made by Bottersnike#3605 ]```'
                     await send_message(message.channel, d)
-                
+                elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
+                    member = message.author
+                    
+                    now = datetime.datetime.utcnow()
+                    joined_days = now - member.joined_at
+                    created_days = now - member.created_at
+                    avatar = member.avatar_url
+
+                    embed = discord.Embed(colour=member.colour)
+                    embed.add_field(name='Nickname', value=member.display_name)
+                    embed.add_field(name='User ID', value=member.id)
+                    embed.add_field(name='Avatar', value='[Click here to show]({})'.format(avatar))
+
+                    embed.add_field(name='Created', value=member.created_at.strftime('%x %X') + '\n{} days ago'.format(max(0, created_days.days)))
+                    embed.add_field(name='Joined', value=member.joined_at.strftime('%x %X') + '\n{} days ago'.format(max(0, joined_days.days)))
+
+                    embed.add_field(name='Roles', value='\n'.join([r.mention for r in sorted(member.roles, key=lambda x:x.position, reverse=True) if r.name != '@everyone']))
+
+                    embed.set_author(name=member, icon_url=avatar)
+
+                    await message.channel.send(embed=embed)
+                elif command == 'ping':
+                    await send_message(message.channel, 'Pong')
+
                 # Only works on TLOW
-                elif command == 'slides' and message.author.id in DEVELOPERS:
+                elif command == 'slides_leg':  # Legacy. Replaced by `.vote`
                     if len(self.data['slides']) == 0:
                         await send_message(message.channel, 'There aren\'t any voting slides yet.. I\'d try again later.')
                         return
@@ -291,29 +297,6 @@ class Bot(discord.Client):
 
                         if msg:
                             await message.channel.send(msg)
-                elif command == 'ping':
-                    await send_message(message.channel, 'Pong')
-                elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
-                    member = message.author
-                
-                    now = datetime.datetime.utcnow()
-                    joined_days = now - member.joined_at
-                    created_days = now - member.created_at
-                    avatar = member.avatar_url
-
-                    embed = discord.Embed(colour=member.colour)
-                    embed.add_field(name='Nickname', value=member.display_name)
-                    embed.add_field(name='User ID', value=member.id)
-                    embed.add_field(name='Avatar', value='[Click here to show]({})'.format(avatar))
-
-                    embed.add_field(name='Created', value=member.created_at.strftime('%x %X') + '\n{} days ago'.format(max(0, created_days.days)))
-                    embed.add_field(name='Joined', value=member.joined_at.strftime('%x %X') + '\n{} days ago'.format(max(0, joined_days.days)))
-
-                    embed.add_field(name='Roles', value='\n'.join([r.mention for r in sorted(member.roles, key=lambda x:x.position, reverse=True) if r.name != '@everyone']))
-
-                    embed.set_author(name=member, icon_url=avatar)
-
-                    await message.channel.send(embed=embed)
                 elif command == 'usercount':
                     await send_message(message.channel, 'There are currenty {} memebers.'.format(message.guild.member_count))
                 elif command == 'contestants':
@@ -390,8 +373,6 @@ class Bot(discord.Client):
                             dead += 1
                     
                     await send_message(message.channel, '{} out of {} contestants are dead.'.format(dead, alive + dead))
-                elif command == 'responses':
-                    await send_message(message.channel, 'I\'ve got {} responses recorded so far.'.format(len(self.data['responses'])))
                 elif command in ['nts', 'needstosubmit']:
                     if message.guild.large:
                         await self.request_offline_members(message.guild)
@@ -425,7 +406,9 @@ class Bot(discord.Client):
                             nts += 1
                     
                     await send_message(message.channel, '{} out of {} contestants still need to submit.'.format(nts, alive + dead))
-                elif command == 'vote_leg':  # Legacy. Replacement in place.
+                elif command == 'responses_leg':  # Legacy. No replacement yet.
+                    await send_message(message.channel, 'I\'ve got {} responses recorded so far.'.format(len(self.data['responses'])))
+                elif command == 'vote_leg':  # Legacy. Replaced by `.vote`.
                     if not raw_args:
                         await send_message(message.channel, 'Provided voting is open, you can see the slides at {}.\nTo vote, do `.vote <your vote>` either here or in a DM with me.'.format(VOTE_URL))
                     else:
@@ -519,12 +502,12 @@ class Bot(discord.Client):
                                 await send_message(message.channel, 'Your vote has been recorded. Thank you!'.format(collector.name))
                 
                 # TWOW-Bot ready!
-                elif command == 'id':
+                elif command == 'id':  # Gets the server ID used in voting
                     if message.guild.id in self.servers:
                         await send_message(message.channel, 'This server\'s identifier is `{}`'.format(self.servers[message.guild.id]))
                     else:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data. If this is an error, please contact {}.'.format(BOT_HOSTER))
-                elif command == 'prompt':
+                elif command == 'prompt':  # Gets the current prompt
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -534,7 +517,7 @@ class Bot(discord.Client):
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {}
                     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': {}}
+                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
                     
                     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
                     
@@ -543,7 +526,7 @@ class Bot(discord.Client):
                         return
                     
                     await send_message(message.channel, 'The current prompt is:\n{}\n'.format(round['prompt']))
-                elif command == 'season':
+                elif command == 'season':  # Gets the current season number
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -551,7 +534,7 @@ class Bot(discord.Client):
                     sd = self.server_data[message.guild.id]
                     
                     await send_message(message.channel, 'We are on season {}'.format(sd['season']))
-                elif command == 'round':
+                elif command == 'round':  # Get the current round number
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -559,9 +542,112 @@ class Bot(discord.Client):
                     sd = self.server_data[message.guild.id]
                     
                     await send_message(message.channel, 'We are on round {}'.format(sd['round']))
-                elif command == 'vote':
-                    pass  # TODO
-                elif command == 'respond':
+                elif command == 'vote':  # I think it makes me a hot dog. Not sure.
+                    if not isinstance(message.channel, discord.abc.PrivateChannel):
+                        await message.delete()
+                        await send_message(message.channel, 'Please only vote in DMs')
+                        return
+                    
+                    if len(args) > 2 or not args[0]:
+                        await send_message(message.channel, 'Usage: `.vote <TWOW id> [vote]\nUse `.id` in the server to get the id.')
+                        return
+                    print(args)
+                    
+                    id = args[0]
+                    
+                    s_ids = {i[1]:i[0] for i in self.servers.items()}
+                    
+                    if id not in s_ids:
+                        await send_message(message.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(id.replace('`', '\\`')))
+                        return
+                    
+                    sd = self.server_data[s_ids[id]]
+                    
+                    if 'season-{}'.format(sd['season']) not in sd['seasons']:
+                        sd['seasons']['season-{}'.format(sd['season'])] = {}
+                    if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
+                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+                    
+                    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+                    
+                    if len(args) == 1:  # New slides needed!
+                        if message.author.id not in round['slides']:
+                            # Sort all responses based off their number of votes
+                            responses = [[i, 0] for i in round['responses']]
+                            for i in responses:
+                                if i[0] == message.author.id:
+                                    responses.remove(i)
+                            for vote in round['votes']:
+                                # Each vote is a list of user IDs going from best to worst
+                                for i in vote['vote']:
+                                    for r in responses:
+                                        if r[0] == i:
+                                            r[1] += 1
+                                            break
+                                    else:
+                                        if i != message.author.id:
+                                            responses.append([i, 1])
+                            responses.sort(key=lambda x:x[1])
+
+                            if len(responses) == 0:
+                                await send_message(message.author, 'I don\'t have enough responses to formulate a slide. Sorry.')
+                                return
+                            
+                            # ~~Calculate the nubmer of responses per slide~~ Global at start of file.
+                            # Take that many items from the list of responses.
+                            
+                            slide = responses[:RESPONSES_PER_SLIDE]
+                            slide = [i[0] for i in slide]
+                            random.shuffle(slide)
+                            
+                            # Save as a slide.
+                            
+                            round['slides'][message.author.id] = slide
+                            
+                            save_data()
+                        
+                        slide = round['slides'][message.author.id]
+                        
+                        m = '**Your slide is:**'
+                        for n, i in enumerate(slide):
+                            m += '\n:regional_indicator_{}: {}'.format(string.ascii_lowercase[n], round['responses'][i])
+                            if len(m) > 1500:
+                                await message.channel.send(m)
+                                m = ''
+                        if m:
+                            await message.channel.send(m)
+                    else:
+                        id, vote_str = raw_args.upper().split(' ')
+                        if message.author.id not in round['slides']:
+                            await send_message(message.author, 'You don\'t have a voting slide *to* vote on!\nUse `.vote {}` to generate one.'.format(id))
+                            return
+                            
+                        slide = round['slides'][message.author.id]
+                        to = string.ascii_uppercase[len(slide) - 1]
+                        regex = '[A-{}]{{{}}}'.format(to, len(slide))
+                        if not re.compile(regex).match(vote_str):
+                            await send_message(message.author, 'Please vote for **every** item on your slide exactly **once**.')
+                            return
+                        
+                        if len(set(vote_str)) != len(vote_str):  # Check for repeats
+                            await send_message(message.author, 'Please vote for **every** item on your slide exactly **once**.')
+                            return
+                        
+                        vote = list(vote_str)
+                        for n, i in enumerate(vote):
+                            vote[n] = slide[string.ascii_uppercase.index(i)]
+                        
+                        round['votes'].append({
+                            'voter': message.author.id,
+                            'vote': vote
+                        })
+                        
+                        del round['slides'][message.author.id]
+                        save_data()
+                        
+                        await send_message(message.channel, 'Thanks for voting!')
+                    
+                elif command == 'respond':  # Probbly handles the controlling of my kitten army
                     if not isinstance(message.channel, discord.abc.PrivateChannel):
                         await message.delete()
                         await send_message(message.channel, 'Please only respond in DMs')
@@ -575,7 +661,7 @@ class Bot(discord.Client):
                     s_ids = {i[1]:i[0] for i in self.servers.items()}
                     
                     if id not in s_ids:
-                        await send_message(message.chanel, 'I can\'t find any mTWOW under the name `{}`.'.format(id.replace('`', '\\`')))
+                        await send_message(message.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(id.replace('`', '\\`')))
                         return
                     
                     sd = self.server_data[s_ids[id]]
@@ -583,7 +669,7 @@ class Bot(discord.Client):
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {}
                     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': {}}
+                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
                     
                     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
                     
@@ -602,7 +688,39 @@ class Bot(discord.Client):
                     save_data()
                         
                 # TWOW owner only commands
-                elif command == 'register':
+                elif command == 'responses':  # List all responses this round
+                    if message.guild.id not in self.servers:
+                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        return
+                        
+                    if self.server_data[message.guild.id]['owner'] != message.author.id:
+                        return
+                        
+                    sd = self.server_data[message.guild.id]
+                    
+                    if 'season-{}'.format(sd['season']) not in sd['seasons']:
+                        sd['seasons']['season-{}'.format(sd['season'])] = {}
+                    if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
+                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+                    
+                    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+                    
+                    m = '**Responses for season {}, round {} so far:**'.format(sd['season'], sd['round'])
+                    for i in round['responses'].items():
+                        u = self.get_user(i[0])
+                        if u is not None:
+                            n = u.name
+                        else:
+                             n = i[0]
+                        m += '\n**{}**: {}'.format(n, i[1])
+                        if len(m) > 1500:
+                            await message.author.send(m)
+                            m = ''
+                    if m:
+                        await message.author.send(m)
+                    
+                    await send_message(message.channel, ':mailbox_with_mail:')
+                elif command == 'register':  # Setup server initially
                     if message.guild.id in self.servers:
                         owner = self.get_user(self.server_data[message.guild.id]['owner'])
                         if owner is not None:
@@ -633,7 +751,7 @@ class Bot(discord.Client):
                                               {'prompt': None,
                                                'responses': {},
                                                'slides': {},
-                                               'votes': {},
+                                               'votes': [],
                                               }
                                              }
                                             }
@@ -647,7 +765,7 @@ class Bot(discord.Client):
                             await send_message(message.channel, 'Woah! I just set up a whole mTWOW for you under the name `{}`!\nPlease now use `.setup` to configure your mTWOW before it can be used.'.format(raw_args.replace('@', '@\u200b').replace('`', '\\`')))
                         else:
                             await send_message(message.channel, 'Usage: `.register <short identifier>')
-                elif command == 'setup':
+                elif command == 'setup':  # Set congifs
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -674,7 +792,7 @@ class Bot(discord.Client):
                     save_data()
                     
                     await send_message(message.channel, 'Wubba lubba dub dub! (Done)')
-                elif command == 'show_config':
+                elif command == 'show_config':  # More deguggy really, returns the dict for the server
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -683,7 +801,7 @@ class Bot(discord.Client):
                         return
                     
                     await send_message(message.channel, str(self.server_data[message.guild.id]))
-                elif command == 'set_prompt':
+                elif command == 'set_prompt':  # Summon unicorns
                     if message.guild.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -697,7 +815,7 @@ class Bot(discord.Client):
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {}
                     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': {}}
+                        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
                     
                     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
                     
