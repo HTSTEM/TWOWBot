@@ -26,8 +26,8 @@ from ruamel.yaml import YAML
 import discord
 
 
-TOKEN = open('bot-token.txt').read()
-DEVELOPERS = [161508165672763392, 312615171191341056]
+TOKEN = open('bot-token.txt').read().split('\n')[0] #stupid file endings
+DEVELOPERS = [161508165672763392, 312615171191341056, 240995021208289280]
 
 RESPONSES_PER_SLIDE = 8
 
@@ -60,9 +60,6 @@ class Bot(discord.Client):
         if not os.path.exists('round{}.yml'.format(ROUND)):
             open('round{}.yml'.format(ROUND), 'w').close()
         self.yaml = YAML(typ='safe')
-        
-        with open('round{}.yml'.format(ROUND)) as data_file:
-            self.data = self.yaml.load(data_file)
             
         with open('server_data/servers.yml') as data_file:
             self.servers = self.yaml.load(data_file)
@@ -72,13 +69,6 @@ class Bot(discord.Client):
             if '{}.yml'.format(i) in os.listdir('server_data'):
                 with open('server_data/{}.yml'.format(i)) as data_file:
                     self.server_data[i] = self.yaml.load(data_file)
-        
-        if self.data['responses'] is None:
-            self.data['responses'] = {}
-        if self.data['slides'] is None:
-            self.data['slides'] = {}
-        if self.data['votes'] is None:
-            self.data['votes'] = {}
     
         @self.event
         async def on_ready():
@@ -94,8 +84,6 @@ class Bot(discord.Client):
                     await to.send(msg)
 
         def save_data():
-            with open('round{}.yml'.format(ROUND), 'w') as data_file:
-                self.yaml.dump(self.data, data_file)
             with open('server_data/servers.yml', 'w') as data_file:
                 self.yaml.dump(self.servers, data_file)
             for i in self.server_data.items():
@@ -148,66 +136,6 @@ class Bot(discord.Client):
                         embed = discord.Embed(colour=colour, title=raw_args, description='```py\n{}```'.format(result))
                         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
                         await message.channel.send(embed=embed)
-                    
-                    # Only works on TLOW
-                    elif command == 'set_response_leg':  # Legacy. Replaced by `.respond`.
-                        uid = args[0]
-                        resp = ' '.join(args[1:])
-                        self.data['responses'][uid] = resp
-                        save_data()
-                        await message.channel.send('Wubba Lubba Dub Dub!')
-                    elif command == 'gen_slides_leg':  # Legacy. No longer needed.
-                        slides_no = 3
-                        per_slide = math.ceil(len(self.data['responses']) / slides_no * 2)
-                        
-                        chunks = [[] for i in range(slides_no)]
-                        
-                        print(per_slide, chunks)
-                        
-                        pos = 0
-                        while not all([len(i) >= per_slide for i in chunks]):
-                            for i in self.data['responses'].items():
-                                if len(chunks[pos]) >= per_slide:
-                                    pos += 1
-                                if pos >= slides_no:
-                                    pos = 0
-                                chunks[pos].append(i)
-                                
-                                if all([len(i) >= per_slide for i in chunks]):
-                                    break
-
-                        for chunk in chunks:
-                            random.shuffle(chunk)
-                        
-                        slides = {}
-                        for chunk in chunks:
-                            name = None
-                            while name is None or name in slides:
-                                name = random.choice(SLIDE_NAMES)
-                            slides[name] = {}
-                            for n, i in enumerate(chunk):
-                                slides[name][string.ascii_uppercase[n]] = i[0]
-                        
-                        self.data['slides'] = slides
-                        save_data()
-                        
-                        await send_message(message.channel, 'Wubba Lubba Dub Dub!')
-                    elif command == 'list_responses_leg':  # Legacy. Replaced by `.responses`.
-                        msg = ''
-                        for uid, response in self.data['responses'].items():
-                            user = self.get_user(int(uid))
-                            if user is None:
-                                await send_message(message.channel, 'User with ID {} not found.'.format(uid))
-                                continue
-                            
-                            msg += '**{}**:\n{}**{}**\n'.format(user.name, response, '-'*100)
-                            
-                            if len(msg) > 1000:
-                                await message.channel.send(msg)
-                                msg = ''
-
-                        if msg:
-                            await message.channel.send(msg)
                 
                 # General util                
                 if command == 'help':
@@ -275,238 +203,6 @@ class Bot(discord.Client):
                     await message.channel.send(embed=embed)
                 elif command == 'ping':
                     await send_message(message.channel, 'Pong')
-
-                # Only works on TLOW
-                elif command == 'slides_leg':  # Legacy. Replaced by `.vote`
-                    if len(self.data['slides']) == 0:
-                        await send_message(message.channel, 'There aren\'t any voting slides yet.. I\'d try again later.')
-                        return
-                    
-                    if not raw_args:
-                        m = '**Avalible slides this round:**\n'
-                        m += '\n'.join(['**`{}`**'.format(i) for i in self.data['slides'].keys()])
-                        m += '\n*Use `.slides <slide name>` to view a slide.*'
-                        
-                        await send_message(message.channel, m)
-                    else:
-                        if raw_args not in self.data['slides']:
-                            await send_message(message.channel, 'No slide named `{}` found. Sorry about that.'.format(raw_args.replace('@', '@\u200b')))
-                            return
-                        
-                        msg = '**Submissions in slide `{}`:**\n\n'.format(raw_args)
-                        
-                        for i in self.data['slides'][raw_args].items():
-                            msg += ':regional_indicator_{}:\n```{}```**{}**\n'.format(i[0].lower(), self.data['responses'][i[1]][3:-3].replace('`', '`\u200b'), '-'*100)
-                            
-                            if len(msg) > 1000:
-                                await message.channel.send(msg)
-                                msg = ''
-
-                        if msg:
-                            await message.channel.send(msg)
-                elif command == 'usercount_leg':
-                    await send_message(message.channel, 'There are currenty {} memebers.'.format(message.guild.member_count))
-                elif command == 'contestants_leg':
-                    if message.guild.large:
-                        await self.request_offline_members(message.guild)
-                    
-                    dead_r = None
-                    alive_r = None
-                    contestants = 0
-                    
-                    for member in message.guild.members:
-                        if dead_r is None:
-                            for role in member.roles:
-                                if role.id == DEAD_ID:
-                                    dead_r = role
-                        if alive_r is None:
-                            for role in member.roles:
-                                if role.id == ALIVE_ID:
-                                    alive_r = role
-                        
-                        if alive_r is not None and alive_r in member.roles:
-                            contestants += 1
-                        elif dead_r is not None and dead_r in member.roles:
-                            contestants += 1
-                    
-                    await send_message(message.channel, 'There are {} contestants so far this season.'.format(contestants))
-                elif command == 'alive_leg':
-                    if message.guild.large:
-                        await self.request_offline_members(message.guild)
-                    
-                    dead_r = None
-                    alive_r = None
-                    alive = 0
-                    dead = 0
-                    
-                    for member in message.guild.members:
-                        if dead_r is None:
-                            for role in member.roles:
-                                if role.id == DEAD_ID:
-                                    dead_r = role
-                        if alive_r is None:
-                            for role in member.roles:
-                                if role.id == ALIVE_ID:
-                                    alive_r = role
-                        
-                        if alive_r is not None and alive_r in member.roles:
-                            alive += 1
-                        elif dead_r is not None and dead_r in member.roles:
-                            dead += 1
-                    
-                    await send_message(message.channel, '{} out of {} contestants are alive.'.format(alive, alive + dead))
-                elif command == 'dead_leg':
-                    if message.guild.large:
-                        await self.request_offline_members(message.guild)
-                    
-                    dead_r = None
-                    alive_r = None
-                    alive = 0
-                    dead = 0
-                    
-                    for member in message.guild.members:
-                        if dead_r is None:
-                            for role in member.roles:
-                                if role.id == DEAD_ID:
-                                    dead_r = role
-                        if alive_r is None:
-                            for role in member.roles:
-                                if role.id == ALIVE_ID:
-                                    alive_r = role
-                        
-                        if alive_r is not None and alive_r in member.roles:
-                            alive += 1
-                        elif dead_r is not None and dead_r in member.roles:
-                            dead += 1
-                    
-                    await send_message(message.channel, '{} out of {} contestants are dead.'.format(dead, alive + dead))
-                elif command in ['nts_leg', 'needstosubmit_leg']:
-                    if message.guild.large:
-                        await self.request_offline_members(message.guild)
-                    
-                    dead_r = None
-                    alive_r = None
-                    nts_r = None
-                    alive = 0
-                    dead = 0
-                    nts = 0
-                    
-                    for member in message.guild.members:
-                        if dead_r is None:
-                            for role in member.roles:
-                                if role.id == DEAD_ID:
-                                    dead_r = role
-                        if alive_r is None:
-                            for role in member.roles:
-                                if role.id == ALIVE_ID:
-                                    alive_r = role
-                        if nts_r is None:
-                            for role in member.roles:
-                                if role.id == NTS_ID:
-                                    nts_r = role
-                        
-                        if alive_r is not None and alive_r in member.roles:
-                            alive += 1
-                        elif dead_r is not None and dead_r in member.roles:
-                            dead += 1
-                        if nts_r is not None and nts_r in member.roles:
-                            nts += 1
-                    
-                    await send_message(message.channel, '{} out of {} contestants still need to submit.'.format(nts, alive + dead))
-                elif command == 'responses_leg':  # Legacy. No replacement yet.
-                    await send_message(message.channel, 'I\'ve got {} responses recorded so far.'.format(len(self.data['responses'])))
-                elif command == 'vote_leg':  # Legacy. Replaced by `.vote`.
-                    if not raw_args:
-                        await send_message(message.channel, 'Provided voting is open, you can see the slides at {}.\nTo vote, do `.vote <your vote>` either here or in a DM with me.'.format(VOTE_URL))
-                    else:
-                        if len(self.data['slides']) == 0:
-                            await send_message(message.channel, 'There aren\'t any voting slides yet.. I\'d try again later.')
-                            return
-                    
-                        per_slide = len(self.data['slides'][list(self.data['slides'].keys())[0]])
-                    
-                        raw_args = raw_args.upper()
-                        found = re.findall(VOTE_REGEX.format(string.ascii_uppercase[per_slide - 1]), raw_args)
-                                
-                        if len(found) < 1:
-                            if not isinstance(message.channel, discord.abc.PrivateChannel):
-                                await send_message(message.author, 'Your vote doesn\'t seem to be in the right form.\nIt should follow the form `[<SLIDE NAME> <YOUR VOTE>]`.\nFor example: `[LAMBDA ABCDEFGHIJ]`')
-                                await send_message(message.author, 'Your vote was `{}` for reference.'.format(raw_args))
-                                await message.delete()
-                                
-                                await send_message(message.channel, ':mailbox_with_mail: {}'.format(message.author.mention))
-                            else:
-                                await send_message(message.channel, 'Your vote doesn\'t seem to be in the right form.\nIt should follow the form `[<SLIDE NAME> <YOUR VOTE>]`.\nFor example: `[LAMBDA ABCDEFGHIJ]`')
-                            return
-                            
-                        for f in found:
-                            slide, vote = f
-                            
-                            seen = []
-                            for i in vote:
-                                if i not in seen:
-                                    seen.append(i)
-                                else:                        
-                                    if not isinstance(message.channel, discord.abc.PrivateChannel):
-                                        await send_message(message.author, 'Please don\'t repeat any submissions in the same vote.')
-                                        await send_message(message.author, 'Your vote was `{}` for reference.'.format(raw_args))
-                                        await message.delete()
-                                        
-                                        await send_message(message.channel, ':mailbox_with_mail: {}'.format(message.author.mention))
-                                    else:
-                                        await send_message(message.channel, 'Please don\'t repeat any submissions in the same vote.')
-                                    continue
-                                
-                            if len(vote) != per_slide:
-                                if not isinstance(message.channel, discord.abc.PrivateChannel):
-                                    await send_message(message.author, 'Please vote on all {} submissions on the slide exactly once.'.format(per_slide))
-                                    await send_message(message.author, 'Your vote was `{}` for reference.'.format(raw_args))
-                                    await message.delete()
-                                    
-                                    await send_message(message.channel, ':mailbox_with_mail: {}'.format(message.author.mention))
-                                else:
-                                    await send_message(message.channel, 'Please vote on all {} submissions on the slide exactly once.'.format(per_slide))
-                                continue
-                            
-                            # TODO: Move all voting over to the bot and the here there would be checks
-                            #       to see if the user has already voted on that slide.
-                            if slide not in self.data['slides']:
-                                if not isinstance(message.channel, discord.abc.PrivateChannel):
-                                    await send_message(message.author, 'No slide found called `{}` was found.'.format(slide.replace('@', '@\u200b')))
-                                    await send_message(message.author, 'Your vote was `{}` for reference.'.format(raw_args))
-                                    await message.delete()
-                                    
-                                    await send_message(message.channel, ':mailbox_with_mail: {}'.format(message.author.mention))
-                                else:
-                                    await send_message(message.channel, 'No slide found called `{}` was found.'.format(slide.replace('@', '@\u200b')))
-                                continue
-                            
-                            vote_id = '{}-{}'.format(message.author.id, slide)
-                            if vote_id in self.data['votes']:
-                                if not isinstance(message.channel, discord.abc.PrivateChannel):
-                                    await send_message(message.author, 'You have already voted on this slide.')
-                                    await send_message(message.author, 'Your vote was `{}` for reference.'.format(raw_args))
-                                    await message.delete()
-                                    
-                                    await send_message(message.channel, ':mailbox_with_mail: {}'.format(message.author.mention))
-                                else:
-                                    await send_message(message.channel, 'You have already voted on this slide.')
-                                continue
-                            
-                            self.data['votes'][vote_id] = vote
-                            save_data()
-                            
-                            collector = self.get_user(VOTE_COLLECTOR)
-                            await collector.send('{} has voted on slide `{}` with `{}`!'.format(message.author.name, slide, vote))
-                            
-                            if not isinstance(message.channel, discord.abc.PrivateChannel):
-                                await send_message(message.author, 'Your vote has been recorded. Thank you!'.format(collector.name))
-                                await send_message(message.author, 'Your vote was `{}` for reference.'.format(raw_args))
-                                await message.delete()
-                                
-                                await send_message(message.channel, ':mailbox_with_mail: {}'.format(message.author.mention))
-                            else:
-                                await send_message(message.channel, 'Your vote has been recorded. Thank you!'.format(collector.name))
                 
                 # TWOW-Bot ready!
                 elif command == 'id':  # Gets the server ID used in voting
