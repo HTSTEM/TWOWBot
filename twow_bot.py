@@ -141,7 +141,7 @@ class Bot(discord.Client):
                     }
                     n = len(max(list(commands.keys()), key=lambda x:len(x)))
                     
-                    d = '```ini\n[ ====  RickBot help  ==== ]\n'
+                    d = '```ini\n[ ====  TwowBot help  ==== ]\n'
                     
                     if not raw_args:
                         d += '\n'.join(['{}{}={}'.format(i[0], ' ' * (n - len(i[0]) + 1), i[1]) for i in commands.items()])
@@ -165,7 +165,7 @@ class Bot(discord.Client):
                                 d += '{}{}=Command not found\n'.format(i.replace('@', '@\u200b').replace('`', '`\u200b'), ' ' * (n - len(i) + 1))
                         d = d[:-1]
                         
-                    d += '\n[ Made by Bottersnike#3605 ]```'
+                    d += '\n[ Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493 ]```'
                     await send_message(message.channel, d)
                 elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
                     member = message.author
