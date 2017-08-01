@@ -42,9 +42,9 @@ BOT_HOSTER = 'Bottersnike#3605'
 class Bot(discord.Client):
     def __init__(self):
         discord.Client.__init__(self)
-    
+        '''
         if not os.path.exists('round{}.yml'.format(ROUND)):
-            open('round{}.yml'.format(ROUND), 'w').close()
+            open('round{}.yml'.format(ROUND), 'w').close()'''
         self.yaml = YAML(typ='safe')
             
         with open('server_data/servers.yml') as data_file:
@@ -58,7 +58,8 @@ class Bot(discord.Client):
     
         @self.event
         async def on_ready():
-            print('Wubba Lubba Dub Dub!')
+            print('Logged in as {}#{}'.format(self.user.name,self.user.discriminator))
+            print(self.user.id)
 
         async def send_message(to, msg):
             if len(msg) > 1500:
