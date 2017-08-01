@@ -374,13 +374,13 @@ class Bot(discord.Client):
                         await send_message(message.channel, 'There\'s no prompt.. How can you even?')
                         return
                     
-                    for role in self.get_channel(s_ids[id]).roles:
+                    for role in self.get_channel(s_ids[id]).guild.roles:
                         if role.id == sd['ids']['alive']:
                             alive_role = role
                             break
                     else:
                         alive_role = None
-                    member = self.get_channel(s_ids[id]).get_member(int(message.author.id))
+                    member = self.get_channel(s_ids[id]).guild.get_member(int(message.author.id))
                     if sd['round'] > 1 and alive_role not in member.roles:
                         await send_message(message.channel, 'You are unable to submit this round. Please wait for the next season.')
                         return
@@ -577,12 +577,12 @@ class Bot(discord.Client):
                         #                await e[1].add_roles(dead_role, reason='Contestant eliminated')
                                                 
                         
-                        if message.channel.large:
+                        if message.channel.guild.large:
                             await self.request_offline_members(message.channel)
                     
                         alive_r = None
                         
-                        for member in message.channel.members:
+                        for member in message.channel.guild.members:
                             if alive_r is None:
                                 for role in member.roles:
                                     if role.id == ALIVE_ID:
