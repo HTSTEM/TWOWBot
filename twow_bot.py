@@ -35,6 +35,8 @@ SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
 
 ELIMINATION = 0.6  # Fraction of results that are safe
 
+PREFIX = '.'
+
 # This is used in error messages where the hoster might need to manually
 # change some of the .yml files
 BOT_HOSTER = 'Bottersnike#3605'
@@ -76,8 +78,8 @@ class Bot(discord.Client):
                
         @self.event
         async def on_message(message):
-            if message.content.startswith('.'):
-                raw_command = message.content[1:]
+            if message.content.startswith(PREFIX) and not message.content.startswith(PREFIX*2):
+                raw_command = message.content[len(PREFIX):]
                 command = raw_command.split(' ')[0].lower()
                 
                 raw_args = raw_command[len(command) + 1:].strip()
@@ -89,8 +91,6 @@ class Bot(discord.Client):
                     elif command == 'die':  # Logout
                         await send_message(message.channel, ':wave:')
                         await self.logout()
-                    elif command == 'invite':  # Get the RickBot invite url
-                        await send_message(message.channel, '<https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot>')
                     elif command == 'role_ids':  # DM a list of the IDs of all the roles
                         await send_message(message.author,
                             '\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
@@ -125,24 +125,30 @@ class Bot(discord.Client):
                 # General util                
                 if command == 'help':
                     commands = {
-                        'help': 'This message',
-                        'ping': 'Ping the bot',
-                        'me': 'Get info about yourself (also aboutme)',
-                        'usercount': 'Get the server user count',
-                        'contestants': 'Get the number of contestants',
-                        'alive': 'Get the number of alive contestants',
-                        'dead': 'Get the number of dead contestants',
-                        'nts': 'Get the number of people who need to submit still (also needtosubmit)',
-                        'responses': 'Get the number of responses stored in the bot',
-                        'slides': 'View the slides for voting',
-                        'vote': 'Vote!!',
+                        'help':('[command]','get help on commands.'),
+                        'ping':('','ping the bot.'),
+                        'invite':('','invite the bot to your server.'),
+                        'id':('','get the twow id of the current channel.'),
+                        'prompt':('','get the prompt of the current channel.'),
+                        'season':('','get the season of the current channel.'),
+                        'round':('','get the round of the current channel'),
+                        'respond':('<mtwow id> <response>','respond to a prompt.'),
+                        'vote':('<mtwow id> [vote]','vote on a minitwow.'),
+                        'register':('<mtwow id>','registers the current channel with an id'),
+                        'show_config':('[mtwow id]','get the database for a channel.'),
+                        'responses':('[mtwow id]','get the responses for this round.'),
+                        'set_prompt':('<prompt>','set the prompt for the current channel.'),
+                        'start_voting':('','starts voting for the current channel.'),
+                        'results':('','get the results for the current channel'),
+                        'transfer':('<user>','transfer ownership of mtwow to someone else'),
+                        'delete':('','delete the current mtwow.')
                     }
                     n = len(max(list(commands.keys()), key=lambda x:len(x)))
                     
-                    d = '```ini\n[ ====  TwowBot help  ==== ]\n'
+                    d = '[ ====  TwowBot help  ==== ]\n'
                     
                     if not raw_args:
-                        d += '\n'.join(['{}{}={}'.format(i[0], ' ' * (n - len(i[0]) + 1), i[1]) for i in commands.items()])
+                        d += '\n'.join(['`{}{} {}` - {}'.format(PREFIX,i[0], i[1][0], i[1][1]) for i in commands.items()])
                     else:
                         while '  ' in raw_args:
                             raw_args = raw_args.replace('  ', ' ')
@@ -158,12 +164,12 @@ class Bot(discord.Client):
                     
                         for i in passed:
                             if i in commands:
-                                d += '{}{}={}\n'.format(i, ' ' * (n - len(i) + 1), commands[i])
+                                d += '`{}{} {}` - {}'.format(PREFIX, i, commands[i][0], commands[i][1])
                             else:
                                 d += '{}{}=Command not found\n'.format(i.replace('@', '@\u200b').replace('`', '`\u200b'), ' ' * (n - len(i) + 1))
                         d = d[:-1]
                         
-                    d += '\n[ Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493 ]```'
+                    d += '\n[ Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493 ]'
                     await send_message(message.channel, d)
                 elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
                     member = message.author
@@ -238,7 +244,8 @@ class Bot(discord.Client):
                         return
                     
                     if len(args) > 2 or not args[0]:
-                        await send_message(message.channel, 'Usage: `.vote <TWOW id> [vote]\nUse `.id` in the channel to get the id.')
+                        await send_message(message.channel, 
+                            'Usage: `{}vote <TWOW id> [vote]\nUse `.id` in the channel to get the id.'.format(PREFIX))
                         return
                     
                     id = args[0]
@@ -345,7 +352,8 @@ class Bot(discord.Client):
                         return
                     
                     if len(args) < 2:
-                        await send_message(message.channel, 'Usage: `.respond <TWOW id> <response>`\nUse `.id` in the channel to get the id.')
+                        await send_message(message.channel, 
+                            'Usage: `{}respond <TWOW id> <response>`\nUse `.id` in the channel to get the id.'.format(PREFIX))
                         return
                     
                     id, response = raw_args.split(' ', 1)
@@ -647,9 +655,10 @@ class Bot(discord.Client):
                         if owner is not None:
                             await send_message(message.channel, 'This channel is already setup. The owner is {}.'.format(owner.name.replace('@', '@\u200b')))
                         else:
-                            await send_message(message.channel, 'I can\'t find the owner of this minitwow. Please contact {} to resolve this.'.format(BOT_HOSTER))
+                            await send_message(message.channel, 
+                                'I can\'t find the owner of this minitwow. Please contact {} to resolve this.'.format(BOT_HOSTER))
                     else:
-                        if !message.channel.permissions_for(message.author).manage_channels:#if user can manage that channel
+                        if not message.channel.permissions_for(message.author).manage_channels:#if user can manage that channel
                             return
                         if raw_args:
                             if ' ' in raw_args:
@@ -684,7 +693,7 @@ class Bot(discord.Client):
                         
                             await send_message(message.channel, 'Woah! I just set up a whole mTWOW for you under the name `{}`!\nPlease now use `.setup` to configure your mTWOW before it can be used.'.format(raw_args.replace('@', '@\u200b').replace('`', '\\`')))
                         else:
-                            await send_message(message.channel, 'Usage: `.register <short identifier>')
+                            await send_message(message.channel, 'Usage: `{}register <short identifier>'.format(PREFIX))
                 
                 elif command == 'setup':  # Set congifs
                     pass
@@ -765,7 +774,7 @@ class Bot(discord.Client):
                         return
                     
                     if len(message.mentions) == 0:
-                        await send_message(message.channel, 'Usage: `.transfer <User>`')
+                        await send_message(message.channel, 'Usage: `{}transfer <User>`'.format(PREFIX))
                         return
                     sd['owner'] = message.mentions[0].id
                     save_data()
@@ -780,9 +789,9 @@ class Bot(discord.Client):
                     save_data()
                     await send_message(message.channel, 'Minitwow has been deleted.')
                     
-                
-                    
-    
+                elif command == 'invite':  # Get the RickBot invite url
+                        await send_message(message.channel, '<https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot>')
+
     def start_bot(self):
         self.run(TOKEN)
 
