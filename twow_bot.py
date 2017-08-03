@@ -595,14 +595,24 @@ class Bot(discord.Client):
                                 else:
                                     await member.remove_roles(alive_r, reason='Contestant eliminated')
                 elif command == 'responses':  # List all responses this round
-                    if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                    id = None
+                    print(args)
+                    if len(args) > 0 and args[0] != '':
+                        s_ids = {i[1]:i[0] for i in self.servers.items()}
+                        if args[0] not in s_ids:
+                            await send_message(message.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(id.replace('`', '\\`')))
+                            return
+                        id = s_ids[args[0]]
+                    else:
+                        if message.channel.id not in self.servers:
+                            await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                            return
+                        id = message.channel.id
+                        
+                    if self.server_data[id]['owner'] != message.author.id:
                         return
                         
-                    if self.server_data[message.channel.id]['owner'] != message.author.id:
-                        return
-                        
-                    sd = self.server_data[message.channel.id]
+                    sd = self.server_data[id]
                     
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -624,8 +634,8 @@ class Bot(discord.Client):
                             m = ''
                     if m:
                         await message.author.send(m)
-                    
-                    await send_message(message.channel, ':mailbox_with_mail:')
+                    if isinstance(message.channel, discord.TextChannel):
+                        await message.channel.send(':mailbox_with_mail:')
                 elif command == 'register':  # Setup server initially
                     if message.channel.id in self.servers:
                         owner = self.get_user(self.server_data[message.channel.id]['owner'])
