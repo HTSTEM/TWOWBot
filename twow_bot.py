@@ -719,7 +719,8 @@ class Bot(discord.Client):
                     if self.server_data[message.channel.id]['owner'] != message.author.id:
                         return
                     
-                    await send_message(message.channel, str(self.server_data[message.channel.id]))
+                    with open('./server_data/{}.yml'.format(message.channel.id), 'rb') as server_file:
+                        await message.channel.send(file=discord.File(server_file))
                 elif command == 'set_prompt':  # Summon unicorns
                     if message.channel.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
