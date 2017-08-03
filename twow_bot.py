@@ -131,6 +131,7 @@ class Bot(discord.Client):
                     commands = {
                         'help':('[command]','get help on commands.'),
                         'ping':('','ping the bot.'),
+                        'me':('','tells you about yourself.'),
                         'invite':('','invite the bot to your server.'),
                         'id':('','get the twow id of the current channel.'),
                         'prompt':('','get the prompt of the current channel.'),
@@ -175,6 +176,11 @@ class Bot(discord.Client):
                         
                     d += '\n[ Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493 ]'
                     await send_message(message.channel, d)
+                    
+                elif command == 'invite':  # Get the RickBot invite url
+                        await send_message(message.channel, 
+                            '<https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(self.user.id))
+                        
                 elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
                     member = message.author
                     
@@ -780,6 +786,23 @@ class Bot(discord.Client):
                     if len(message.mentions) == 0:
                         await send_message(message.channel, 'Usage: `{}transfer <User>`'.format(PREFIX))
                         return
+                    
+                    def check(m):
+                        return m.channel == message.channel and m.author == message.author and m.content[0].lower() in ['y','n']
+                    
+                    await send_message(message.channel, 
+                        'You are about to transfer your mtwow to {}. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(message.mentions[0].name))
+                    resp = None
+                    try:
+                        resp = await self.wait_for('message', check=check, timeout=60)
+                    except asyncio.TimeoutError:
+                        await send_message(message.channel, 'Transfer Cancelled.')
+                        return
+                    
+                    if resp.content[0].lower() != 'y':
+                        await send_message(message.channel, 'Transfer Cancelled.')
+                        return
+
                     sd['owner'] = message.mentions[0].id
                     save_data()
                     await send_message(message.channel, 'Minitwow has been transfered to {}.'.format(message.mentions[0].name))
@@ -789,14 +812,28 @@ class Bot(discord.Client):
                         await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
+                     def check(m):
+                        return m.channel == message.channel and m.author == message.author and m.content[0].lower() in ['y','n']
+                    
+                    await send_message(message.channel, 
+                        'You are about to delete your mtwow. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(message.mentions[0].name))
+                    resp = None
+                    try:
+                        resp = await self.wait_for('message', check=check, timeout=60)
+                    except asyncio.TimeoutError:
+                        await send_message(message.channel, 'Transfer Cancelled.')
+                        return
+                    
+                    if resp.content[0].lower() != 'y':
+                        await send_message(message.channel, 'Transfer Cancelled.')
+                        return
+                    
                     save_archive(message.channel.id)
                     self.servers.pop(message.channel.id, None)
                     self.server_data.pop(message.channel.id,None)
                     save_data()
                     await send_message(message.channel, 'Minitwow has been deleted.')
                     
-                elif command == 'invite':  # Get the RickBot invite url
-                        await send_message(message.channel, '<https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot>')
 
     def start_bot(self):
         self.run(TOKEN)
