@@ -752,6 +752,34 @@ class Bot(discord.Client):
                         round['prompt'] = raw_args.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
                         save_data()
                         return
+                
+                elif command == 'transfer':
+                    if message.channel.id not in self.servers:
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        return
+                    
+                    sd = self.server_data[message.channel.id]
+                    if sd['owner'] != message.author.id:
+                        return
+                    
+                    if len(message.mentions) == 0:
+                        await send_message(message.channel, 'Usage: `.transfer <User>`')
+                        return
+                    sd['owner'] = message.mentions[0].id
+                    save_data()
+                    await send_message(message.channel, 'Minitwow has been transfered to {}.'.format(message.mentions[0].name))
+                    
+                elif command == 'delete':
+                    if message.channel.id not in self.servers:
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        return
+                    
+                    self.servers.pop(message.channel.id, None)
+                    save_data()
+                    await send_message(message.channel, 'Minitwow has been deleted.')
+                    
+                
+                    
     
     def start_bot(self):
         self.run(TOKEN)
