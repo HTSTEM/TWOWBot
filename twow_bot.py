@@ -389,6 +389,9 @@ class Bot(discord.Client):
                         await send_message(message.channel, '**Warning! Overwriting current response!**')
                     if len(response.split(' ')) > 10:
                         await send_message(message.channel, '**Warning! Your response looks to be over 10 words ({}).**\nThis can be ignored if you are playing a variation TWOW that doesn\'t have this limit'.format(len(response.split(' '))))
+                    if len(response) > 140:
+                        await send_message(message.channel, 'That is a lot of characters. Why don\'t we tone it down a bit?')
+                        return
                     
                     changed = False
                     with open('banned_words.txt') as bw:
