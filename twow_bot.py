@@ -95,7 +95,7 @@ class Bot(discord.Client):
                         await send_message(message.author,
                             '\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
                         await send_message(message.channel,':mailbox_with_mail:')
-                    elif command == 'eval':  # NEEDS TO BE MADE OWNER ONLY!
+                    elif command == 'eval':  #TODO NEEDS TO BE MADE OWNER ONLY!
                         result = None
                         env = {
                             'channel': message.channel,
@@ -649,6 +649,8 @@ class Bot(discord.Client):
                         else:
                             await send_message(message.channel, 'I can\'t find the owner of this minitwow. Please contact {} to resolve this.'.format(BOT_HOSTER))
                     else:
+                        if !message.channel.permissions_for(message.author).manage_channels:#if user can manage that channel
+                            return
                         if raw_args:
                             if ' ' in raw_args:
                                 await send_message(message.channel, 'No spaces in the identifier please')
