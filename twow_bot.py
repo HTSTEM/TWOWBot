@@ -241,7 +241,6 @@ class Bot(discord.Client):
                     if len(args) > 2 or not args[0]:
                         await send_message(message.channel, 'Usage: `.vote <TWOW id> [vote]\nUse `.id` in the server to get the id.')
                         return
-                    print(args)
                     
                     id = args[0]
                     
@@ -283,7 +282,7 @@ class Bot(discord.Client):
                                             responses.append([i, 1])
                             responses.sort(key=lambda x:x[1])
 
-                            if len(responses) == 0:
+                            if len(responses) < 2:
                                 await send_message(message.author, 'I don\'t have enough responses to formulate a slide. Sorry.')
                                 return
                             
@@ -514,8 +513,7 @@ class Bot(discord.Client):
                                 symbol = SUPERSCRIPT[2]
                         else:
                             symbol = SUPERSCRIPT[3]
-                    
-                        dead = n > ELIMINATION * len(totals)
+                        dead = n > min(ELIMINATION * len(totals),len(totals)-2)
                         if dead:
                             eliminated.append((name, user, v))
                         else:
@@ -524,8 +522,7 @@ class Bot(discord.Client):
                         msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':coffin:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']].decode('utf-8'), name, builtins.round(score, 2), builtins.round(stdev, 2))
 
                         await asyncio.sleep(len(totals) - n / 2)
-                        await message.channel.send(msg)
-                        
+                        await message.channel.send(msg)  
                     user = message.guild.get_member(totals[0]['name'])
                     if user is not None:
                         name = user.mention
@@ -559,7 +556,8 @@ class Bot(discord.Client):
                         await message.channel.send('**We\'re now on round {}!**'.format(sd['round']))
                         
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
-                        sd['seasons']['season-{}'.format(sd['season'])] = {}
+                        sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
+                        
                     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
                         sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
                     
@@ -568,18 +566,17 @@ class Bot(discord.Client):
                     save_data()
                     
                     # Oh yeah, and kill off dead people
-                    if alive_role is not None:
-                        #for e in eliminated:
-                        #    if e[1] is not None:
-                        #        if alive_role in e[1].roles:
-                        #            await e[1].remove_roles(alive_role, reason='Contestant eliminated')
-                        #            if dead_role is not None:
-                        #                await e[1].add_roles(dead_role, reason='Contestant eliminated')
-                                                
-                        
+                    if alive_role is not None and dead_role is not None:
                         if message.guild.large:
                             await self.request_offline_members(message.channel)
-                    
+                        for e in eliminated:
+                            if e[1] is not None:
+                                if alive_role in e[1].roles:
+                                    await e[1].remove_roles(alive_role, reason='Contestant eliminated')
+                                    if dead_role is not None:
+                                        await e[1].add_roles(dead_role, reason='Contestant eliminated')
+                                                
+                        '''
                         alive_r = None
                         
                         for member in message.guild.members:
@@ -594,9 +591,9 @@ class Bot(discord.Client):
                                         break
                                 else:
                                     await member.remove_roles(alive_r, reason='Contestant eliminated')
+                        '''
                 elif command == 'responses':  # List all responses this round
                     id = None
-                    print(args)
                     if len(args) > 0 and args[0] != '':
                         s_ids = {i[1]:i[0] for i in self.servers.items()}
                         if args[0] not in s_ids:
