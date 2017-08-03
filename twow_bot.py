@@ -372,17 +372,19 @@ class Bot(discord.Client):
                     if round['prompt'] is None:
                         await send_message(message.channel, 'There\'s no prompt.. How can you even?')
                         return
-                    
+                    '''
                     for role in self.get_channel(s_ids[id]).guild.roles:
                         if role.id == sd['ids']['alive']:
                             alive_role = role
                             break
                     else:
-                        alive_role = None
+                        alive_role = None'''
                     member = self.get_channel(s_ids[id]).guild.get_member(int(message.author.id))
-                    if sd['round'] > 1 and alive_role not in member.roles:
+                    if sd['round'] > 1 and message.author.id not in sd['alive']:
                         await send_message(message.channel, 'You are unable to submit this round. Please wait for the next season.')
                         return
+                    elif sd['round'] == 1 and message.author.id not in sd['alive']:
+                        sd['alive'].append(member.id)
                     
                     if message.author.id in round['responses']:
                         await send_message(message.channel, '**Warning! Overwriting current response!**')
@@ -515,6 +517,8 @@ class Bot(discord.Client):
                             symbol = SUPERSCRIPT[3]
                         dead = n > min(ELIMINATION * len(totals),len(totals)-2)
                         if dead:
+                            if user.id in sd['alive']:
+                                sd['alive'].remove(user.id)
                             eliminated.append((name, user, v))
                         else:
                             living.append((name, user, v))
@@ -532,7 +536,7 @@ class Bot(discord.Client):
                     await message.channel.send(msg)
                     
                     await message.channel.send('Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
-                    
+                    '''
                     for role in message.guild.roles:
                         if role.id == sd['ids']['alive']:
                             alive_role = role
@@ -544,7 +548,7 @@ class Bot(discord.Client):
                             dead_role = role
                             break
                     else:
-                        dead_role = None
+                        dead_role = None'''
                     
                     # Do all the round incrementing and stuff.
                     if len(totals) - len(eliminated) <= 1:
@@ -557,7 +561,7 @@ class Bot(discord.Client):
                         
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
-                        
+                        sd['alive'] = []
                     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
                         sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
                     
@@ -566,6 +570,7 @@ class Bot(discord.Client):
                     save_data()
                     
                     # Oh yeah, and kill off dead people
+                    '''
                     if alive_role is not None and dead_role is not None:
                         if message.guild.large:
                             await self.request_offline_members(message.channel)
@@ -576,7 +581,7 @@ class Bot(discord.Client):
                                     if dead_role is not None:
                                         await e[1].add_roles(dead_role, reason='Contestant eliminated')
                                                 
-                        '''
+                        
                         alive_r = None
                         
                         for member in message.guild.members:
@@ -654,11 +659,7 @@ class Bot(discord.Client):
                             s['round'] = 1
                             s['season'] = 1
                             s['voting'] = False
-                            s['ids'] = {
-                                'dead': None,
-                                'alive': None,
-                                'nts': None
-                            }
+                            s['alive'] = []
                             s['seasons'] = {'season-1':
                                             {'rounds':
                                              {'round-1':
@@ -669,7 +670,7 @@ class Bot(discord.Client):
                                               }
                                              }
                                             }
-                            }
+                                           }
                             
                             self.server_data[message.channel.id] = s
                             self.servers[message.channel.id] = raw_args
@@ -679,7 +680,10 @@ class Bot(discord.Client):
                             await send_message(message.channel, 'Woah! I just set up a whole mTWOW for you under the name `{}`!\nPlease now use `.setup` to configure your mTWOW before it can be used.'.format(raw_args.replace('@', '@\u200b').replace('`', '\\`')))
                         else:
                             await send_message(message.channel, 'Usage: `.register <short identifier>')
+                
                 elif command == 'setup':  # Set congifs
+                    pass
+                    '''
                     if message.channel.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
@@ -706,7 +710,8 @@ class Bot(discord.Client):
                     save_data()
                     
                     await send_message(message.channel, 'Wubba lubba dub dub! (Done)')
-                elif command == 'show_config':  # More deguggy really, returns the dict for the server
+                    '''
+                elif command == 'show_config':
                     if message.channel.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
                         return
