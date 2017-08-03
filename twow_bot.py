@@ -266,10 +266,6 @@ class Bot(discord.Client):
                     
                     if len(args) == 1:  # New slides needed!
                         if message.author.id not in round['slides']:
-                            for vote in round['votes']:
-                                if vote['voter'] == message.author.id:
-                                    await message.channel.send('You have already voted!')
-                                    return
                             # Sort all responses based off their number of votes
                             responses = [[i, 0] for i in round['responses']]
                             for i in responses:
