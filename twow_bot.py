@@ -812,7 +812,7 @@ class Bot(discord.Client):
                         await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
-                     def check(m):
+                    def check(m):
                         return m.channel == message.channel and m.author == message.author and m.content[0].lower() in ['y','n']
                     
                     await send_message(message.channel, 
