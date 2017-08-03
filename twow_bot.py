@@ -62,13 +62,10 @@ class Bot(discord.Client):
             print(self.user.id)
 
         async def send_message(to, msg):
-            if len(msg) > 1500:
-                await to.send('I might be the cleverest guy in the universe, but I can\'t handle messages over 1500 characters yet.\nThe message started with: ```\n{}```'.format(msg[:1000].replace('`', '`\u200b')))
+            if len(msg) > 2000:
+                await to.send('Whoops! Discord won\'t let me send messages over 1500 characters yet.\nThe message started with: ```\n{}```'.format(msg[:1000].replace('`', '`\u200b')))
             else:
-                if not random.randint(0, 4):
-                    await to.send(msg + ' *Burp*')
-                else:
-                    await to.send(msg)
+                await to.send(msg)
 
         def save_data():
             with open('server_data/servers.yml', 'w') as data_file:
@@ -95,8 +92,9 @@ class Bot(discord.Client):
                     elif command == 'invite':  # Get the RickBot invite url
                         await send_message(message.channel, '<https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot>')
                     elif command == 'role_ids':  # DM a list of the IDs of all the roles
-                        await message.author.send('\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
-                        await message.channel.send(':mailbox_with_mail:')
+                        await send_message(message.author,
+                            '\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
+                        await send_message(message.channel,':mailbox_with_mail:')
                     elif command == 'eval':  # NEEDS TO BE MADE OWNER ONLY!
                         result = None
                         env = {
@@ -194,12 +192,13 @@ class Bot(discord.Client):
                 # TWOW-Bot ready!
                 elif command == 'id':  # Gets the server ID used in voting
                     if message.channel.id in self.servers:
-                        await send_message(message.channel, 'This server\'s identifier is `{}`'.format(self.servers[message.channel.id]))
+                        await send_message(message.channel, 
+                            'This minitwow\'s identifier is `{}`'.format(self.servers[message.channel.id]))
                     else:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data. If this is an error, please contact {}.'.format(BOT_HOSTER))
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data. If this is an error, please contact {}.'.format(BOT_HOSTER))
                 elif command == 'prompt':  # Gets the current prompt
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -218,7 +217,7 @@ class Bot(discord.Client):
                     await send_message(message.channel, 'The current prompt is:\n{}\n'.format(round['prompt'].decode('utf-8')))
                 elif command == 'season':  # Gets the current season number
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -226,7 +225,7 @@ class Bot(discord.Client):
                     await send_message(message.channel, 'We are on season {}'.format(sd['season']))
                 elif command == 'round':  # Get the current round number
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -239,7 +238,7 @@ class Bot(discord.Client):
                         return
                     
                     if len(args) > 2 or not args[0]:
-                        await send_message(message.channel, 'Usage: `.vote <TWOW id> [vote]\nUse `.id` in the server to get the id.')
+                        await send_message(message.channel, 'Usage: `.vote <TWOW id> [vote]\nUse `.id` in the channel to get the id.')
                         return
                     
                     id = args[0]
@@ -305,10 +304,10 @@ class Bot(discord.Client):
                         for n, i in enumerate(slide):
                             m += '\n:regional_indicator_{}: {}'.format(string.ascii_lowercase[n], round['responses'][i].decode())
                             if len(m) > 1500:
-                                await message.channel.send(m)
+                                await send_message(message.channel,m)
                                 m = ''
                         if m:
-                            await message.channel.send(m)
+                            await send_message(message.channel,m)
                     else:
                         id, vote_str = raw_args.upper().split(' ')
                         if message.author.id not in round['slides']:
@@ -346,7 +345,7 @@ class Bot(discord.Client):
                         return
                     
                     if len(args) < 2:
-                        await send_message(message.channel, 'Usage: `.respond <TWOW id> <response>`\nUse `.id` in the server to get the id.')
+                        await send_message(message.channel, 'Usage: `.respond <TWOW id> <response>`\nUse `.id` in the channel to get the id.')
                         return
                     
                     id, response = raw_args.split(' ', 1)
@@ -410,7 +409,7 @@ class Bot(discord.Client):
                 # TWOW owner only commands
                 elif command == 'start_voting':
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -428,7 +427,7 @@ class Bot(discord.Client):
                     return
                 elif command == 'results':  # Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -480,7 +479,7 @@ class Bot(discord.Client):
                     msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
                     
                     await message.delete()
-                    await message.channel.send(msg)
+                    await send_message(message.channel,msg)
                     
                     eliminated = []
                     living = []
@@ -526,16 +525,17 @@ class Bot(discord.Client):
                         msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':coffin:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']].decode('utf-8'), name, builtins.round(score, 2), builtins.round(stdev, 2))
 
                         await asyncio.sleep(len(totals) - n / 2)
-                        await message.channel.send(msg)  
+                        await send_message(message.channel,msg)  
                     user = message.guild.get_member(totals[0]['name'])
                     if user is not None:
                         name = user.mention
                     else:
                         name = str(v['name'])
                     msg = '{}\nThe winner was {}! Well done!'.format('=' * 50, name)
-                    await message.channel.send(msg)
+                    await send_message(message.channel,msg)  
                     
-                    await message.channel.send('Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
+                    await send_message(message.channel,
+                        'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
                     '''
                     for role in message.guild.roles:
                         if role.id == sd['ids']['alive']:
@@ -552,12 +552,12 @@ class Bot(discord.Client):
                     
                     # Do all the round incrementing and stuff.
                     if len(totals) - len(eliminated) <= 1:
-                        await message.channel.send('**This season has ended! The winner was {}!**'.format(name))
+                        await send_message(message.channel,'**This season has ended! The winner was {}!**'.format(name))
                         sd['round'] = 1
                         sd['season'] += 1
                     else:
                         sd['round'] += 1
-                        await message.channel.send('**We\'re now on round {}!**'.format(sd['round']))
+                        await send_message(message.channel,'**We\'re now on round {}!**'.format(sd['round']))
                         
                     if 'season-{}'.format(sd['season']) not in sd['seasons']:
                         sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
@@ -607,7 +607,7 @@ class Bot(discord.Client):
                         id = s_ids[args[0]]
                     else:
                         if message.channel.id not in self.servers:
-                            await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                            await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                             return
                         id = message.channel.id
                         
@@ -632,19 +632,19 @@ class Bot(discord.Client):
                              n = i[0]
                         m += '\n**{}**: {}'.format(n, i[1].decode('utf-8'))
                         if len(m) > 1500:
-                            await message.author.send(m)
+                            await send_message(message.author,m)
                             m = ''
                     if m:
-                        await message.author.send(m)
+                        await send_message(message.author,m)
                     if isinstance(message.channel, discord.TextChannel):
-                        await message.channel.send(':mailbox_with_mail:')
-                elif command == 'register':  # Setup server initially
+                        await send_message(message.channel,':mailbox_with_mail:')
+                elif command == 'register':  # Setup channel initially
                     if message.channel.id in self.servers:
                         owner = self.get_user(self.server_data[message.channel.id]['owner'])
                         if owner is not None:
-                            await send_message(message.channel, 'This server is already setup. The owner is {}.'.format(owner.name.replace('@', '@\u200b')))
+                            await send_message(message.channel, 'This channel is already setup. The owner is {}.'.format(owner.name.replace('@', '@\u200b')))
                         else:
-                            await send_message(message.channel, 'I can\'t find the owner of this server. Please contact {} to resolve this.'.format(BOT_HOSTER))
+                            await send_message(message.channel, 'I can\'t find the owner of this minitwow. Please contact {} to resolve this.'.format(BOT_HOSTER))
                     else:
                         if raw_args:
                             if ' ' in raw_args:
@@ -713,7 +713,7 @@ class Bot(discord.Client):
                     '''
                 elif command == 'show_config':
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                         
                     if self.server_data[message.channel.id]['owner'] != message.author.id:
@@ -723,7 +723,7 @@ class Bot(discord.Client):
                         await message.channel.send(file=discord.File(server_file))
                 elif command == 'set_prompt':  # Summon unicorns
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this server in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
