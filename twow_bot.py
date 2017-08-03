@@ -6,7 +6,7 @@
 [X] Results [DONE]
 [X] Limit responding to alives [DONE]
 [ ] Handle DNPs
-[ ] Round/Season incrementation
+[X] Round/Season incrementation
 [ ] Make things like voting only work once everyone's responded
 
 
@@ -65,7 +65,7 @@ class Bot(discord.Client):
 
         async def send_message(to, msg):
             if len(msg) > 2000:
-                await to.send('Whoops! Discord won\'t let me send messages over 1500 characters yet.\nThe message started with: ```\n{}```'.format(msg[:1000].replace('`', '`\u200b')))
+                await to.send('Whoops! Discord won\'t let me send messages over 2000 characters.\nThe message started with: ```\n{}```'.format(msg[:1000].replace('`', '`\u200b')))
             else:
                 await to.send(msg)
 
@@ -75,6 +75,10 @@ class Bot(discord.Client):
             for i in self.server_data.items():
                 with open('server_data/{}.yml'.format(i[0]), 'w') as data_file:
                     self.yaml.dump(i[1], data_file)
+                    
+        def save_archive(sid):
+             with open('./server_data/archive/{}-{}.yml'.format(sid,datetime.datetime.utcnow()), 'w') as data_file:
+                self.yaml.dump(self.server_data[sid], data_file)
                
         @self.event
         async def on_message(message):
@@ -785,7 +789,9 @@ class Bot(discord.Client):
                         await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
                         return
                     
+                    save_archive(message.channel.id)
                     self.servers.pop(message.channel.id, None)
+                    self.server_data.pop(message.channel.id,None)
                     save_data()
                     await send_message(message.channel, 'Minitwow has been deleted.')
                     
