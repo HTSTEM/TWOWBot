@@ -95,7 +95,7 @@ class Bot(discord.Client):
                     elif command == 'invite':  # Get the RickBot invite url
                         await send_message(message.channel, '<https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot>')
                     elif command == 'role_ids':  # DM a list of the IDs of all the roles
-                        await message.author.send('\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.channel.roles]))
+                        await message.author.send('\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
                         await message.channel.send(':mailbox_with_mail:')
                     elif command == 'eval':  # NEEDS TO BE MADE OWNER ONLY!
                         result = None
@@ -304,7 +304,7 @@ class Bot(discord.Client):
                         
                         m = '**Your slide is:**'
                         for n, i in enumerate(slide):
-                            m += '\n:regional_indicator_{}: {}'.format(string.ascii_lowercase[n], round['responses'][i])
+                            m += '\n:regional_indicator_{}: {}'.format(string.ascii_lowercase[n], round['responses'][i].decode())
                             if len(m) > 1500:
                                 await message.channel.send(m)
                                 m = ''
@@ -491,7 +491,7 @@ class Bot(discord.Client):
                         variance = sum((i - mean) ** 2 for i in v['raw_borda']) / len(v['raw_borda'])
                         stdev = variance ** 0.5
                     
-                        user = message.channel.get_member(v['name'])
+                        user = message.guild.get_member(v['name'])
                         if user is not None:
                             name = user.mention
                         else:
@@ -526,7 +526,7 @@ class Bot(discord.Client):
                         await asyncio.sleep(len(totals) - n / 2)
                         await message.channel.send(msg)
                         
-                    user = message.channel.get_member(totals[0]['name'])
+                    user = message.guild.get_member(totals[0]['name'])
                     if user is not None:
                         name = user.mention
                     else:
@@ -536,13 +536,13 @@ class Bot(discord.Client):
                     
                     await message.channel.send('Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
                     
-                    for role in message.channel.roles:
+                    for role in message.guild.roles:
                         if role.id == sd['ids']['alive']:
                             alive_role = role
                             break
                     else:
                         alive_role = None
-                    for role in message.channel.roles:
+                    for role in message.guild.roles:
                         if role.id == sd['ids']['dead']:
                             dead_role = role
                             break
@@ -577,12 +577,12 @@ class Bot(discord.Client):
                         #                await e[1].add_roles(dead_role, reason='Contestant eliminated')
                                                 
                         
-                        if message.channel.guild.large:
+                        if message.guild.large:
                             await self.request_offline_members(message.channel)
                     
                         alive_r = None
                         
-                        for member in message.channel.guild.members:
+                        for member in message.guild.members:
                             if alive_r is None:
                                 for role in member.roles:
                                     if role.id == ALIVE_ID:
