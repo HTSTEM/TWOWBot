@@ -9,7 +9,7 @@ from cogs.util import twow_helper
 
 class Host():
     @commands.command()
-    async def id(ctx):  # Gets the server ID used in voting
+    async def id(self, ctx):  # Gets the server ID used in voting
         if ctx.channel.id in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 
                 'This mTWOW\'s identifier is `{}`'.format(ctx.bot.servers[ctx.channel.id]))
@@ -17,7 +17,7 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data. If this is an error, please contact {}.'.format(ctx.bot.get_user(BOT_HOSTER)))
             
     @commands.command()
-    async def prompt(ctx):  # Gets the current prompt
+    async def prompt(self, ctx):  # Gets the current prompt
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -38,7 +38,7 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'The current prompt is:\n{}\n'.format(round['prompt'].decode('utf-8')))
         
     @commands.command()
-    async def season(ctx):  # Gets the current season number
+    async def season(self, ctx):  # Gets the current season number
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -48,7 +48,7 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'We are on season {}'.format(sd['season']))
         
     @commands.command()
-    async def round(ctx):  # Get the current round number
+    async def round(self, ctx):  # Get the current round number
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -58,7 +58,7 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
         
     @commands.command()
-    async def vote(ctx,identifier:str = '', *responsel):  # I think it makes me a hot dog. Not sure.
+    async def vote(self, ctx, identifier:str = '', *responsel):  # I think it makes me a hot dog. Not sure.
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
             await message.delete()
             await ctx.bot.send_message(ctx.channel, 'Please only vote in DMs')
@@ -139,7 +139,7 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'Thanks for voting!')
             
     @commands.command()
-    async def respond(ctx, identifier:str = '', *responsel):  # Probbly handles the controlling of my kitten army
+    async def respond(self, ctx, identifier:str = '', *responsel):  # Probbly handles the controlling of my kitten army
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
             await message.delete()
             await ctx.bot.send_message(ctx.channel, 'Please only respond in DMs')

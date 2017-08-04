@@ -9,7 +9,7 @@ from cogs.util import results, twow_helper
 
 class Host():
     @commands.command()
-    async def start_voting(ctx):
+    async def start_voting(self, ctx):
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -34,7 +34,7 @@ class Host():
         return
     
     @commands.command()
-    async def results(ctx, nums:str = '20%'):  # Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.
+    async def results(self, ctx, nums:str = '20%'):  # Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -121,7 +121,7 @@ class Host():
         ctx.bot.save_data()()
         
     @commands.command()
-    async def responses(ctx, sid:str = ''):  # List all responses this round
+    async def responses(self, ctx, sid:str = ''):  # List all responses this round
         id = None
         if sid:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
@@ -164,7 +164,7 @@ class Host():
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
             
     @commands.command()
-    async def register(ctx, identifier:str = ''):  # Setup channel initially
+    async def register(self, ctx, identifier:str = ''):  # Setup channel initially
         if ctx.channel.id in ctx.bot.servers:
             owner = ctx.bot.get_user(ctx.bot.server_data[ctx.channel.id]['owner'])
             if owner is not None:
@@ -195,7 +195,7 @@ class Host():
                 await ctx.bot.send_message(ctx.channel, 'Usage: `{}register <short identifier>'.format(PREFIX))
     
     @commands.command()
-    async def show_config(ctx, sid:str = ''):
+    async def show_config(self, ctx, sid:str = ''):
         id = None
         if sid:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
@@ -216,7 +216,7 @@ class Host():
             await ctx.channel.send(file=discord.File(server_file))
             
     @commands.command()
-    async def set_prompt(ctx, *promptl):  # Summon unicorns
+    async def set_prompt(self, ctx, *promptl):  # Summon unicorns
         prompt = ' '.join(promptl)
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
@@ -247,7 +247,7 @@ class Host():
             return
     
     @commands.command()
-    async def transfer(ctx):
+    async def transfer(self, ctx):
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -281,7 +281,7 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'MTWOW has been transfered to {}.'.format(message.mentions[0].name))
         
     @commands.command()
-    async def delete(ctx):
+    async def delete(self, ctx):
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
