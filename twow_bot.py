@@ -187,18 +187,18 @@ class Bot(discord.Client):
                     await send_message(message.channel, d)
                     
                 elif command == 'about':  # Get the RickBot invite url
-                    mess = '[=====Credits=====]\n'
-                    mess += 'This bot was developed by:\n'
-                    mess += '**Bottersnike#3605**\n'
-                    mess += '**hanss314#0128**\n'
-                    mess += '**Noahkiq#0493**\n'
-                    mess += '\nThis bot is probably being hosted by:\n'
-                    mess += '**Noahkiq#0493**\n'
-                    #mess +='TWOWBot\'s avatar by:'
-                    #mess += 'name#discrim'
-                    mess += '\nSpecial thanks to the people on the TWOWBot discord server. https://discord.gg/eZhpeMM\n'
-                    mess += 'You can contribute to TWOWBot on https://github.com/HTSTEM/TWOW_Bot\n'
-                    mess += 'Invite TWOWBot to your server! <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(self.user.id)
+                    mess = '**This bot was developed by:**\n'
+                    mess += 'Bottersnike#3605\n'
+                    mess += 'hanss314#0128\n'
+                    mess += 'Noahkiq#0493\n'
+                    mess += '\n**This bot is being hosted by:**\n'
+                    mess += 'Bottersnike#3605\n'
+                    #mess +='**\nTWOWBot\'s avatar by:**\n'
+                    #mess += 'name#discrim\n'
+                    mess += '\n**Resources:**\n'
+                    mess += '*The official TWOWBot discord server:* https://discord.gg/eZhpeMM\n'
+                    mess += '*Go contribute to TWOWBot on GitHub:* https://github.com/HTSTEM/TWOW_Bot\n'
+                    mess += '*Invite TWOWBot to your server:* <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(self.user.id)
                     await send_message(message.channel, mess)
                         
                 elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
