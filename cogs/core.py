@@ -5,10 +5,12 @@ import ruamel.yaml as yaml
 import discord
 
 class Core():
-    
+
     @commands.command()
     async def help(self, ctx, *args):
-        commands = {
+        commands = {i for i in ctx.bot.all_commands.values()}
+
+        '''commands = {
             'help':('[command]','get help on commands.'),
             'ping':('','ping the bot.'),
             'me':('','tells you about yourself.'),
@@ -27,28 +29,79 @@ class Core():
             'results':('[elimination]','get the results for the current mTWOW. Specify elimination amount using a number or percentage using `%`. Defaults to 20%.'),
             'transfer':('<user>','transfer ownership of mtwow to someone else.'),
             'delete':('','delete the current mtwow.')
-        }
-        n = len(max(list(commands.keys()), key=lambda x:len(x)))
-        
-        d = '**TWOWBot help:**\n'
-        
+        }'''
+
+
         if len(args) == 0:
-            d += '\n'.join(['`{}{} {}` - {}'.format(ctx.prefix,i[0], i[1][0], i[1][1]) for i in commands.items()])
-        else:            
+            d = '**TWOWBot help:**'
+
+            for cmd in commands:
+                d += '\n`{}{}`'.format(ctx.prefix, cmd.name)
+
+                brief = cmd.brief
+                if brief is None and cmd.help is not None:
+                    brief = cmd.help.split('\n')[0]
+
+                if brief is not None:
+                    d += ' - {}'.format(brief)
+        elif len(args) == 1:
+            if args[0] not in ctx.bot.all_commands:
+                d = 'Command not found.'
+            else:
+                cmd = ctx.bot.all_commands[args[0]]
+                d = 'Help for command `{}`:\n'.format(cmd.name)
+                d += '\n**Usage:**\n'
+
+                params = list(cmd.clean_params.items())
+                p_str = ''
+                for p in params:
+                    if p[1].default == p[1].empty:
+                        p_str += ' [{}]'.format(p[0])
+                    else:
+                        p_str += ' <{}>'.format(p[0])
+
+                d += '`{}{}{}`\n'.format(ctx.prefix, cmd.name, p_str)
+                d += '\n**Description:**\n'
+                d += '{}\n'.format(cmd.help)
+
+                if cmd.checks:
+                    d += '\n**Checks:**'
+                    for check in cmd.checks:
+                        d += '\n{}'.format(check.__qualname__.split('.')[0])
+                    d += '\n'
+
+                if cmd.aliases:
+                    d += '\n**Aliases:**'
+                    for alias in cmd.aliases:
+                        d += '\n`{}{}`'.format(ctx.prefix, alias)
+
+                    d += '\n'
+        else:
+            d = '**TWOWBot help:**'
+
             for i in args:
-                if i in commands:
-                    d += '`{}{} {}` - {}\n'.format(ctx.prefix, i, commands[i][0], commands[i][1])
+                if i in ctx.bot.all_commands:
+                    cmd = ctx.bot.all_commands[i]
+                    d += '\n`{}{}`'.format(ctx.prefix, cmd.name)
+
+                    brief = cmd.brief
+                    if brief is None and cmd.help is not None:
+                        brief = cmd.help.split('\n')[0]
+
+                    if brief is None:
+                        brief = 'No description'
+
+                    d += ' - {}'.format(brief)
                 else:
-                    d += '`{}{}` - Command not found\n'.format(ctx.prefix, i.replace('@', '@\u200b').replace('`', '`\u200b'))
-            d = d[:-1]
-            
+                    d += '\n`{}{}` - Command not found'.format(ctx.prefix, i.replace('@', '@\u200b').replace('`', '`\u200b'))
+
         d += '\n*Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493*'
         await ctx.bot.send_message(ctx.channel, d)
-        
+
     @commands.command()
     async def ping(self, ctx):
         await ctx.bot.send_message(ctx.channel, 'Pong!')
-        
+
     @commands.command(aliases=['info'])
     async def about(self, ctx):
         mess = '**This bot was developed by:**\n'
@@ -64,7 +117,7 @@ class Core():
         mess += '*Go contribute to TWOWBot on GitHub:* https://github.com/HTSTEM/TWOW_Bot\n'
         mess += '*Invite TWOWBot to your server:* <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(ctx.bot.user.id)
         await ctx.bot.send_message(ctx.channel, mess)
-        
+
     @commands.command(aliases=['aboutme','boutme','\'boutme'])
     async def me(self, ctx):
         member = ctx.author
