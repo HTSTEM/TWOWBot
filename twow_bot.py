@@ -1,12 +1,10 @@
-# https://discordapp.com/oauth2/authorize?client_id=338683671664001024&scope=bot
-
 ''' TODO:
 
 [x] Voting [DONE]
 [X] Results [DONE]
 [X] Limit responding to alives [DONE]
 [ ] Handle DNPs
-[X] Round/Season incrementation
+[X] Round/Season incrementation [DONE]
 [ ] Make things like voting only work once everyone's responded
 
 
@@ -513,11 +511,16 @@ class Bot(discord.Client):
                     
                     totals = [{'name': i[0], **i[1]} for i in totals.items()]
                     
+                    
+                    
                     def f(v):
                         return (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
                     
                     totals.sort(key=f, reverse=True)
-
+                    for twower in sd['alive']:
+                        if twower not in round['responses']:
+                            round['responses'][twower] = '*DNP*'.encode('UTF-8')
+                            totals.append({'name': twower, 'borda': 0, 'votes': 1, 'raw_borda': [0]})
                     msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
                     
                     await message.delete()
@@ -527,7 +530,7 @@ class Bot(discord.Client):
                     living = []
                     
                     elim = int(0.8 * len(totals))
-                    if len(args) > 0 and sys.argv[0] != '':
+                    if len(args) > 0 and args[0] != '':
                         nums = args[0]
                         try:
                             if nums[-1] == '%':
