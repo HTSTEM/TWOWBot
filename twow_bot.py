@@ -468,6 +468,11 @@ class Bot(discord.Client):
                     if sd['voting']:
                         await send_message(message.channel, 'Voting is already active.')
                         return
+                    roundn = sd['round']
+                    seasonn = sd['season']
+                    if len(sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-{}'.format(roundn)]['responses']) < 2:
+                        await send_message(message.channel, 'There aren\'t enough responses to start voting. You need at least 2.')
+                        return
                     
                     sd['voting'] = True
                     save_data()
