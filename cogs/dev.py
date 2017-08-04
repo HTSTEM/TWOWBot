@@ -7,7 +7,7 @@ import discord
 from cogs.util import checks
 #all of these need to be dev only
 
-class Core():
+class Dev():
     
     @commands.command(aliases=['quit', 'kill'])
     @checks.is_dev()
@@ -63,4 +63,4 @@ class Core():
             pass
         
 def setup(bot):
-    bot.add_cog(Core())
+    bot.add_cog(Dev())
