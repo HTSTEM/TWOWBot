@@ -22,16 +22,16 @@ class TWOWBot(commands.Bot):
         self.config = {}
         self.server_data = {}
         self.yaml = yaml.YAML(typ='safe')
-            
+
         with open('server_data/servers.yml') as data_file:
             self.servers = self.yaml.load(data_file)
-            
-        
+
+
         for i in self.servers.keys():
             if '{}.yml'.format(i) in os.listdir('server_data'):
                 with open('server_data/{}.yml'.format(i)) as data_file:
                     self.server_data[i] = self.yaml.load(data_file)
-                    
+
         with open('config.yml') as data_file:
             self.config = self.yaml.load(data_file)
 
