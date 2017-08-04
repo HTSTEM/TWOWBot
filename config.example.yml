@@ -1,0 +1,11 @@
+# This argument is required
+token:
+  Token_goes_here
+
+ids:
+  developers:
+    - devid1
+    - devid2
+
+  host:
+    -bothostid

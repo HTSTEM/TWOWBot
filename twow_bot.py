@@ -24,8 +24,17 @@ from ruamel.yaml import YAML
 import discord
 
 
-TOKEN = open('bot-token.txt').read().split('\n')[0] #stupid file endings
-DEVELOPERS = [161508165672763392, 312615171191341056, 240995021208289280]
+
+TOKEN = ''
+DEVELOPERS = []
+BOT_HOSTER = ''
+
+yaml = YAML(typ='safe')
+with open('config.yml') as data_file:
+    cfg = yaml.load(data_file)
+    TOKEN = cfg['token']
+    DEVELOPERS = cfg['ids']['developers']
+    BOT_HOSTER = cfg['ids']['host']
 
 RESPONSES_PER_SLIDE = 8
 
@@ -34,10 +43,6 @@ SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
 ELIMINATION = 0.6  # Fraction of results that are safe
 
 PREFIX = '.'
-
-# This is used in error messages where the hoster might need to manually
-# change some of the .yml files
-BOT_HOSTER = 'Bottersnike#3605'
 
 class Bot(discord.Client):
     def __init__(self):
@@ -100,7 +105,7 @@ class Bot(discord.Client):
                         await send_message(message.author,
                             '\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in message.guild.roles]))
                         await send_message(message.channel,':mailbox_with_mail:')
-                    elif command == 'eval':  #TODO NEEDS TO BE MADE OWNER ONLY!
+                    elif command == 'eval' and message.author.id == BOT_HOSTER:
                         result = None
                         env = {
                             'channel': message.channel,
@@ -231,7 +236,7 @@ class Bot(discord.Client):
                         await send_message(message.channel, 
                             'This mTWOW\'s identifier is `{}`'.format(self.servers[message.channel.id]))
                     else:
-                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data. If this is an error, please contact {}.'.format(BOT_HOSTER))
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data. If this is an error, please contact {}.'.format(self.get_user(BOT_HOSTER)))
                 elif command == 'prompt':  # Gets the current prompt
                     if message.channel.id not in self.servers:
                         await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
@@ -704,7 +709,7 @@ class Bot(discord.Client):
                             await send_message(message.channel, 'This channel is already setup. The owner is {}.'.format(owner.name.replace('@', '@\u200b')))
                         else:
                             await send_message(message.channel, 
-                                'I can\'t find the owner of this mTWOW. Please contact {} to resolve this.'.format(BOT_HOSTER))
+                                'I can\'t find the owner of this mTWOW. Please contact {} to resolve this.'.format(self.get_user(BOT_HOSTER)))
                     else:
                         if not message.channel.permissions_for(message.author).manage_channels:#if user can manage that channel
                             return
