@@ -48,6 +48,13 @@ class TWOWBot(commands.Bot):
             **kwargs
         )
 
+    def save_data(self):
+        with open('server_data/servers.yml', 'w') as data_file:
+            self.yaml.dump(self.servers, data_file)
+        for i in self.server_data.items():
+            with open('server_data/{}.yml'.format(i[0]), 'w') as data_file:
+                self.yaml.dump(i[1], data_file)
+
     async def send_message(self, to, msg):
         try:
             if len(msg) > 2000:
@@ -160,7 +167,7 @@ class TWOWBot(commands.Bot):
 
         token = self.config['token']
         cogs = self.config.get('cogs', [])
-
+        self.remove_command("help")
         for cog in cogs:
             try:
                 self.load_extension(cog)
@@ -170,7 +177,6 @@ class TWOWBot(commands.Bot):
                 self.logger.info('Loaded cog {}.'.format(cog))
 
         self.logger.info('Loaded {} cogs'.format(len(self.cogs)))
-
         super().run(token)
 
 if __name__ == '__main__':
