@@ -441,8 +441,10 @@ class Bot(discord.Client):
                         banned_w = bw.read().split('\n')
                     for i in banned_w:
                         if i:
-                            if i in response:
-                                response = response.replace(i, '\\*' * len(i))
+                            pattern = re.compile(i, re.IGNORECASE)
+                            if pattern.match(response):
+                                response = pattern.sub('\\*' * len(i), response)
+                                print(response)
                                 changed = True
                     if changed:
                         await send_message(message.channel, '**Due to rude words, your submission has been changed to:**\n{}'.format(response))
