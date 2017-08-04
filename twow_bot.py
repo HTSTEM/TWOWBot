@@ -150,8 +150,8 @@ class Bot(discord.Client):
                         'responses':('[mtwow id]','get the responses for this round.'),
                         'set_prompt':('<prompt>','set the prompt for the current channel.'),
                         'start_voting':('','starts voting for the current channel.'),
-                        'results':('','get the results for the current channel'),
-                        'transfer':('<user>','transfer ownership of mtwow to someone else'),
+                        'results':('[elimination]','get the results for the current mTWOW. Specify elimination amount using a number or percentage using `%`. Defaults to 20%.'),
+                        'transfer':('<user>','transfer ownership of mtwow to someone else.'),
                         'delete':('','delete the current mtwow.')
                     }
                     n = len(max(list(commands.keys()), key=lambda x:len(x)))
@@ -486,8 +486,7 @@ class Bot(discord.Client):
                     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
                         sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
                     
-                    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
-                    
+                    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]                        
                     
                     totals = {}
                     for r in round['responses']:
@@ -526,6 +525,18 @@ class Bot(discord.Client):
                     eliminated = []
                     living = []
                     
+                    elim = int(0.8 * len(totals))
+                    if len(args) > 0 and sys.argv[0] != '':
+                        nums = args[0]
+                        try:
+                            if nums[-1] == '%':
+                                elim = len(totals)*(100-int(nums[:-1]))//100
+                            else:
+                                elim = len(totals) - int(nums)
+                        except ValueError:
+                            await send_message(message.channel, '{} doesn\'t look like a number to me.'.format(nums))
+                            return
+                    
                     for n, v in list(enumerate(totals))[::-1]:
                         score = f(v)
   
@@ -556,7 +567,9 @@ class Bot(discord.Client):
                                 symbol = SUPERSCRIPT[2]
                         else:
                             symbol = SUPERSCRIPT[3]
-                        dead = n > min(ELIMINATION * len(totals),len(totals)-2)
+                            
+
+                        dead = n >= elim
                         if dead:
                             if user.id in sd['alive']:
                                 sd['alive'].remove(user.id)
