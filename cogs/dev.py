@@ -15,8 +15,10 @@ class Core():
         await ctx.bot.logout()
     
     @commands.command()
-    async def say(self, ctx, *, words:str):  # Say somethin'
-        await ctx.bot.send_message(ctx.channel, words)
+    async def say(self, ctx, channel:int, *, words:str):  # Say somethin'
+        channel = ctx.bot.get_channel(channel)
+        if channel is not None:
+            await ctx.bot.send_message(channel, words)
     
     @commands.command()
     async def role_ids(self, ctx):  # DM a list of the IDs of all the roles
