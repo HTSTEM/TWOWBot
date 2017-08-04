@@ -862,6 +862,9 @@ class Bot(discord.Client):
                         await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
+                    if sd['owner'] != message.author.id:
+                        return
+                    
                     def check(m):
                         return m.channel == message.channel and m.author == message.author and m.content[0].lower() in ['y','n']
                     
@@ -871,11 +874,11 @@ class Bot(discord.Client):
                     try:
                         resp = await self.wait_for('message', check=check, timeout=60)
                     except asyncio.TimeoutError:
-                        await send_message(message.channel, 'Transfer Cancelled.')
+                        await send_message(message.channel, 'Deletion Cancelled.')
                         return
                     
                     if resp.content[0].lower() != 'y':
-                        await send_message(message.channel, 'Transfer Cancelled.')
+                        await send_message(message.channel, 'Deletion Cancelled.')
                         return
                     
                     save_archive(message.channel.id)
