@@ -159,7 +159,7 @@ class Bot(discord.Client):
                     }
                     n = len(max(list(commands.keys()), key=lambda x:len(x)))
                     
-                    d = '[ ====  TWOWBot help  ==== ]\n'
+                    d = '**TWOWBot help:**\n'
                     
                     if not raw_args:
                         d += '\n'.join(['`{}{} {}` - {}'.format(PREFIX,i[0], i[1][0], i[1][1]) for i in commands.items()])
@@ -167,23 +167,18 @@ class Bot(discord.Client):
                         while '  ' in raw_args:
                             raw_args = raw_args.replace('  ', ' ')
                         raw_args = raw_args.strip()
-                        raw_args = raw_args.replace('[', '')
-                        raw_args = raw_args.replace(']', '')
                         raw_args = raw_args.replace('\n', ' ')
-                        raw_args = raw_args.replace('=', '')
                         
                         passed = list(set(raw_args.split(' ')))
-                    
-                        n = len(max(passed, key=lambda x:len(x)))
-                    
+                                        
                         for i in passed:
                             if i in commands:
-                                d += '`{}{} {}` - {}'.format(PREFIX, i, commands[i][0], commands[i][1])
+                                d += '`{}{} {}` - {}\n'.format(PREFIX, i, commands[i][0], commands[i][1])
                             else:
-                                d += '{}{}=Command not found\n'.format(i.replace('@', '@\u200b').replace('`', '`\u200b'), ' ' * (n - len(i) + 1))
+                                d += '`{}{}` - Command not found\n'.format(PREFIX, i.replace('@', '@\u200b').replace('`', '`\u200b'))
                         d = d[:-1]
                         
-                    d += '\n[ Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493 ]'
+                    d += '\n*Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493*'
                     await send_message(message.channel, d)
                     
                 elif command == 'about':  # Get the RickBot invite url
