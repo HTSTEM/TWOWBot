@@ -6,6 +6,7 @@ import discord
 
 from cogs.util import results, twow_helper
 
+
 class Host():
     @commands.command()
     async def start_voting(self, ctx):
