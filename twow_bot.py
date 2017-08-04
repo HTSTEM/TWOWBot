@@ -64,11 +64,14 @@ class Bot(discord.Client):
             print(self.user.id)
 
         async def send_message(to, msg):
-            if len(msg) > 2000:
-                await to.send('Whoops! Discord won\'t let me send messages over 2000 characters.\nThe message started with: ```\n{}```'.format(msg[:1000].replace('`', '`\u200b')))
-            else:
-                await to.send(msg)
-
+            try:
+                if len(msg) > 2000:
+                    await to.send('Whoops! Discord won\'t let me send messages over 2000 characters.\nThe message started with: ```\n{}```'.format(msg[:1000].replace('`', '`\u200b')))
+                else:
+                    await to.send(msg)
+                pass
+            except discord.errors.Forbidden:
+                pass
         def save_data():
             with open('server_data/servers.yml', 'w') as data_file:
                 self.yaml.dump(self.servers, data_file)
@@ -124,7 +127,10 @@ class Bot(discord.Client):
 
                         embed = discord.Embed(colour=colour, title=raw_args, description='```py\n{}```'.format(result))
                         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
-                        await message.channel.send(embed=embed)
+                        try:
+                            await message.channel.send(embed=embed)
+                        except discord.errors.Forbidden:
+                            pass
                 
                 # General util                
                 if command == 'help':
@@ -201,7 +207,11 @@ class Bot(discord.Client):
 
                     embed.set_author(name=member, icon_url=avatar)
 
-                    await message.channel.send(embed=embed)
+                    try:
+                        await message.channel.send(embed=embed)
+                    except discord.errors.Forbidden:
+                        pass
+                
                 elif command == 'ping':
                     await send_message(message.channel, 'Pong')
                 
@@ -669,6 +679,9 @@ class Bot(discord.Client):
                                 'I can\'t find the owner of this minitwow. Please contact {} to resolve this.'.format(BOT_HOSTER))
                     else:
                         if not message.channel.permissions_for(message.author).manage_channels:#if user can manage that channel
+                            return
+                        bot_perms = message.channel.permissions_for(self.user)
+                        if not (bot_perms.send_messages and bot_perms.read_messages): #add any other perms you can think of
                             return
                         if raw_args:
                             if ' ' in raw_args:
