@@ -48,6 +48,16 @@ class TWOWBot(commands.Bot):
             **kwargs
         )
 
+    async def send_message(self, to, msg):
+        try:
+            if len(msg) > 2000:
+                await to.send('Whoops! Discord won\'t let me send messages over 2000 characters.\nThe message started with: ```\n{}```'.format(msg[:1000].replace('`', '`\u200b')))
+            else:
+                await to.send(msg)
+            pass
+        except discord.errors.Forbidden:
+            pass
+
     async def on_message(self, message):
         await self.process_commands(message)
 
@@ -136,8 +146,6 @@ class TWOWBot(commands.Bot):
         self.logger.info('Channels: {}'.format(len(list(self.get_all_channels()))))
 
     async def close(self):
-        self.session.close()
-        self.database.close()
         await super().close()
 
     def run(self):
