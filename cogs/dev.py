@@ -41,6 +41,8 @@ class Core():
             'message': ctx.message,
             'channel': ctx.channel,
             'save_data': ctx.bot.save_data,
+            'ctx': ctx,
+            'bot': ctx.bot,
         }
         env.update(globals())
 
