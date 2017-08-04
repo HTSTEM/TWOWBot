@@ -82,7 +82,7 @@ class Core():
             for i in args:
                 if i in ctx.bot.all_commands:
                     cmd = ctx.bot.all_commands[i]
-                    d += '\n`{}{}`'.format(ctx.prefix, cmd.name)
+                    d += '\n`{}{}`'.format(ctx.prefix, i)
 
                     brief = cmd.brief
                     if brief is None and cmd.help is not None:
