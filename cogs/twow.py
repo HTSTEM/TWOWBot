@@ -4,7 +4,7 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-from util import twow_helper
+from cogs.util import twow_helper
 
 
 class Host():
