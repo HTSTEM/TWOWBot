@@ -708,7 +708,7 @@ class Bot(discord.Client):
                     else:
                         if not message.channel.permissions_for(message.author).manage_channels:#if user can manage that channel
                             return
-                        bot_perms = message.channel.permissions_for(self.user)
+                        bot_perms = message.channel.permissions_for(message.guild.get_member(self.user.id))
                         if not (bot_perms.send_messages and bot_perms.read_messages): #add any other perms you can think of
                             return
                         if raw_args:
