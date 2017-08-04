@@ -213,8 +213,9 @@ class Bot(discord.Client):
 
                     embed.add_field(name='Created', value=member.created_at.strftime('%x %X') + '\n{} days ago'.format(max(0, created_days.days)))
                     embed.add_field(name='Joined', value=member.joined_at.strftime('%x %X') + '\n{} days ago'.format(max(0, joined_days.days)))
-
-                    embed.add_field(name='Roles', value='\n'.join([r.mention for r in sorted(member.roles, key=lambda x:x.position, reverse=True) if r.name != '@everyone']))
+                    roles = '\n'.join([r.mention for r in sorted(member.roles, key=lambda x:x.position, reverse=True) if r.name != '@everyone'])
+                    if roles == '': roles = '\@everyone'
+                    embed.add_field(name='Roles', value=roles)
 
                     embed.set_author(name=member, icon_url=avatar)
 
