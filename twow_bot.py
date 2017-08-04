@@ -3,7 +3,7 @@
 [x] Voting [DONE]
 [X] Results [DONE]
 [X] Limit responding to alives [DONE]
-[ ] Handle DNPs
+[X] Handle DNPs
 [X] Round/Season incrementation [DONE]
 [ ] Make things like voting only work once everyone's responded
 
@@ -859,7 +859,7 @@ class Bot(discord.Client):
                         return m.channel == message.channel and m.author == message.author and m.content[0].lower() in ['y','n']
                     
                     await send_message(message.channel, 
-                        'You are about to delete your mtwow. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(message.mentions[0].name))
+                        'You are about to delete your mtwow. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.')
                     resp = None
                     try:
                         resp = await self.wait_for('message', check=check, timeout=60)
