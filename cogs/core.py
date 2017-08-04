@@ -8,29 +8,8 @@ class Core():
 
     @commands.command()
     async def help(self, ctx, *args):
+        '''This help message :D'''
         commands = {i for i in ctx.bot.all_commands.values()}
-
-        '''commands = {
-            'help':('[command]','get help on commands.'),
-            'ping':('','ping the bot.'),
-            'me':('','tells you about yourself.'),
-            'about':('','about TWOWBot.'),
-            'id':('','get the twow id of the current channel.'),
-            'prompt':('','get the prompt of the current channel.'),
-            'season':('','get the season of the current channel.'),
-            'round':('','get the round of the current channel'),
-            'respond':('<mtwow id> <response>','respond to a prompt.'),
-            'vote':('<mtwow id> [vote]','vote on a mTWOW.'),
-            'register':('<mtwow id>','registers the current channel with an id'),
-            'show_config':('[mtwow id]','get the database for a channel.'),
-            'responses':('[mtwow id]','get the responses for this round.'),
-            'set_prompt':('<prompt>','set the prompt for the current channel.'),
-            'start_voting':('','starts voting for the current channel.'),
-            'results':('[elimination]','get the results for the current mTWOW. Specify elimination amount using a number or percentage using `%`. Defaults to 20%.'),
-            'transfer':('<user>','transfer ownership of mtwow to someone else.'),
-            'delete':('','delete the current mtwow.')
-        }'''
-
 
         if len(args) == 0:
             d = '**TWOWBot help:**'
@@ -62,7 +41,7 @@ class Core():
 
                 d += '`{}{}{}`\n'.format(ctx.prefix, cmd.name, p_str)
                 d += '\n**Description:**\n'
-                d += '{}\n'.format(cmd.help)
+                d += '{}\n'.format(cmd.help.strip())
 
                 if cmd.checks:
                     d += '\n**Checks:**'
@@ -100,10 +79,14 @@ class Core():
 
     @commands.command()
     async def ping(self, ctx):
+        '''Ping the bot.'''
         await ctx.bot.send_message(ctx.channel, 'Pong!')
 
     @commands.command(aliases=['info'])
     async def about(self, ctx):
+        '''Get info about the bot.
+        This is also where the invite link is avaliable from.
+        '''
         mess = '**This bot was developed by:**\n'
         mess += 'Bottersnike#3605\n'
         mess += 'hanss314#0128\n'
@@ -120,6 +103,7 @@ class Core():
 
     @commands.command(aliases=['aboutme','boutme','\'boutme'])
     async def me(self, ctx):
+        '''Get info about yourself.'''
         member = ctx.author
         now = datetime.datetime.utcnow()
         joined_days = now - member.joined_at
