@@ -1,4 +1,4 @@
 while true
 do
-python3 tlow_bot.py
+python3 bot.py
 done

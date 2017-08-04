@@ -1,4 +1,4 @@
 @echo off
 :a
-python tlow_bot.py
+python bot.py
 goto a
