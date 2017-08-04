@@ -192,7 +192,7 @@ class Bot(discord.Client):
                     mess += 'hanss314#0128\n'
                     mess += 'Noahkiq#0493\n'
                     mess += '\n**This bot is being hosted by:**\n'
-                    mess += 'Bottersnike#3605\n'
+                    mess += '{}\n'.format(self.get_user(BOT_HOSTER))
                     #mess +='**\nTWOWBot\'s avatar by:**\n'
                     #mess += 'name#discrim\n'
                     mess += '\n**Resources:**\n'
