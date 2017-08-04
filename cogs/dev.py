@@ -18,8 +18,10 @@ class Core():
     
     @commands.command()
     @checks.is_dev()
-    async def say(self, ctx, *, words:str):  # Say somethin'
-        await ctx.bot.send_message(ctx.channel, words)
+    async def say(self, ctx, channel:int, *, words:str):  # Say somethin'
+        channel = ctx.bot.get_channel(channel)
+        if channel is not None:
+            await ctx.bot.send_message(channel, words)
     
     @commands.command()
     @checks.is_dev()
