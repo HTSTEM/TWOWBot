@@ -138,13 +138,13 @@ class Bot(discord.Client):
                         'help':('[command]','get help on commands.'),
                         'ping':('','ping the bot.'),
                         'me':('','tells you about yourself.'),
-                        'about':('','about TwowBot.'),
+                        'about':('','about TWOWBot.'),
                         'id':('','get the twow id of the current channel.'),
                         'prompt':('','get the prompt of the current channel.'),
                         'season':('','get the season of the current channel.'),
                         'round':('','get the round of the current channel'),
                         'respond':('<mtwow id> <response>','respond to a prompt.'),
-                        'vote':('<mtwow id> [vote]','vote on a minitwow.'),
+                        'vote':('<mtwow id> [vote]','vote on a mTWOW.'),
                         'register':('<mtwow id>','registers the current channel with an id'),
                         'show_config':('[mtwow id]','get the database for a channel.'),
                         'responses':('[mtwow id]','get the responses for this round.'),
@@ -156,7 +156,7 @@ class Bot(discord.Client):
                     }
                     n = len(max(list(commands.keys()), key=lambda x:len(x)))
                     
-                    d = '[ ====  TwowBot help  ==== ]\n'
+                    d = '[ ====  TWOWBot help  ==== ]\n'
                     
                     if not raw_args:
                         d += '\n'.join(['`{}{} {}` - {}'.format(PREFIX,i[0], i[1][0], i[1][1]) for i in commands.items()])
@@ -191,11 +191,11 @@ class Bot(discord.Client):
                     mess += '**Noahkiq#0493**\n'
                     mess += '\nThis bot is probably being hosted by:\n'
                     mess += '**Noahkiq#0493**\n'
-                    #mess +='TwowBot\'s avatar by:'
+                    #mess +='TWOWBot\'s avatar by:'
                     #mess += 'name#discrim'
-                    mess += '\nSpecial thanks to the people on the TwowBot discord server. https://discord.gg/eZhpeMM\n'
-                    mess += 'You can contribute to TwowBot on https://github.com/HTSTEM/TWOW_Bot\n'
-                    mess += 'Invite TwowBot to your server! <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(self.user.id)
+                    mess += '\nSpecial thanks to the people on the TWOWBot discord server. https://discord.gg/eZhpeMM\n'
+                    mess += 'You can contribute to TWOWBot on https://github.com/HTSTEM/TWOW_Bot\n'
+                    mess += 'Invite TWOWBot to your server! <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(self.user.id)
                     await send_message(message.channel, mess)
                         
                 elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
@@ -230,12 +230,12 @@ class Bot(discord.Client):
                 elif command == 'id':  # Gets the server ID used in voting
                     if message.channel.id in self.servers:
                         await send_message(message.channel, 
-                            'This minitwow\'s identifier is `{}`'.format(self.servers[message.channel.id]))
+                            'This mTWOW\'s identifier is `{}`'.format(self.servers[message.channel.id]))
                     else:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data. If this is an error, please contact {}.'.format(BOT_HOSTER))
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data. If this is an error, please contact {}.'.format(BOT_HOSTER))
                 elif command == 'prompt':  # Gets the current prompt
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -254,7 +254,7 @@ class Bot(discord.Client):
                     await send_message(message.channel, 'The current prompt is:\n{}\n'.format(round['prompt'].decode('utf-8')))
                 elif command == 'season':  # Gets the current season number
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -262,7 +262,7 @@ class Bot(discord.Client):
                     await send_message(message.channel, 'We are on season {}'.format(sd['season']))
                 elif command == 'round':  # Get the current round number
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -451,7 +451,7 @@ class Bot(discord.Client):
                 # TWOW owner only commands
                 elif command == 'start_voting':
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -469,7 +469,7 @@ class Bot(discord.Client):
                     return
                 elif command == 'results':  # Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -649,7 +649,7 @@ class Bot(discord.Client):
                         id = s_ids[args[0]]
                     else:
                         if message.channel.id not in self.servers:
-                            await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                            await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                             return
                         id = message.channel.id
                         
@@ -687,7 +687,7 @@ class Bot(discord.Client):
                             await send_message(message.channel, 'This channel is already setup. The owner is {}.'.format(owner.name.replace('@', '@\u200b')))
                         else:
                             await send_message(message.channel, 
-                                'I can\'t find the owner of this minitwow. Please contact {} to resolve this.'.format(BOT_HOSTER))
+                                'I can\'t find the owner of this mTWOW. Please contact {} to resolve this.'.format(BOT_HOSTER))
                     else:
                         if not message.channel.permissions_for(message.author).manage_channels:#if user can manage that channel
                             return
@@ -725,7 +725,9 @@ class Bot(discord.Client):
                             
                             save_data()
                         
-                            await send_message(message.channel, 'Woah! I just set up a whole mTWOW for you under the name `{}`!\nPlease now use `.setup` to configure your mTWOW before it can be used.'.format(raw_args.replace('@', '@\u200b').replace('`', '\\`')))
+                            await send_message(message.channel, 
+                                'Woah! I just set up a whole mTWOW for you under the name `{}`'.format(
+                                    raw_args.replace('@', '@\u200b').replace('`', '\\`')))
                         else:
                             await send_message(message.channel, 'Usage: `{}register <short identifier>'.format(PREFIX))
                 
@@ -761,7 +763,7 @@ class Bot(discord.Client):
                     '''
                 elif command == 'show_config':
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                         
                     if self.server_data[message.channel.id]['owner'] != message.author.id:
@@ -771,7 +773,7 @@ class Bot(discord.Client):
                         await message.channel.send(file=discord.File(server_file))
                 elif command == 'set_prompt':  # Summon unicorns
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -800,7 +802,7 @@ class Bot(discord.Client):
                 
                 elif command == 'transfer':
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     sd = self.server_data[message.channel.id]
@@ -829,11 +831,11 @@ class Bot(discord.Client):
 
                     sd['owner'] = message.mentions[0].id
                     save_data()
-                    await send_message(message.channel, 'Minitwow has been transfered to {}.'.format(message.mentions[0].name))
+                    await send_message(message.channel, 'MTWOW has been transfered to {}.'.format(message.mentions[0].name))
                     
                 elif command == 'delete':
                     if message.channel.id not in self.servers:
-                        await send_message(message.channel, 'There isn\'t an entry for this minitwow in my data.')
+                        await send_message(message.channel, 'There isn\'t an entry for this mTWOW in my data.')
                         return
                     
                     def check(m):
@@ -856,7 +858,7 @@ class Bot(discord.Client):
                     self.servers.pop(message.channel.id, None)
                     self.server_data.pop(message.channel.id,None)
                     save_data()
-                    await send_message(message.channel, 'Minitwow has been deleted.')
+                    await send_message(message.channel, 'MTWOW has been deleted.')
                     
 
     def start_bot(self):
