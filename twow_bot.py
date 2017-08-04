@@ -138,7 +138,7 @@ class Bot(discord.Client):
                         'help':('[command]','get help on commands.'),
                         'ping':('','ping the bot.'),
                         'me':('','tells you about yourself.'),
-                        'invite':('','invite the bot to your server.'),
+                        'about':('','about TwowBot.'),
                         'id':('','get the twow id of the current channel.'),
                         'prompt':('','get the prompt of the current channel.'),
                         'season':('','get the season of the current channel.'),
@@ -183,9 +183,20 @@ class Bot(discord.Client):
                     d += '\n[ Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493 ]'
                     await send_message(message.channel, d)
                     
-                elif command == 'invite':  # Get the RickBot invite url
-                        await send_message(message.channel, 
-                            '<https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(self.user.id))
+                elif command == 'about':  # Get the RickBot invite url
+                    mess = '[=====Credits=====]\n'
+                    mess += 'This bot was developed by:\n'
+                    mess += '**Bottersnike#3605**\n'
+                    mess += '**hanss314#0128**\n'
+                    mess += '**Noahkiq#0493**\n'
+                    mess += '\nThis bot is probably being hosted by:\n'
+                    mess += '**Noahkiq#0493**\n'
+                    #mess +='TwowBot\'s avatar by:'
+                    #mess += 'name#discrim'
+                    mess += '\nSpecial thanks to the people on the TwowBot discord server. https://discord.gg/eZhpeMM\n'
+                    mess += 'You can contribute to TwowBot on https://github.com/HTSTEM/TWOW_Bot\n'
+                    mess += 'Invite TwowBot to your server! <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(self.user.id)
+                    await send_message(message.channel, mess)
                         
                 elif command in ['me', 'boutme', '\'boutme', 'aboutme']:
                     member = message.author
