@@ -41,7 +41,7 @@ class Core():
 
                 d += '`{}{}{}`\n'.format(ctx.prefix, cmd.name, p_str)
                 d += '\n**Description:**\n'
-                d += '{}\n'.format(cmd.help.strip())
+                d += '{}\n'.format('None' if cmd.help is None else cmd.help.strip())
 
                 if cmd.checks:
                     d += '\n**Checks:**'

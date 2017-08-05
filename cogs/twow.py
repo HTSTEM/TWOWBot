@@ -11,7 +11,10 @@ from cogs.util import twow_helper
 
 class Host():
     @commands.command()
-    async def id(self, ctx):  # Gets the server ID used in voting
+    async def id(self, ctx):
+        '''Get the server ID used in voting.
+        This was set when this channel was registered.
+        '''
         if ctx.channel.id in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 
                 'This mTWOW\'s identifier is `{}`'.format(ctx.bot.servers[ctx.channel.id]))
@@ -19,7 +22,10 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data. If this is an error, please contact {}.'.format(ctx.bot.get_user(BOT_HOSTER)))
             
     @commands.command()
-    async def prompt(self, ctx):  # Gets the current prompt
+    async def prompt(self, ctx):
+        '''Get the current prompt.
+        The host of this mTWOW can use `set_prompt` to set it.
+        '''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -40,7 +46,8 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'The current prompt is:\n{}\n'.format(round['prompt'].decode('utf-8')))
         
     @commands.command()
-    async def season(self, ctx):  # Gets the current season number
+    async def season(self, ctx):
+        '''Get the current season number.'''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -50,7 +57,8 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'We are on season {}'.format(sd['season']))
         
     @commands.command()
-    async def round(self, ctx):  # Get the current round number
+    async def round(self, ctx):
+        '''Get the current round number.'''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -60,7 +68,10 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
         
     @commands.command()
-    async def vote(self, ctx,identifier:str = '', *responsel):  # I think it makes me a hot dog. Not sure.
+    async def vote(self, ctx, identifier:str = '', *responsel):
+        '''Vote on the responses.
+        This command will only work in DMs.
+        *I think it makes me a hot dog. Not sure.*'''
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
             await ctx.message.delete()
             await ctx.bot.send_message(ctx.channel, 'Please only vote in DMs')
@@ -141,7 +152,12 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'Thanks for voting!')
             
     @commands.command()
-    async def respond(self, ctx, identifier:str = '', *responsel):  # Probbly handles the controlling of my kitten army
+    async def respond(self, ctx, identifier:str = '', *responsel):
+        '''Respond to the current prompt.
+        You can get the channel identifier by using `id` in that channel.
+        This command only works in DMs.
+        *Probbly handles the controlling of my kitten army*
+        '''
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
             await ctx.message.delete()
             await ctx.bot.send_message(ctx.channel, 'Please only respond in DMs')
@@ -175,6 +191,30 @@ class Host():
                 await ctx.bot.send_message(ctx.channel, '**Due to rude words, your submission has been changed to:**\n{}'.format(response))
             await ctx.bot.send_message(ctx.channel, '**Submission recorded**')
             
+    @commands.command()
+    async def how(self, ctx):
+        msg  = '**Hosting an mTWOW:**\n'
+        msg += 'The host of an mTWOW has a coupple of commands for them to use:\n'
+        msg += '**`set_prompt`** will set the prompt for the round.\n'
+        msg += '**`responses`** will send you a DM listing all of the responses so far.\n'
+        msg += '**`start_voting`** will then close responses and allow people to vote.\n'
+        msg += 'Finally, **`results`** will end the round and show results\n'
+        msg += 'You can also use **`transfer`** to make someone else the host of the mTWOW.\n'
+        msg += '\n**Participating in an mTWOW:**\n'
+        msg += 'When you are participating, you also have some commands you can use:\n'
+        msg += '**`respond`**, when in a DM, allows you to respond to a prompt.\n'
+        msg += '**`vote`**, when in a DM, will first generate your voting slide, and then allow you to vote on it.\n'
+        msg += '\n**Other useful commands:**\n'
+        msg += 'There are a few commands that are useful to know:\n'
+        msg += '**`prompt`** will show you the current prompt.\n'
+        msg += '**`round`** and **`season`** will tell you the round and season number responcively.\n'
+        msg += '**`id`** will get you the channel identifier for that mTWOW. This is needed when responding or voting.\n'
+        msg += '\n**Getting help:**\n'
+        msg += 'All off these commands, and more, are avaliable in the **`help`** command.\n'
+        msg += 'If you want to invite the bot to your server, or join the official one, use **`about`**.\n'
+        msg += 'If you are interested in hosting this bot for yourself, check the GitHub linked in the **`about`** command,\n'
+        msg += 'or DM one of the developers (also in the **`about`** command).'
+        await ctx.bot.send_message(ctx.channel, msg)
 
         
 def setup(bot):
