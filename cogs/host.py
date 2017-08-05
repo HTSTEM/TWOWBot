@@ -10,6 +10,9 @@ from cogs.util import results, twow_helper
 class Host():
     @commands.command()
     async def start_voting(self, ctx):
+        '''Start voting..
+        This will end responding and will allow people to use `vote`.
+        '''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -34,7 +37,12 @@ class Host():
         return
     
     @commands.command()
-    async def results(self, ctx, nums:str = '20%'):  # Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.
+    async def results(self, ctx, nums:str = '20%'):
+        '''End this round and show results.
+        `nums` is either a percentage denoted by `%` (for example `5%`),
+        or it it a set number of people to elimintate this round.
+        *Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.*
+        '''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -121,7 +129,10 @@ class Host():
         ctx.bot.save_data()()
         
     @commands.command()
-    async def responses(self, ctx, sid:str = ''):  # List all responses this round
+    async def responses(self, ctx, sid:str = ''):
+        '''List all responses this round.
+        This command will send the responses via DMs.
+        '''
         id = None
         if sid:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
@@ -164,7 +175,10 @@ class Host():
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
             
     @commands.command()
-    async def register(self, ctx, identifier:str = ''):  # Setup channel initially
+    async def register(self, ctx, identifier:str = ''):
+        '''Setup channel initially
+        Do all the fancy stuff to get this channel ready to host a mTWOW!
+        '''
         if ctx.channel.id in ctx.bot.servers:
             owner = ctx.bot.get_user(ctx.bot.server_data[ctx.channel.id]['owner'])
             if owner is not None:
@@ -196,6 +210,11 @@ class Host():
     
     @commands.command()
     async def show_config(self, ctx, sid:str = ''):
+        '''Sends the config file for this channel.
+        **WARNING!**
+        This file contains everyone's responses, as well as their votes, so
+        don't use this command out of DMs.
+        '''
         id = None
         if sid:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
@@ -216,7 +235,10 @@ class Host():
             await ctx.channel.send(file=discord.File(server_file))
             
     @commands.command()
-    async def set_prompt(self, ctx, *promptl):  # Summon unicorns
+    async def set_prompt(self, ctx, *promptl):
+        '''Set the prompt for this round.
+        *Summon unicorns*
+        '''
         prompt = ' '.join(promptl)
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
@@ -248,6 +270,9 @@ class Host():
     
     @commands.command()
     async def transfer(self, ctx):
+        '''Transfer ownership of this mTWOW.
+        Do `transfer @mention`.
+        '''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
@@ -282,6 +307,8 @@ class Host():
         
     @commands.command()
     async def delete(self, ctx):
+        '''Delete the mTWOW.
+        An archive will be stored and can be located by the hoster of the bot.'''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
