@@ -193,6 +193,7 @@ class Host():
             
     @commands.command()
     async def how(self, ctx):
+        '''Get instructions on hosting a mTWOW.'''
         msg  = '**Hosting an mTWOW:**\n'
         msg += 'The host of an mTWOW has a coupple of commands for them to use:\n'
         msg += '**`set_prompt`** will set the prompt for the round.\n'
