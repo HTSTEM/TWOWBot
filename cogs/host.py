@@ -62,7 +62,14 @@ class Host():
         if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
             sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
         
-        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]                        
+        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+        voted_ons = set()
+        for vote in round['votes']: voted_ons |= set(vote['vote'])
+        print(set(round['responses']))
+        print(voted_ons)
+        if set(round['responses']) != voted_ons:
+            await ctx.bot.send_message(ctx.channel, 'Not every response has been voted on yet!')
+            return
         totals = results.count_votes(round, sd['alive'])
         
         msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
