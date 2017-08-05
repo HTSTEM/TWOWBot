@@ -1,4 +1,5 @@
 import inspect
+import asyncio
 
 from discord.ext import commands
 import ruamel.yaml as yaml
@@ -65,7 +66,7 @@ class Host():
         totals = results.count_votes(round, sd['alive'])
         
         msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
-        await message.delete()
+        await ctx.message.delete()
         await ctx.bot.send_message(ctx.channel,msg)
         
         eliminated = []
@@ -81,8 +82,8 @@ class Host():
             await ctx.bot.send_message(ctx.channel, '{} doesn\'t look like a number to me.'.format(nums))
             return
             
-        for msg, dead, uid in results.get_results(totals, elim):
-            user = message.guild.get_member(uid)
+        for msg, dead, uid, n in results.get_results(totals, elim, round):
+            user = ctx.guild.get_member(uid)
             if user is not None:
                 name = user.mention
             else:
@@ -94,7 +95,7 @@ class Host():
                     eliminated.append((name, user))
                 else:
                     living.append((name, user))
-                    
+            
             await asyncio.sleep(len(totals) - n / 2)
             await ctx.bot.send_message(ctx.channel,msg.format(name)) 
             
@@ -281,7 +282,7 @@ class Host():
         if sd['owner'] != ctx.author.id:
             return
         
-        if len(message.mentions) == 0:
+        if len(ctx.message.mentions) == 0:
             await ctx.bot.send_message(ctx.channel, 'Usage: `{}transfer <User>`'.format(PREFIX))
             return
         
@@ -289,7 +290,7 @@ class Host():
             return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y','n']
         
         await ctx.bot.send_message(ctx.channel, 
-            'You are about to transfer your mtwow to {}. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(message.mentions[0].name))
+            'You are about to transfer your mtwow to {}. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(ctx.message.mentions[0].name))
         resp = None
         try:
             resp = await ctx.bot.wait_for('message', check=check, timeout=60)
@@ -301,9 +302,9 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'Transfer Cancelled.')
             return
 
-        sd['owner'] = message.mentions[0].id
+        sd['owner'] = ctx.message.mentions[0].id
         ctx.bot.save_data()
-        await ctx.bot.send_message(ctx.channel, 'MTWOW has been transfered to {}.'.format(message.mentions[0].name))
+        await ctx.bot.send_message(ctx.channel, 'MTWOW has been transfered to {}.'.format(ctx.message.mentions[0].name))
         
     @commands.command()
     async def delete(self, ctx):

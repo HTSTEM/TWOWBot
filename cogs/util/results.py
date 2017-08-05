@@ -1,9 +1,10 @@
+import builtins
+
 SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
 
-def f(v):
-    return (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
-
 def count_votes(round, alive):
+    def f(v):
+        return (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
     totals = {}
     for r in round['responses']:
         totals[r] = {'borda': 0, 'votes': 0, 'raw_borda': []}
@@ -35,7 +36,9 @@ def count_votes(round, alive):
             totals.append({'name': twower, 'borda': 0, 'votes': 1, 'raw_borda': [0]})
     return totals
     
-def get_results(totals, elim):
+def get_results(totals, elim, round):
+    def f(v):
+        return (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
     for n, v in list(enumerate(totals))[::-1]:
         score = f(v)
 
@@ -65,4 +68,4 @@ def get_results(totals, elim):
         
         
         msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':coffin:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']].decode('utf-8'), '{}', builtins.round(score, 2), builtins.round(stdev, 2))
-        yield (msg, dead, v['name'])
+        yield (msg, dead, v['name'], n)
