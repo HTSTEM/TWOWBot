@@ -1,4 +1,6 @@
 import inspect
+import string
+import re
 
 from discord.ext import commands
 import ruamel.yaml as yaml
@@ -60,7 +62,7 @@ class Host():
     @commands.command()
     async def vote(self, ctx,identifier:str = '', *responsel):  # I think it makes me a hot dog. Not sure.
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
-            await message.delete()
+            await ctx.message.delete()
             await ctx.bot.send_message(ctx.channel, 'Please only vote in DMs')
             return
         
@@ -92,7 +94,7 @@ class Host():
         
         if not responsel:  # New slides needed!
             if ctx.author.id not in round['slides']:
-                success = twow_helper.create_slides(db, round, ctx.author.id)
+                success = twow_helper.create_slides(ctx.bot, round, ctx.author.id)
                 if not success:
                     await ctx.bot.send_message(ctx.author, 'I don\'t have enough responses to formulate a slide. Sorry.')
                     return
@@ -141,13 +143,13 @@ class Host():
     @commands.command()
     async def respond(self, ctx, identifier:str = '', *responsel):  # Probbly handles the controlling of my kitten army
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
-            await message.delete()
+            await ctx.message.delete()
             await ctx.bot.send_message(ctx.channel, 'Please only respond in DMs')
             return
         
         if not responsel:
             await ctx.bot.send_message(ctx.channel, 
-                'Usage: `{}respond <TWOW id> <response>`\nUse `{}id` in the channel to get the id.'.format(ctx.prefix))
+                'Usage: `{0}respond <TWOW id> <response>`\nUse `{0}id` in the channel to get the id.'.format(ctx.prefix))
             return
         
         
@@ -155,7 +157,7 @@ class Host():
         success, response = twow_helper.respond(ctx.bot, identifier, ctx.author.id, response)
         if success == 1: 
             await ctx.bot.send_message(ctx.channel, 
-                'I can\'t find any mTWOW under the name `{}`.'.format(id.replace('`', '\\`')))
+                'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
         elif success == 3:
             await ctx.bot.send_message(ctx.channel, 'Voting has already started. Sorry.')
         elif success == 5:

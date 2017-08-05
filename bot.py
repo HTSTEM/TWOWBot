@@ -54,6 +54,10 @@ class TWOWBot(commands.Bot):
         for i in self.server_data.items():
             with open('server_data/{}.yml'.format(i[0]), 'w') as data_file:
                 self.yaml.dump(i[1], data_file)
+                
+    def save_archive(self, sid):
+        with open('./server_data/archive/{}-{}.yml'.format(sid,datetime.datetime.utcnow()), 'w') as data_file:
+            self.yaml.dump(self.server_data[sid], data_file)
 
     async def send_message(self, to, msg):
         try:

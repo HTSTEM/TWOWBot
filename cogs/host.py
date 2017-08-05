@@ -29,7 +29,7 @@ class Host():
             return
         
         sd['voting'] = True
-        ctx.bot.save_data()()
+        ctx.bot.save_data()
         await ctx.bot.send_message(ctx.channel, 'Voting has been activated.')
         return
     
@@ -118,7 +118,7 @@ class Host():
         
         sd['voting'] = False
         
-        ctx.bot.save_data()()
+        ctx.bot.save_data()
         
     @commands.command()
     async def responses(self, ctx, sid:str = ''):  # List all responses this round
@@ -153,7 +153,7 @@ class Host():
             if u is not None:
                 n = u.name
             else:
-                    n = i[0]
+                n = i[0]
             m += '\n**{}**: {}'.format(n, i[1].decode('utf-8'))
             if len(m) > 1500:
                 await ctx.bot.send_message(ctx.author,m)
@@ -176,7 +176,7 @@ class Host():
             if not ctx.channel.permissions_for(ctx.author).manage_channels:#if user can manage that channel. CHANGE THIS
                 return
             bot_perms = ctx.channel.permissions_for(ctx.guild.get_member(ctx.bot.user.id))
-            if not (bot_perms.ctx.bot.send_messages and bot_perms.read_messages): #add any other perms you can think of
+            if not (bot_perms.send_messages and bot_perms.read_messages): #add any other perms you can think of
                 return
             if identifier:
                 if ' ' in identifier:
@@ -192,7 +192,7 @@ class Host():
                     'Woah! I just set up a whole mTWOW for you under the name `{}`'.format(
                         identifier.replace('@', '@\u200b').replace('`', '\\`')))
             else:
-                await ctx.bot.send_message(ctx.channel, 'Usage: `{}register <short identifier>'.format(PREFIX))
+                await ctx.bot.send_message(ctx.channel, 'Usage: `{}register <short identifier>'.format(ctx.prefix))
     
     @commands.command()
     async def show_config(self, ctx, sid:str = ''):
@@ -237,13 +237,13 @@ class Host():
         
         if round['prompt'] is None:
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
-            ctx.bot.save_data()()
+            ctx.bot.save_data()
             await ctx.bot.send_message(ctx.channel, 'The prompt has been set to `{}` for this round.'.format(prompt.replace('@', '@\u200b').replace('`', '\\`')))
             return
         else:
             await ctx.bot.send_message(ctx.channel, 'The prompt has been changed from `{}` to `{}` for this round.'.format(round['prompt'].decode('utf-8'), prompt.replace('@', '@\u200b').replace('`', '\\`')))
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
-            ctx.bot.save_data()()
+            ctx.bot.save_data()
             return
     
     @commands.command()
@@ -277,7 +277,7 @@ class Host():
             return
 
         sd['owner'] = message.mentions[0].id
-        ctx.bot.save_data()()
+        ctx.bot.save_data()
         await ctx.bot.send_message(ctx.channel, 'MTWOW has been transfered to {}.'.format(message.mentions[0].name))
         
     @commands.command()
@@ -286,6 +286,7 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
             return
         
+        sd = ctx.bot.server_data[ctx.channel.id]
         if sd['owner'] != ctx.author.id:
             return
         
@@ -305,10 +306,10 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'Deletion Cancelled.')
             return
         
-        save_archive(ctx.channel.id)
+        ctx.bot.save_archive(ctx.channel.id)
         ctx.bot.servers.pop(ctx.channel.id, None)
         ctx.bot.server_data.pop(ctx.channel.id,None)
-        ctx.bot.save_data()()
+        ctx.bot.save_data()
         await ctx.bot.send_message(ctx.channel, 'MTWOW has been deleted.')
         
 def setup(bot):

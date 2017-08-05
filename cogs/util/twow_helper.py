@@ -1,3 +1,8 @@
+import re
+import random
+
+RESPONSES_PER_SLIDE = 10
+
 def new_twow(db, identifier, channel, owner):
     s = {}
     s['owner'] = owner
@@ -23,14 +28,13 @@ def new_twow(db, identifier, channel, owner):
     
 def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 = no prompt, 7 = dead, 9 = too many words
     s_ids = {i[1]:i[0] for i in db.servers.items()}
-        
     if id not in s_ids:
-        return 1
+        return (1, '')
     
     sd = db.server_data[s_ids[id]]
     
     if sd['voting']:
-        return 3
+        return (3, '')
     
     if 'season-{}'.format(sd['season']) not in sd['seasons']:
         sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -40,21 +44,20 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     
     if round['prompt'] is None:
-        return 5
+        return (5, '')
 
-    member = ctx.bot.get_channel(s_ids[id]).guild.get_member(int(ctx.author.id))
-    if sd['round'] > 1 and ctx.author.id not in sd['alive']:
-        return 7
-    elif sd['round'] == 1 and ctx.author.id not in sd['alive']:
-        sd['alive'].append(member.id)
+    if sd['round'] > 1 and responder not in sd['alive']:
+        return (7, '')
+    elif sd['round'] == 1 and responder not in sd['alive']:
+        sd['alive'].append(responder)
         
-    success == 0
-    if ctx.author.id in round['responses']:
+    success = 0
+    if responder in round['responses']:
         success += 2
     if len(response.split(' ')) > 10:
         success += 4
     if len(response) > 140:
-        return 9
+        return (9, '')
     
     changed = False
     with open('banned_words.txt') as bw:
@@ -73,36 +76,36 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     db.save_data()
     return success, response
 
-def create_slide(db, round, voter):
+def create_slides(db, round, voter):
 # Sort all responses based off their number of votes
-        responses = [[i, 0] for i in round['responses']]
-        for i in responses:
-            if i[0] == voter:
-                responses.remove(i)
-        for vote in round['votes']:
-            # Each vote is a list of user IDs going from best to worst
-            for i in vote['vote']:
-                for r in responses:
-                    if r[0] == i:
-                        r[1] += 1
-                        break
-                else:
-                    if i != voter:
-                        responses.append([i, 1])
-        responses.sort(key=lambda x:x[1])
+    responses = [[i, 0] for i in round['responses']]
+    for i in responses:
+        if i[0] == voter:
+            responses.remove(i)
+    for vote in round['votes']:
+        # Each vote is a list of user IDs going from best to worst
+        for i in vote['vote']:
+            for r in responses:
+                if r[0] == i:
+                    r[1] += 1
+                    break
+            else:
+                if i != voter:
+                    responses.append([i, 1])
+    responses.sort(key=lambda x:x[1])
 
-        if len(responses) < 2:
-            return False
-        
-        # ~~Calculate the nubmer of responses per slide~~ Global at start of file.
-        # Take that many items from the list of responses.
-        
-        slide = responses[:RESPONSES_PER_SLIDE]
-        slide = [i[0] for i in slide]
-        random.shuffle(slide)
-        
-        # Save as a slide.
-        round['slides'][voter] = slide
-        
-        db.save_data()
-        return True
+    if len(responses) < 2:
+        return False
+    
+    # ~~Calculate the nubmer of responses per slide~~ Global at start of file.
+    # Take that many items from the list of responses.
+    
+    slide = responses[:RESPONSES_PER_SLIDE]
+    slide = [i[0] for i in slide]
+    random.shuffle(slide)
+    
+    # Save as a slide.
+    round['slides'][voter] = slide
+    
+    db.save_data()
+    return True
