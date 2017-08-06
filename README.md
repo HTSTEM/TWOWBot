@@ -65,30 +65,28 @@ There are a few commands that are useful to know:
 To get inpepth help into any of these commands including what arguments they require and who can use them, use the `help` command.
 
 ### How to host the bot:
-Hosting TWOWBot is relatively simple. To download it and get it set up follow:
+Hosting TWOWBot is relatively simple. To download it run the following commands:
 ```sh
 $ git clone https://github.com/HTSTEM/TWOW_Bot TWOWBot
-$ cd TWOWBot
+$ cd TWOWBot/
 $ git checkout yaml
-$ sudo python3 -m pip install -U git+https://github.com/Rapptz/discord.py@rewrite
-$ sudo python3 -m pip install ruamel.YAML
-$ cd src
-$ cp config.yml.template config.yml
-$ chmod +x scripts/*.sh
-$ cd server_data
-$ cp servers.yml.template servers.yml
 ```
-You will then need to edit `config.yml` with your information. Your bot token can be found [here](https://discordapp.com/developers/applications/me),
+From there, there is a handy setup script to get you on your feet:
+```
+$ python3 setup.py
+```
+You will then need to edit `src/config.yml` with your information. Your bot token can be found [here](https://discordapp.com/developers/applications/me),
 the developers section should have your ID in it, and then anyone else that might need full control of the bot,
 for example, any alt accounts you have. The host should have your ID in it.
 
 Once you've configured the bot, you can start it using:
 ```sh
-$ cd scripts
+$ cd src/scripts/
 $ . ./run_bot.sh
 ```
 This script (and the one for batch) will expect you to be running python 3.6. It will check for `python3` and `python` as commands in that order,
 and use the first one it finds. They will also start it in a loop, so if the bot crashes, they will start back up. If you want to only run it once, use:
 ```sh
+$ cd src/
 $ python3 bot.py
 ```
