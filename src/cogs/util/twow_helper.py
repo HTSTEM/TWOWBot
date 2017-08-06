@@ -68,10 +68,9 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
         banned_w = bw.read().split('\n')
     for i in banned_w:
         if i:
-            pattern = re.compile(i, re.IGNORECASE)
-            if pattern.match(response):
+            pattern = re.compile('\\b' + re.escape(i) + '\\b', re.IGNORECASE)
+            if pattern.findall(response):
                 response = pattern.sub('\\*' * len(i), response)
-                print(response)
                 changed = True
     if changed:
         success += 8
