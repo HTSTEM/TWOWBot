@@ -65,12 +65,10 @@ class Host():
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         voted_ons = set()
         for vote in round['votes']: voted_ons |= set(vote['vote'])
-        print(set(round['responses']))
-        print(voted_ons)
         if set(round['responses']) != voted_ons:
             await ctx.bot.send_message(ctx.channel, 'Not every response has been voted on yet!')
             return
-        totals = results.count_votes(round, sd['alive'])
+        totals = results.count_votes(round, round['alive'])
         
         msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
         await ctx.message.delete()
@@ -97,15 +95,13 @@ class Host():
                 name = str(uid)
                 
             if dead:
-                if user.id in sd['alive']:
-                    sd['alive'].remove(user.id)
-                    eliminated.append((name, user))
-                else:
-                    living.append((name, user))
+                eliminated.append((name, user))
+            else:
+                living.append((name, user))
             
             await asyncio.sleep(len(totals) - n / 2)
             await ctx.bot.send_message(ctx.channel,msg.format(name)) 
-            
+
         user = ctx.guild.get_member(totals[0]['name'])
         if user is not None:
             name = user.mention
@@ -122,15 +118,22 @@ class Host():
             await ctx.bot.send_message(ctx.channel,'**This season has ended! The winner was {}!**'.format(name))
             sd['round'] = 1
             sd['season'] += 1
+            await ctx.bot.send_message(ctx.channel,'**We\'re now on season {}!**'.format(sd['season']))
         else:
             sd['round'] += 1
             await ctx.bot.send_message(ctx.channel,'**We\'re now on round {}!**'.format(sd['round']))
             
-        if 'season-{}'.format(sd['season']) not in sd['seasons']:
+        if 'season-{}'.format(sd['season']) not in sd['seasons']:#new season
             sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
-            sd['alive'] = []
-        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+            living = []
+        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:#new round
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
+                'alive':[t[1] for t in living], 
+                'prompt': None, 
+                'responses': {}, 
+                'slides': {}, 
+                'votes': []
+                }
         
         sd['voting'] = False
         

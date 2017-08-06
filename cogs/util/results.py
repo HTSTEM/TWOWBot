@@ -5,7 +5,7 @@ SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
 def count_votes(round, alive):
     def f(v):
         perc = (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
-        stdv = (sum((i - mean) ** 2 for i in v['raw_borda']) / len(v['raw_borda']))**0.5
+        stdv = (sum((i - perc) ** 2 for i in v['raw_borda']) / len(v['raw_borda']))**0.5
         return (perc, -stdv)
     totals = {}
     for r in round['responses']:

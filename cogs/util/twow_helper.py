@@ -9,11 +9,12 @@ def new_twow(db, identifier, channel, owner):
     s['round'] = 1
     s['season'] = 1
     s['voting'] = False
-    s['alive'] = []
     s['seasons'] = {'season-1':
                     {'rounds':
                         {'round-1':
-                        {'prompt': None,
+                        {
+                        'alive':[],
+                        'prompt': None,
                         'responses': {},
                         'slides': {},
                         'votes': [],
@@ -46,10 +47,10 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     if round['prompt'] is None:
         return (5, '')
 
-    if sd['round'] > 1 and responder not in sd['alive']:
+    if sd['round'] > 1 and responder not in round['alive']:
         return (7, '')
-    elif sd['round'] == 1 and responder not in sd['alive']:
-        sd['alive'].append(responder)
+    elif sd['round'] == 1 and responder not in round['alive']:
+        round['alive'].append(responder)
         
     success = 0
     if responder in round['responses']:
