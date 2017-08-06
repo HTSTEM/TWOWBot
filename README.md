@@ -72,8 +72,9 @@ $ cd TWOWBot
 $ git checkout yaml
 $ sudo python3 -m pip install -U git+https://github.com/Rapptz/discord.py@rewrite
 $ sudo python3 -m pip install ruamel.YAML
+$ cd src
 $ cp config.yml.template config.yml
-$ chmod +x *.sh
+$ chmod +x scripts/*.sh
 $ cd server_data
 $ cp servers.yml.template servers.yml
 ```
@@ -83,9 +84,11 @@ for example, any alt accounts you have. The host should have your ID in it.
 
 Once you've configured the bot, you can start it using:
 ```sh
-$ . ./run_bot_python3.sh
+$ cd scripts
+$ . ./run_bot.sh
 ```
-This will start it in a loop, so if the bot crashes, it will start back up. If you want to only run it once, use:
+This script (and the one for batch) will expect you to be running python 3.6. It will check for `python3` and `python` as commands in that order,
+and use the first one it finds. They will also start it in a loop, so if the bot crashes, they will start back up. If you want to only run it once, use:
 ```sh
 $ python3 bot.py
 ```
