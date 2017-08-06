@@ -1,5 +1,6 @@
 import re
 import random
+import datetime
 
 RESPONSES_PER_SLIDE = 10
 
@@ -18,6 +19,8 @@ def new_twow(db, identifier, channel, owner):
                         'responses': {},
                         'slides': {},
                         'votes': [],
+                        'votetimer':None,
+                        'restimer':None,
                         }
                         }
                     }
@@ -110,3 +113,23 @@ def create_slides(db, round, voter):
     
     db.save_data()
     return True
+
+def get_delta(times):
+    days = 0
+    hours = 0
+    minutes = 0
+    current = ''
+    for c in times:
+        if c == 'd':
+            days = int(current)
+        elif c == 'h':
+            hours = int(current)
+        elif c == 'm':
+            minutes = int(current)
+        else:
+            current += c
+            continue
+        current = ''
+    
+    delta = datetime.timedelta(days=days, hours=hours, minutes=minutes)
+    return delta
