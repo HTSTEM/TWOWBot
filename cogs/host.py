@@ -6,23 +6,18 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-from cogs.util import results, twow_helper
+from cogs.util import results, twow_helper, checks
 
 
 class Host():
     @commands.command()
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def start_voting(self, ctx):
         '''Start voting..
         This will end responding and will allow people to use `vote`.
         '''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
-        
         sd = ctx.bot.server_data[ctx.channel.id]
-        
-        if sd['owner'] != ctx.author.id:
-            return
         
         if sd['voting']:
             await ctx.bot.send_message(ctx.channel, 'Voting is already active.')
@@ -39,20 +34,15 @@ class Host():
         return
     
     @commands.command()
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def results(self, ctx, nums:str = '20%'):
         '''End this round and show results.
         `nums` is either a percentage denoted by `%` (for example `5%`),
         or it it a set number of people to elimintate this round.
         *Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.*
         '''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
-        
         sd = ctx.bot.server_data[ctx.channel.id]
-        
-        if sd['owner'] != ctx.author.id:
-            return
         
         if not sd['voting']:
             await ctx.bot.send_message(ctx.channel, 'Voting hasn\'t even started yet...')
@@ -143,21 +133,16 @@ class Host():
         ctx.bot.save_data()
         
     @commands.command()
-    async def responses(self, ctx, sid:str = ''):
+    @checks.twow_exists()
+    async def responses(self, ctx, identifier:str = ''):
         '''List all responses this round.
         This command will send the responses via DMs.
         '''
         id = None
-        if sid:
+        if identifier:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
-            if sid not in s_ids:
-                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(sid.replace('`', '\\`')))
-                return
-            id = s_ids[sid]
+            id = s_ids[identifier]
         else:
-            if ctx.channel.id not in ctx.bot.servers:
-                await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-                return
             id = ctx.channel.id
             
         if ctx.bot.server_data[id]['owner'] != ctx.author.id:
@@ -223,23 +208,18 @@ class Host():
                 await ctx.bot.send_message(ctx.channel, 'Usage: `{}register <short identifier>'.format(ctx.prefix))
     
     @commands.command()
-    async def show_config(self, ctx, sid:str = ''):
+    @checks.twow_exists()
+    async def show_config(self, ctx, identifier:str = ''):
         '''Sends the config file for this channel.
         **WARNING!**
         This file contains everyone's responses, as well as their votes, so
         don't use this command out of DMs.
         '''
         id = None
-        if sid:
+        if identifier:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
-            if sid not in s_ids:
-                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(sid.replace('`', '\\`')))
-                return
-            id = s_ids[sid]
+            id = s_ids[identifier]
         else:
-            if ctx.channel.id not in ctx.bot.servers:
-                await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-                return
             id = ctx.channel.id
             
         if ctx.bot.server_data[id]['owner'] != ctx.author.id:
@@ -249,19 +229,14 @@ class Host():
             await ctx.channel.send(file=discord.File(server_file))
             
     @commands.command(aliases=['settimes'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def set_times(self, ctx, *timel):
-        '''
-        Set timer for next events. Events are voting and results.
+        '''Set timer for next events. Events are voting and results.
         Time is specified in the format `[<days>d][<hours>h][<minutes>m]`
         '''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
-        
         sd = ctx.bot.server_data[ctx.channel.id]
         
-        if sd['owner'] != ctx.author.id:
-            return
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
         if len(timel) == 0:
@@ -287,19 +262,15 @@ class Host():
         ctx.bot.save_data()
             
     @commands.command(aliases=['setprompt'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def set_prompt(self, ctx, *promptl):
         '''Set the prompt for this round.
         *Summon unicorns*
         '''
         prompt = ' '.join(promptl)
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
         
         sd = ctx.bot.server_data[ctx.channel.id]
-        
-        if sd['owner'] != ctx.author.id:
-            return
         
         # If you're someone who likes all code to look pristine, I appologise for the next few lines :'(
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
@@ -321,20 +292,17 @@ class Host():
             return
     
     @commands.command()
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def transfer(self, ctx):
         '''Transfer ownership of this mTWOW.
         Do `transfer @mention`.
         '''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
         
         sd = ctx.bot.server_data[ctx.channel.id]
-        if sd['owner'] != ctx.author.id:
-            return
         
         if len(ctx.message.mentions) == 0:
-            await ctx.bot.send_message(ctx.channel, 'Usage: `{}transfer <User>`'.format(PREFIX))
+            await ctx.bot.send_message(ctx.channel, 'Usage: `{}transfer <User>`'.format(ctx.prefix))
             return
         
         def check(m):
@@ -358,16 +326,13 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'MTWOW has been transfered to {}.'.format(ctx.message.mentions[0].name))
         
     @commands.command()
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def delete(self, ctx):
         '''Delete the mTWOW.
         An archive will be stored and can be located by the hoster of the bot.'''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
         
         sd = ctx.bot.server_data[ctx.channel.id]
-        if sd['owner'] != ctx.author.id:
-            return
         
         def check(m):
             return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y','n']

@@ -19,6 +19,8 @@ class HelperBodge():
 
 
 class TWOWBot(commands.Bot):
+    class ErrorAlreadyShown: pass
+
     def __init__(self, log_file=None, *args, **kwargs):
         self.debug = False
         self.config = {}
@@ -58,7 +60,7 @@ class TWOWBot(commands.Bot):
                 self.yaml.dump(i[1], data_file)
                 
     def save_archive(self, sid):
-        with open('./server_data/archive/{}-{}.yml'.format(sid,datetime.datetime.utcnow()), 'w') as data_file:
+        with open('./server_data/archive/{}-{}.yml'.format(sid, str(datetime.datetime.utcnow()).replace(':', '.')), 'w') as data_file:
             self.yaml.dump(self.server_data[sid], data_file)
 
     async def send_message(self, to, msg):
@@ -105,8 +107,14 @@ class TWOWBot(commands.Bot):
             self.dispatch('command', ctx)
             try:
                 if 'no_sudo' not in [i.__qualname__.split('.')[0] for i in ctx.command.checks]:
+                    vc = ctx.command._verify_checks
+                    async def nvc(*args):
+                        pass
+                    ctx.command._verify_checks = nvc
                     await ctx.command.invoke(ctx)
+                    ctx.command._verify_checks = vc
             except CommandError as e:
+                print(e)
                 await ctx.command.dispatch_error(ctx, e)
             else:
                 self.dispatch('command_completion', ctx)
@@ -172,6 +180,9 @@ class TWOWBot(commands.Bot):
 
             return
 
+        if isinstance(exception, self.ErrorAlreadyShown):
+            return
+        
         if isinstance(exception, commands.CheckFailure):
             await ctx.send('You can\'t do that.')
         elif isinstance(exception, commands.CommandNotFound):
