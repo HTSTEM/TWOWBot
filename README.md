@@ -4,6 +4,7 @@
 A simple bot for hosting miniTWOWs on [Discord](https://discordapp.com) which you can invite from [here](https://discordapp.com/oauth2/authorize?client_id=222869815650418690&scope=bot).
 
 [![Discord](https://discordapp.com/api/guilds/303616392710586373/widget.png)](https://discord.gg/t58ukQW)
+![Discord](https://img.shields.io/badge/python-3.6-blue.svg)
 
 ### About TWOWBot
 #### This bot is being developed by:
