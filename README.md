@@ -72,12 +72,12 @@ $ cd TWOWBot/
 $ git checkout yaml
 ```
 From there, there is a handy setup script to get you on your feet:
-```
+```sh
 $ python3 setup.py
 ```
 You will then need to edit `src/config.yml` with your information. Your bot token can be found [here](https://discordapp.com/developers/applications/me),
-the developers section should have your ID in it, and then anyone else that might need full control of the bot,
-for example, any alt accounts you have. The host should have your ID in it.
+the `developers` section should have your ID in it, and then anyone else that might need full control of the bot,
+for example, any alt accounts you have. The `host` should have your ID in it.
 
 Once you've configured the bot, you can start it using:
 ```sh
