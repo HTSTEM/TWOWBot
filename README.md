@@ -1,4 +1,4 @@
-<p align="center"><img width="350" src="https://cdn.discordapp.com/attachments/187311902085349376/187745473723891713/TWOWBot.png"></p>
+<p align="center"><img width="350" src="https://botter.doesnt-have-a.life/cq78pep.png"></p>
 <h1 align="center">TWOWBot</h1>
 
 A simple bot for hosting miniTWOWs on [Discord](https://discordapp.com) which you can invite from [here](https://discordapp.com/oauth2/authorize?client_id=222869815650418690&scope=bot).
