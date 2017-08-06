@@ -118,7 +118,7 @@ class Host():
             living = []
         if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:#new round
             sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
-                'alive':[t[1] for t in living], 
+                'alive':[t[1].id for t in living], 
                 'prompt': None, 
                 'responses': {}, 
                 'slides': {}, 
@@ -208,6 +208,7 @@ class Host():
     
     @commands.command()
     @checks.twow_exists()
+    @checks.is_twow_host()
     async def show_config(self, ctx, identifier:str = ''):
         '''Sends the config file for this channel.
         **WARNING!**
@@ -220,9 +221,6 @@ class Host():
             id = s_ids[identifier]
         else:
             id = ctx.channel.id
-            
-        if ctx.bot.server_data[id]['owner'] != ctx.author.id:
-            return
         
         with open('./server_data/{}.yml'.format(ctx.channel.id), 'rb') as server_file:
             await ctx.channel.send(file=discord.File(server_file))
