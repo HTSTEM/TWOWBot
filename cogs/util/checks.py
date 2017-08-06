@@ -10,3 +10,10 @@ def is_host():
     def predicate(ctx: commands.Context) -> bool:
         return ctx.author.id == ctx.bot.BOT_HOSTER
     return commands.check(predicate)
+
+def no_sudo():
+    def predicate(ctx: commands.Context) -> bool:
+        return True
+    return commands.check(predicate)
+
+    

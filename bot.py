@@ -6,8 +6,10 @@ import re
 import os
 
 from discord.ext import commands
+from discord.ext.commands.errors import CommandError, CommandNotFound
 import ruamel.yaml as yaml
 import discord
+
 
 class HelperBodge():
     def __init__(self, data):
@@ -72,6 +74,46 @@ class TWOWBot(commands.Bot):
     async def on_message(self, message):
         await self.process_commands(message)
 
+    async def process_commands_sudo(self, message):
+        """|coro|
+        This function processes the commands that have been registered
+        to the bot and other groups. Without this coroutine, none of the
+        commands will be triggered.
+        By default, this coroutine is called inside the :func:`.on_message`
+        event. If you choose to override the :func:`.on_message` event, then
+        you should invoke this coroutine as well.
+        This is built using other low level tools, and is equivalent to a
+        call to :meth:`~.Bot.get_context` followed by a call to :meth:`~.Bot.invoke`.
+        Parameters
+        -----------
+        message : discord.Message
+            The message to process commands for.
+        """
+        ctx = await self.get_context(message)
+        await self.invoke_sudo(ctx)
+    
+    async def invoke_sudo(self, ctx):
+        """|coro|
+        Invokes the command given under the invocation context and
+        handles all the internal event dispatch mechanisms.
+        Parameters
+        -----------
+        ctx: :class:`.Context`
+            The invocation context to invoke.
+        """        
+        if ctx.command is not None:
+            self.dispatch('command', ctx)
+            try:
+                if 'no_sudo' not in [i.__qualname__.split('.')[0] for i in ctx.command.checks]:
+                    await ctx.command.invoke(ctx)
+            except CommandError as e:
+                await ctx.command.dispatch_error(ctx, e)
+            else:
+                self.dispatch('command_completion', ctx)
+        elif ctx.invoked_with:
+            exc = CommandNotFound('Command "{}" is not found'.format(ctx.invoked_with))
+            self.dispatch('command_error', ctx, exc)
+        
     '''
     async def notify_devs(self, lines, message: discord.Message = None):
         # form embed
