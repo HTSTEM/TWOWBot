@@ -2,10 +2,10 @@ cd ..
 while true
 do
 
-if hash python3 2>/dev/null; then
-    python3 "$@"
+if which python3>/dev/null; then
+    python3 "bot.py"
 else
-    python "$@"
+    python "bot.py"
 fi
 
 done
