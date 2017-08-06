@@ -11,25 +11,20 @@ from cogs.util import twow_helper
 
 class Host():
     @commands.command()
+    @checks.twow_exists()
     async def id(self, ctx):
         '''Get the server ID used in voting.
         This was set when this channel was registered.
         '''
-        if ctx.channel.id in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 
-                'This mTWOW\'s identifier is `{}`'.format(ctx.bot.servers[ctx.channel.id]))
-        else:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data. If this is an error, please contact {}.'.format(ctx.bot.get_user(BOT_HOSTER)))
+        await ctx.bot.send_message(ctx.channel, 
+            'This mTWOW\'s identifier is `{}`'.format(ctx.bot.servers[ctx.channel.id]))
             
     @commands.command()
+    @checks.twow_exists()
     async def prompt(self, ctx):
         '''Get the current prompt.
         The host of this mTWOW can use `set_prompt` to set it.
         '''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
-        
         sd = ctx.bot.server_data[ctx.channel.id]
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
@@ -46,28 +41,23 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'The current prompt is:\n{}\n'.format(round['prompt'].decode('utf-8')))
         
     @commands.command()
+    @checks.twow_exists()
     async def season(self, ctx):
         '''Get the current season number.'''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
-        
         sd = ctx.bot.server_data[ctx.channel.id]
         
         await ctx.bot.send_message(ctx.channel, 'We are on season {}'.format(sd['season']))
         
     @commands.command()
+    @checks.twow_exists()
     async def round(self, ctx):
         '''Get the current round number.'''
-        if ctx.channel.id not in ctx.bot.servers:
-            await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
-            return
-        
         sd = ctx.bot.server_data[ctx.channel.id]
         
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
         
     @commands.command()
+    @checks.twow_exists()
     async def vote(self, ctx, identifier:str = '', *responsel):
         '''Vote on the responses.
         This command will only work in DMs.
@@ -152,6 +142,7 @@ class Host():
             await ctx.bot.send_message(ctx.channel, ':ballot_box: Thanks for voting!')
             
     @commands.command()
+    @checks.twow_exists()
     async def respond(self, ctx, identifier:str = '', *responsel):
         '''Respond to the current prompt.
         You can get the channel identifier by using `id` in that channel.
