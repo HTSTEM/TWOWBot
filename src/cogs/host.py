@@ -5,7 +5,7 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-from cogs.util import results, twow_helper, checks
+from cogs.util import results, twow_helper, checks, timed_funcs
 
 
 class Host():
@@ -16,20 +16,8 @@ class Host():
         '''Start voting..
         This will end responding and will allow people to use `vote`.
         '''
-        sd = ctx.bot.server_data[ctx.channel.id]
         
-        if sd['voting']:
-            await ctx.bot.send_message(ctx.channel, 'Voting is already active.')
-            return
-        roundn = sd['round']
-        seasonn = sd['season']
-        if len(sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-{}'.format(roundn)]['responses']) < 2:
-            await ctx.bot.send_message(ctx.channel, 'There aren\'t enough responses to start voting. You need at least 2.')
-            return
-        
-        sd['voting'] = True
-        ctx.bot.save_data()
-        await ctx.bot.send_message(ctx.channel, 'Voting has been activated.')
+        await timed_funcs.start_voting(ctx.bot, ctx.channel)
         return
     
     @commands.command()
@@ -41,95 +29,8 @@ class Host():
         or it it a set number of people to elimintate this round.
         *Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.*
         '''
-        sd = ctx.bot.server_data[ctx.channel.id]
-        
-        if not sd['voting']:
-            await ctx.bot.send_message(ctx.channel, 'Voting hasn\'t even started yet...')
-            return
-        
-        if 'season-{}'.format(sd['season']) not in sd['seasons']:
-            sd['seasons']['season-{}'.format(sd['season'])] = {}
-        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
-        
-        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
-        voted_ons = set()
-        for vote in round['votes']: voted_ons |= set(vote['vote'])
-        if set(round['responses']) != voted_ons:
-            await ctx.bot.send_message(ctx.channel, 'Not every response has been voted on yet!')
-            return
-        totals = results.count_votes(round, round['alive'])
-        
-        msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
-        await ctx.message.delete()
-        await ctx.bot.send_message(ctx.channel,msg)
-        
-        eliminated = []
-        living = []
-        
-        elim = int(0.8 * len(totals))
-        try:
-            if nums[-1] == '%':
-                elim = len(totals)*(100-int(nums[:-1]))//100
-            else:
-                elim = len(totals) - int(nums)
-        except ValueError:
-            await ctx.bot.send_message(ctx.channel, '{} doesn\'t look like a number to me.'.format(nums))
-            return
-            
-        for msg, dead, uid, n in results.get_results(totals, elim, round):
-            user = ctx.guild.get_member(uid)
-            if user is not None:
-                name = user.mention
-            else:
-                name = str(uid)
-                
-            if dead:
-                eliminated.append((name, user))
-            else:
-                living.append((name, user))
-            
-            await asyncio.sleep(len(totals) - n / 2)
-            await ctx.bot.send_message(ctx.channel,msg.format(name)) 
-
-        user = ctx.guild.get_member(totals[0]['name'])
-        if user is not None:
-            name = user.mention
-        else:
-            name = str(v['name'])
-        msg = '{}\nThe winner was {}! Well done!'.format('=' * 50, name)
-        await ctx.bot.send_message(ctx.channel,msg)  
-        
-        await ctx.bot.send_message(ctx.channel,
-            'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
-
-        # Do all the round incrementing and stuff.
-        if len(totals) - len(eliminated) <= 1:
-            await ctx.bot.send_message(ctx.channel,'**This season has ended! The winner was {}!**'.format(name))
-            sd['round'] = 1
-            sd['season'] += 1
-            await ctx.bot.send_message(ctx.channel,'**We\'re now on season {}!**'.format(sd['season']))
-        else:
-            sd['round'] += 1
-            await ctx.bot.send_message(ctx.channel,'**We\'re now on round {}!**'.format(sd['round']))
-            
-        if 'season-{}'.format(sd['season']) not in sd['seasons']:#new season
-            sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
-            living = []
-        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:#new round
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
-                'alive':[t[1].id for t in living], 
-                'prompt': None, 
-                'responses': {}, 
-                'slides': {}, 
-                'votes': [],
-                'votetimer':None,
-                'restimer':None,
-                }
-        
-        sd['voting'] = False
-        
-        ctx.bot.save_data()
+        await timed_funcs.do_results(ctx.bot, ctx.channel, ctx.guild, nums, message=ctx.message)
+        return
         
     @commands.command()
     @checks.twow_exists()
