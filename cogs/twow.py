@@ -123,18 +123,18 @@ class Host():
             id = identifier
             vote_str = ' '.join(responsel)
             if ctx.author.id not in round['slides']:
-                await ctx.bot.send_message(ctx.author, 'You don\'t have a voting slide *to* vote on!\nUse `.vote {}` to generate one.'.format(id))
+                await ctx.bot.send_message(ctx.author, ':triumph: You don\'t have a voting slide *to* vote on!\nUse `.vote {}` to generate one.'.format(id))
                 return
                 
             slide = round['slides'][ctx.author.id]
             to = string.ascii_uppercase[len(slide) - 1]
             regex = '[A-{}]{{{}}}'.format(to, len(slide))
             if not re.compile(regex).match(vote_str):
-                await ctx.bot.send_message(ctx.author, 'Please vote for **every** item on your slide exactly **once**.')
+                await ctx.bot.send_message(ctx.author, ':triumph: Please vote for **every** item on your slide exactly **once**.')
                 return
             
             if len(set(vote_str)) != len(vote_str):  # Check for repeats
-                await ctx.bot.send_message(ctx.author, 'Please vote for **every** item on your slide exactly **once**.')
+                await ctx.bot.send_message(ctx.author, ':triumph: Please vote for **every** item on your slide exactly **once**.')
                 return
             
             vote = list(vote_str)
@@ -149,7 +149,7 @@ class Host():
             del round['slides'][ctx.author.id]
             ctx.bot.save_data()
             
-            await ctx.bot.send_message(ctx.channel, 'Thanks for voting!')
+            await ctx.bot.send_message(ctx.channel, ':ballot_box: Thanks for voting!')
             
     @commands.command()
     async def respond(self, ctx, identifier:str = '', *responsel):
@@ -177,7 +177,7 @@ class Host():
         elif success == 3:
             await ctx.bot.send_message(ctx.channel, 'Voting has already started. Sorry.')
         elif success == 5:
-            await ctx.bot.send_message(ctx.channel, 'There\'s no prompt.. How can you even?')
+            await ctx.bot.send_message(ctx.channel, 'There\'s no prompt.. How can you even? :confounded:')
         elif success == 7:
             await ctx.bot.send_message(ctx.channel, 'You are unable to submit this round. Please wait for the next season.')
         elif success == 9:
@@ -186,10 +186,10 @@ class Host():
             if success // 2 % 2 == 1: 
                 await ctx.bot.send_message(ctx.channel, '**Warning! Overwriting current response!**')
             if success // 4 % 2 == 1: 
-                await ctx.bot.send_message(ctx.channel, '**Warning! Your response looks to be over 10 words ({}).**\nThis can be ignored if you are playing a variation TWOW that doesn\'t have this limit'.format(len(response.split(' '))))
+                await ctx.bot.send_message(ctx.channel, ':no_good: **Warning! Your response looks to be over 10 words ({}).**\nThis can be ignored if you are playing a variation TWOW that doesn\'t have this limit'.format(len(response.split(' '))))
             if success // 8 % 2 == 1:
-                await ctx.bot.send_message(ctx.channel, '**Due to rude words, your submission has been changed to:**\n{}'.format(response))
-            await ctx.bot.send_message(ctx.channel, '**Submission recorded**')
+                await ctx.bot.send_message(ctx.channel, ':unamused: **Due to rude words, your submission has been changed to:**\n{}'.format(response))
+            await ctx.bot.send_message(ctx.channel, ':writing_hand: **Submission recorded**')
         
 def setup(bot):
     bot.add_cog(Host())
