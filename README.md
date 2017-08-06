@@ -43,7 +43,7 @@ There are a few commands that are useful to know:
 | `die` | Disconnects the bot. |
 | `respond` | Respond to the current prompt. |
 | `say` | Get te bot to say something. |
-| `help` | This help message :D
+| `help` | This help message :D |
 | `ping` | Ping the bot. |
 | `id` | Get the server ID used in voting. |
 | `role_ids` | Get all of the role ids for the server. |
@@ -52,11 +52,11 @@ There are a few commands that are useful to know:
 | `prompt` | Get the current prompt. |
 | `how` | Get instructions on hosting a mTWOW. |
 | `season` | Get the current season number. |
-| `register` | Setup channel initially
+| `register` | Setup channel initially. |
 | `show_config` | Sends the config file for this channel. |
-| `set_times` | Set timer for next events.` | Events are voting and results. |
+| `set_times` | Set timer for next events.  Events are voting and results. |
 | `set_prompt` | Set the prompt for this round. |
-| `start_voting` | Start voting. |. |
+| `start_voting` | Start voting. |
 | `transfer` | Transfer ownership of this mTWOW. |
 | `results` | End this round and show results. |
 | `delete` | Delete the mTWOW. |
