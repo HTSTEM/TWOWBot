@@ -9,62 +9,62 @@ A simple bot for hosting miniTWOWs on [Discord](https://discordapp.com) which yo
 
 ### About TWOWBot
 #### This bot is being developed by:
-* Bottersnike #3605
-* hanss314 #0128
-* Noahkiq #0493
+* [Bottersnike#3605](https://github.com/Bottersnike)
+* [hanss314#0128](https://github.com/hanss314)
+* [Noahkiq#0493](https://github.com/Noahkiq)
 #### The main bot is being hosted by:
-* Bottersnike #3605
+* [Bottersnike#3605](https://github.com/Bottersnike) (unstable bot)
 
 ---
 ### How to use TWOWBot:
 #### Hosting an mTWOW:
-The host of an mTWOW has a coupple of commands for them to use:
-* `set_prompt` will set the prompt for the round.
-* `responses` will send you a DM listing all of the responses so far.
-* `start_voting` will then close responses and allow people to vote.
-* Finally, `results` will end the round and show results
-* You can also use `transfer` to make someone else the host of the mTWOW.
+The host of an mTWOW has a couple of commands for them to use:
+* **`set_prompt`** will set the prompt for the round.
+* **`responses`** will send you a DM listing all of the responses so far.
+* **`start_voting`** will then close responses and allow people to vote.
+* Finally, **`results`** will end the round and show results
+* You can also use **`transfer`** to make someone else the host of the mTWOW.
 #### Participating in an mTWOW:
 When you are participating, you also have some commands you can use:
-* `respond`, when in a DM, allows you to respond to a prompt.
-* `vote`, when in a DM, will first generate your voting slide, and then allow you to vote on it.
+* **`respond`**, when in a DM, allows you to respond to a prompt.
+* **`vote`**, when in a DM, will first generate your voting slide, and then allow you to vote on it.
 #### Other useful commands:
 There are a few commands that are useful to know:
-* `prompt` will show you the current prompt.
-* `round` and season will tell you the round and season number respectively.
-* `id` will get you the channel identifier for that mTWOW. This is needed when responding or voting.
+* **`prompt`** will show you the current prompt.
+* **`round`** and **`season`** will tell you the round and season number respectively.
+* **`id`** will get you the channel identifier for that mTWOW. This is needed when responding or voting.
 
 ---
 ### All commands:
-| command | brief description |
-| ------- | ----------------- |
-| `round` | Get the current round number. |
-| `sudo` | Run a command ignoring every check. |
-| `evaluate` | Run some code. |
-| `vote` | Vote on the responses. |
-| `die` | Disconnects the bot. |
-| `respond` | Respond to the current prompt. |
-| `say` | Get te bot to say something. |
-| `help` | This help message :D |
-| `ping` | Ping the bot. |
-| `id` | Get the server ID used in voting. |
-| `role_ids` | Get all of the role ids for the server. |
-| `about` | Get info about the bot. |
-| `me` | Get info about yourself. |
-| `prompt` | Get the current prompt. |
-| `how` | Get instructions on hosting a mTWOW. |
-| `season` | Get the current season number. |
-| `register` | Setup channel initially. |
-| `show_config` | Sends the config file for this channel. |
-| `set_times` | Set timer for next events.  Events are voting and results. |
-| `set_prompt` | Set the prompt for this round. |
+| command        | brief description |
+| -------------- | ----------------- |
+| `round`        | Get the current round number. |
+| `sudo`         | Run a command ignoring every check. |
+| `evaluate`     | Run some code. |
+| `vote`         | Vote on the responses. |
+| `die`          | Disconnects the bot. |
+| `respond`      | Respond to the current prompt. |
+| `say`          | Get te bot to say something. |
+| `help`         | This help message :D |
+| `ping`         | Ping the bot. |
+| `id`           | Get the server ID used in voting. |
+| `role_ids`     | Get all of the role ids for the server. |
+| `about`        | Get info about the bot. |
+| `me`           | Get info about yourself. |
+| `prompt`       | Get the current prompt. |
+| `how`          | Get instructions on hosting a mTWOW. |
+| `season`       | Get the current season number. |
+| `register`     | Setup channel initially. |
+| `show_config`  | Sends the config file for this channel. |
+| `set_times`    | Set timer for next events.  Events are voting and results. |
+| `set_prompt`   | Set the prompt for this round. |
 | `start_voting` | Start voting. |
-| `transfer` | Transfer ownership of this mTWOW. |
-| `results` | End this round and show results. |
-| `delete` | Delete the mTWOW. |
-| `responses` | List all responses this round. |
+| `transfer`     | Transfer ownership of this mTWOW. |
+| `results`      | End this round and show results. |
+| `delete`       | Delete the mTWOW. |
+| `responses`    | List all responses this round. |
 
-To get inpepth help into any of these commands including what arguments they require and who can use them, use the `help` command.
+To get indepth help into any of these commands including what arguments they require and who can use them, use the `help` command.
 
 ### How to host the bot:
 Hosting TWOWBot is relatively simple. To download it run the following commands:
@@ -73,6 +73,7 @@ $ git clone https://github.com/HTSTEM/TWOW_Bot TWOWBot
 $ cd TWOWBot/
 $ git checkout yaml
 ```
+*Replace `yaml` in the above command with `stable` if you want to run versions that are usually stable.*  
 From there, there is a handy setup script to get you on your feet:
 ```sh
 $ python3 setup.py
