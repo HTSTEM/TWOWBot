@@ -301,15 +301,19 @@ class Host():
         
         sd = ctx.bot.server_data[ctx.channel.id]
         
-        if len(ctx.message.mentions) == 0:
+        if len(ctx.message.mentions) != 1:
             await ctx.bot.send_message(ctx.channel, 'Usage: `{}transfer <User>`'.format(ctx.prefix))
+            return
+        
+        if ctx.message.mentions[0].bot:
+            await ctx.bot.send_message(ctx.channel, 'Haha, funny. Nice try kid.')
             return
         
         def check(m):
             return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y','n']
         
         await ctx.bot.send_message(ctx.channel, 
-            'You are about to transfer your mtwow to {}. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(ctx.message.mentions[0].name))
+            'You are about to transfer your mTWOW to {}. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(ctx.message.mentions[0].name))
         resp = None
         try:
             resp = await ctx.bot.wait_for('message', check=check, timeout=60)
@@ -323,7 +327,7 @@ class Host():
 
         sd['owner'] = ctx.message.mentions[0].id
         ctx.bot.save_data()
-        await ctx.bot.send_message(ctx.channel, 'MTWOW has been transfered to {}.'.format(ctx.message.mentions[0].name))
+        await ctx.bot.send_message(ctx.channel, 'mTWOW has been transfered to {}.'.format(ctx.message.mentions[0].name))
         
     @commands.command()
     @checks.twow_exists()
@@ -338,7 +342,7 @@ class Host():
             return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y','n']
         
         await ctx.bot.send_message(ctx.channel, 
-            'You are about to delete your mtwow. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.')
+            'You are about to delete your mTWOW. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.')
         resp = None
         try:
             resp = await ctx.bot.wait_for('message', check=check, timeout=60)
@@ -354,7 +358,7 @@ class Host():
         ctx.bot.servers.pop(ctx.channel.id, None)
         ctx.bot.server_data.pop(ctx.channel.id,None)
         ctx.bot.save_data()
-        await ctx.bot.send_message(ctx.channel, 'MTWOW has been deleted.')
+        await ctx.bot.send_message(ctx.channel, 'mTWOW has been deleted.')
         
 def setup(bot):
     bot.add_cog(Host())
