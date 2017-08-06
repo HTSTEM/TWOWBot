@@ -1,6 +1,6 @@
 # This argument is required
 token:
-  Token_goes_here
+  "Token_goes_here"
 
 ids:
   developers:
@@ -12,3 +12,9 @@ ids:
     
 prefix:
   'tb!'
+
+cogs:
+  - cogs.core
+  - cogs.dev
+  - cogs.twow
+  - cogs.host
