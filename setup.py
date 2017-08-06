@@ -52,6 +52,9 @@ def main():
         with open('config.yml.template') as template:
             with open('config.yml', 'w') as target:
                 target.write(template.read())
+                config = True
+    else:
+        config = False
     os.chdir('server_data')
     if 'servers.yml' not in os.listdir('.'):
         with open('servers.yml.template') as template:
@@ -71,7 +74,12 @@ def main():
     
     os.chdir('../..')
     print('=====================================')
-    print('TWOWBot has been succesfully setup!')
+    if not config:
+        print('TWOWBot has been succesfully setup!')
+    else:
+        print('TWOWBot has mostly been setup.')
+        print('You still need to configure config.yml')
+        print('Please see the https://github.com/HTSTEM/TWOW_Bot for instructions on this.')
 
 
 if __name__ == '__main__':

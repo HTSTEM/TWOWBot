@@ -1,8 +1,10 @@
-<p align="center"><img width="350" src="https://cdn.discordapp.com/attachments/187311902085349376/187745473723891713/TWOWBot.png"></p>
+<p align="center"><img width="350" src="https://botter.doesnt-have-a.life/cq78pep.png"></p>
 <h1 align="center">TWOWBot</h1>
 
 A simple bot for hosting miniTWOWs on [Discord](https://discordapp.com) which you can invite from [here](https://discordapp.com/oauth2/authorize?client_id=222869815650418690&scope=bot).
 
+![Python3.6](https://img.shields.io/badge/python-3.6-blue.svg)
+![Discord.py rewrite](https://img.shields.io/badge/discord.py-rewrite-orange.svg)
 [![Discord](https://discordapp.com/api/guilds/303616392710586373/widget.png)](https://discord.gg/t58ukQW)
 
 ### About TWOWBot
@@ -65,30 +67,28 @@ There are a few commands that are useful to know:
 To get inpepth help into any of these commands including what arguments they require and who can use them, use the `help` command.
 
 ### How to host the bot:
-Hosting TWOWBot is relatively simple. To download it and get it set up follow:
+Hosting TWOWBot is relatively simple. To download it run the following commands:
 ```sh
 $ git clone https://github.com/HTSTEM/TWOW_Bot TWOWBot
-$ cd TWOWBot
+$ cd TWOWBot/
 $ git checkout yaml
-$ sudo python3 -m pip install -U git+https://github.com/Rapptz/discord.py@rewrite
-$ sudo python3 -m pip install ruamel.YAML
-$ cd src
-$ cp config.yml.template config.yml
-$ chmod +x scripts/*.sh
-$ cd server_data
-$ cp servers.yml.template servers.yml
 ```
-You will then need to edit `config.yml` with your information. Your bot token can be found [here](https://discordapp.com/developers/applications/me),
-the developers section should have your ID in it, and then anyone else that might need full control of the bot,
-for example, any alt accounts you have. The host should have your ID in it.
+From there, there is a handy setup script to get you on your feet:
+```sh
+$ python3 setup.py
+```
+You will then need to edit `src/config.yml` with your information. Your bot token can be found [here](https://discordapp.com/developers/applications/me),
+the `developers` section should have your ID in it, and then anyone else that might need full control of the bot,
+for example, any alt accounts you have. The `host` should have your ID in it.
 
 Once you've configured the bot, you can start it using:
 ```sh
-$ cd scripts
+$ cd src/scripts/
 $ . ./run_bot.sh
 ```
 This script (and the one for batch) will expect you to be running python 3.6. It will check for `python3` and `python` as commands in that order,
 and use the first one it finds. They will also start it in a loop, so if the bot crashes, they will start back up. If you want to only run it once, use:
 ```sh
+$ cd src/
 $ python3 bot.py
 ```
