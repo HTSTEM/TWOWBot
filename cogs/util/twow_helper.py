@@ -64,7 +64,7 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
         return (9, '')
     
     changed = False
-    with open('banned_words.txt') as bw:
+    with open('static_data/banned_words.txt') as bw:
         banned_w = bw.read().split('\n')
     for i in banned_w:
         if i:
