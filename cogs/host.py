@@ -252,7 +252,7 @@ class Host():
     async def set_times(self, ctx, *timel):
         '''
         Set timer for next events. Events are voting and results.
-        Time is specified in the format `[days]d[hours]h[minutes]m`
+        Time is specified in the format `[<days>d][<hours>h][<minutes>m]`
         '''
         if ctx.channel.id not in ctx.bot.servers:
             await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
