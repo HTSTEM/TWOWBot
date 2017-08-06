@@ -13,26 +13,26 @@ A simple bot for hosting miniTWOWs on [Discord](https://discordapp.com) which yo
 * [hanss314#0128](https://github.com/hanss314)
 * [Noahkiq#0493](https://github.com/Noahkiq)
 #### The main bot is being hosted by:
-* [Bottersnike#3605]() (unstable bot)
+* [Bottersnike#3605](https://github.com/Bottersnike) (unstable bot)
 
 ---
 ### How to use TWOWBot:
 #### Hosting an mTWOW:
 The host of an mTWOW has a couple of commands for them to use:
-* `set_prompt` will set the prompt for the round.
-* `responses` will send you a DM listing all of the responses so far.
-* `start_voting` will then close responses and allow people to vote.
-* Finally, `results` will end the round and show results
-* You can also use `transfer` to make someone else the host of the mTWOW.
+* **`set_prompt`** will set the prompt for the round.
+* **`responses`** will send you a DM listing all of the responses so far.
+* **`start_voting`** will then close responses and allow people to vote.
+* Finally, **`results`** will end the round and show results
+* You can also use **`transfer`** to make someone else the host of the mTWOW.
 #### Participating in an mTWOW:
 When you are participating, you also have some commands you can use:
-* `respond`, when in a DM, allows you to respond to a prompt.
-* `vote`, when in a DM, will first generate your voting slide, and then allow you to vote on it.
+* **`respond`**, when in a DM, allows you to respond to a prompt.
+* **`vote`**, when in a DM, will first generate your voting slide, and then allow you to vote on it.
 #### Other useful commands:
 There are a few commands that are useful to know:
-* `prompt` will show you the current prompt.
-* `round` and season will tell you the round and season number respectively.
-* `id` will get you the channel identifier for that mTWOW. This is needed when responding or voting.
+* **`prompt`** will show you the current prompt.
+* **`round`** and **`season`** will tell you the round and season number respectively.
+* **`id`** will get you the channel identifier for that mTWOW. This is needed when responding or voting.
 
 ---
 ### All commands:
