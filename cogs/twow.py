@@ -6,7 +6,7 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-from cogs.util import twow_helper
+from cogs.util import twow_helper, checks
 
 
 class Host():
@@ -57,7 +57,6 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
         
     @commands.command()
-    @checks.twow_exists()
     async def vote(self, ctx, identifier:str = '', *responsel):
         '''Vote on the responses.
         This command will only work in DMs.
@@ -142,7 +141,6 @@ class Host():
             await ctx.bot.send_message(ctx.channel, ':ballot_box: Thanks for voting!')
             
     @commands.command()
-    @checks.twow_exists()
     async def respond(self, ctx, identifier:str = '', *responsel):
         '''Respond to the current prompt.
         You can get the channel identifier by using `id` in that channel.
