@@ -193,5 +193,17 @@ class TWOW():
                 await ctx.bot.send_message(ctx.channel, ':unamused: **Due to rude words, your submission has been changed to:**\n{}'.format(response))
             await ctx.bot.send_message(ctx.channel, ':writing_hand: **Submission recorded**')
         
+    @commands.command()
+    @checks.twow_exists()
+    async def owner(self, ctx):
+        '''Get the owner of the mTWOW in the current channel.'''
+        id = ctx.channel.id
+            
+        sd = ctx.bot.server_data[id]
+        
+        user = ctx.bot.get_user(sd['owner'])
+        
+        await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}'.format(user.name))
+    
 def setup(bot):
     bot.add_cog(TWOW())
