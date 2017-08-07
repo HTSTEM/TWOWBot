@@ -206,6 +206,71 @@ class TWOW():
         user = ctx.bot.get_user(sd['owner'])
         
         await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}'.format(user.name))
+        
+    @commands.command()
+    @checks.twow_exists()
+    async def status(self, ctx, identifier:str = ''):
+        '''Get information about a mTWOW.'''
+        id = None
+        if identifier:
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            id = s_ids[identifier]
+        else:
+            id = ctx.channel.id
+            
+        sd = ctx.bot.server_data[id]
+        seasonn = sd['season']
+        roundn = sd['round']
+        round = sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-{}'.format(roundn)]
+        round1 = sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-1']
+        starta = round1['alive']
+        nowa = round['alive']
+        alias = ctx.bot.servers[id]
+        waiting_for = 'a prompt'
+        if round['prompt'] != None and not sd['voting']:
+            waiting_for = 'responses'
+        elif round['prompt'] != None and sd['voting']:
+            waiting_for = 'votes'
+            
+        pstatus = 'spectating'
+        if ctx.author.id in nowa:
+            pstatus = 'alive'
+        elif ctx.author.id in starta:
+            pstatus = 'dead'
+        if len(starta) == 1:
+            sustr = '1 person'
+        else:
+            sustr = '{} people'.format(len(starta))
+        if len(nowa) == 1:
+            alstr = '1 person is'
+        else:
+            alstr = '{} people are'.format(len(nowa))
+        
+        mess = '**Info for {}**\n'.format(alias)
+        mess += '{} is on season {} round {}.\n'.format(alias, seasonn, roundn)
+        mess += '{} signed up. {} still alive.\n'.format(sustr, alstr)
+        mess += 'This TWOW is waiting for {}.\n'.format(waiting_for)
+        
+        if waiting_for == 'votes':
+            mess += 'There are currently {} votes and {} responses.\n'.format(len(round['votes']), len(round['responses']))
+        elif waiting_for == 'responses':
+            mess += 'There are currently {} responses.\n'.format(len(round['responses']))
+            
+        mess += 'You are {}.\n'.format(pstatus)
+        
+        try:
+            mess += 'Last season\'s winner was {}.'.format(
+                ctx.bot.get_user(sd['seasons']['season-{}'.format(seasonn-1)]['winner']).name)
+        except KeyError:
+            pass
+        
+        try:
+            mess += 'Last round\'s winner was {}.'.format(
+                ctx.bot.get_user(sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-{}'.format(roundn-1)]['winner']).name)
+        except KeyError:
+            pass
+        
+        await ctx.bot.send_message(ctx.channel, mess)
     
 def setup(bot):
     bot.add_cog(TWOW())

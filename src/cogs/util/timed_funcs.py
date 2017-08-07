@@ -87,7 +87,8 @@ async def do_results(bot, channel, guild, nums, message=None):
     else:
         name = str(v['name'])
     msg = '{}\nThe winner was {}! Well done!'.format('=' * 50, name)
-    await bot.send_message(channel,msg)  
+    await bot.send_message(channel,msg)
+    round['winner'] = user.id
     
     if eliminated:
         await bot.send_message(channel,
@@ -98,6 +99,7 @@ async def do_results(bot, channel, guild, nums, message=None):
     # Do all the round incrementing and stuff.
     if len(totals) - len(eliminated) <= 1:
         await bot.send_message(channel,'**This season has ended! The winner was {}!**'.format(name))
+        sd['seasons']['season-{}'.format(sd['season'])]['winner'] = user.id
         sd['round'] = 1
         sd['season'] += 1
         await bot.send_message(channel,'**We\'re now on season {}!**'.format(sd['season']))
