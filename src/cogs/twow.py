@@ -6,7 +6,7 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-from cogs.util import twow_helper, checks
+from cogs.util import twow_helper, checks, timed_funcs
 
 
 class TWOW():
@@ -137,8 +137,21 @@ class TWOW():
             
             del round['slides'][ctx.author.id]
             ctx.bot.save_data()
-            
             await ctx.bot.send_message(ctx.channel, ':ballot_box: Thanks for voting!')
+            
+            if round['restimer'] == 'waiting':
+                voted_ons = set()
+                for vote in round['votes']: voted_ons |= set(vote['vote'])
+                if set(round['responses']) == voted_ons:
+                    import asyncio
+                    channel = ctx.bot.get_channel(s_ids[id])
+                    await timed_funcs.do_results(
+                        ctx.bot, 
+                        channel, 
+                        channel.guild, 
+                        '20%' #TODO make this an option
+                    )
+            
             
     @commands.command()
     async def respond(self, ctx, identifier:str = '', *responsel):

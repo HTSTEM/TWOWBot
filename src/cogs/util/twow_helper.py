@@ -2,6 +2,8 @@ import re
 import random
 import datetime
 
+from cogs.util import timed_funcs
+
 RESPONSES_PER_SLIDE = 10
 
 def new_twow(db, identifier, channel, owner):
@@ -77,6 +79,10 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     
     round['responses'][responder] = response.encode('utf-8')
     db.save_data()
+    if round['votetimer'] == 'waiting' and len(round['responses']) > 1:
+        import asyncio
+        asyncio.ensure_future(timed_funcs.start_voting(db, db.get_channel(s_ids[id])))
+        
     return success, response
 
 def create_slides(db, round, voter):

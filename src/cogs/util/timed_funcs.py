@@ -12,6 +12,10 @@ async def start_voting(bot, channel):
     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     if len(round['responses']) < 2:
         await bot.send_message(channel, 'There aren\'t enough responses to start voting. You need at least 2.')
+        if round['votetimer'] != None:
+            await bot.send_message(channel, 'Waiting for more responses.')
+            round['votetimer'] = 'waiting'
+            bot.save_data()
         return
 
     sd['voting'] = True
@@ -21,9 +25,13 @@ async def start_voting(bot, channel):
     
 async def do_results(bot, channel, guild, nums, message=None):
     sd = bot.server_data[channel.id]
+    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
     if not sd['voting']:
         await bot.send_message(channel, 'Voting hasn\'t even started yet...')
+        if round['restimer'] != None:
+            round['restimer'] = None
+            bot.save_data()
         return
     
     if 'season-{}'.format(sd['season']) not in sd['seasons']:
@@ -31,11 +39,14 @@ async def do_results(bot, channel, guild, nums, message=None):
     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
         sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
     
-    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     voted_ons = set()
     for vote in round['votes']: voted_ons |= set(vote['vote'])
     if set(round['responses']) != voted_ons:
         await bot.send_message(channel, 'Not every response has been voted on yet!')
+        if round['restimer'] != None:
+            await bot.send_message(channel, 'Waiting for more votes.')
+            round['restimer'] = 'waiting'
+            bot.save_data()
         return
 
     totals = results.count_votes(round, round['alive'])
@@ -79,10 +90,10 @@ async def do_results(bot, channel, guild, nums, message=None):
     await bot.send_message(channel,msg)  
     
     if eliminated:
-        await ctx.bot.send_message(ctx.channel,
+        await bot.send_message(channel,
             'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
     else:
-        await ctx.bot.send_message(ctx.channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0..')
+        await bot.send_message(channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0..')
     
     # Do all the round incrementing and stuff.
     if len(totals) - len(eliminated) <= 1:

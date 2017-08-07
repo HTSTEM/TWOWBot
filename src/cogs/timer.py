@@ -21,9 +21,9 @@ class Timer():
                 round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
                 votetime = round['votetimer']
                 restime = round['restimer']
-                if votetime != None and current_time > votetime:
+                if type(votetime) == datetime.datetime and current_time > votetime:
                     asyncio.ensure_future(timed_funcs.start_voting(self.bot, self.bot.get_channel(cid)))
-                elif restime != None and current_time > restime:
+                elif type(restime) == datetime.datetime and current_time > restime:
                     channel = self.bot.get_channel(cid)
                     await timed_funcs.do_results(
                         self.bot, 
