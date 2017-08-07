@@ -9,7 +9,7 @@ import discord
 from cogs.util import twow_helper, checks
 
 
-class Host():
+class TWOW():
     @commands.command()
     @checks.twow_exists()
     async def id(self, ctx):
@@ -181,4 +181,4 @@ class Host():
             await ctx.bot.send_message(ctx.channel, ':writing_hand: **Submission recorded**')
         
 def setup(bot):
-    bot.add_cog(Host())
+    bot.add_cog(TWOW())

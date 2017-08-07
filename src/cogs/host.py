@@ -100,8 +100,11 @@ class Host():
         msg = '{}\nThe winner was {}! Well done!'.format('=' * 50, name)
         await ctx.bot.send_message(ctx.channel,msg)  
         
-        await ctx.bot.send_message(ctx.channel,
-            'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
+        if eliminated:
+            await ctx.bot.send_message(ctx.channel,
+                'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
+        else:
+            await ctx.bot.send_message(ctx.channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0..')
 
         # Do all the round incrementing and stuff.
         if len(totals) - len(eliminated) <= 1:
@@ -133,6 +136,7 @@ class Host():
         
     @commands.command()
     @checks.twow_exists()
+    @checks.is_twow_host()
     async def responses(self, ctx, identifier:str = ''):
         '''List all responses this round.
         This command will send the responses via DMs.
@@ -143,9 +147,6 @@ class Host():
             id = s_ids[identifier]
         else:
             id = ctx.channel.id
-            
-        if ctx.bot.server_data[id]['owner'] != ctx.author.id:
-            return
             
         sd = ctx.bot.server_data[id]
         
