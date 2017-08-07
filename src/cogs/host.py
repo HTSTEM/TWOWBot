@@ -123,7 +123,7 @@ class Host():
             id = ctx.channel.id
         
         with open('./server_data/{}.yml'.format(ctx.channel.id), 'rb') as server_file:
-            await ctx.channel.send(file=discord.File(server_file))
+            await ctx.author.send(file=discord.File(server_file))
 
             
     @commands.command(aliases=['setprompt'])
