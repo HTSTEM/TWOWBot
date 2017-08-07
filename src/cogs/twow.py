@@ -57,6 +57,7 @@ class TWOW():
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
         
     @commands.command()
+    @checks.twow_exists()
     async def vote(self, ctx, identifier:str = '', *responsel):
         '''Vote on the responses.
         This command will only work in DMs.
@@ -154,6 +155,7 @@ class TWOW():
             
             
     @commands.command()
+    @checks.twow_exists()
     async def respond(self, ctx, identifier:str = '', *responsel):
         '''Respond to the current prompt.
         You can get the channel identifier by using `id` in that channel.

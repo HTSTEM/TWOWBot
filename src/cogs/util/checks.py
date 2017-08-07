@@ -1,3 +1,5 @@
+import inspect
+
 from discord.ext import commands
 
 
@@ -18,12 +20,15 @@ def no_sudo():
 
 def twow_exists():
     async def predicate(ctx: commands.Context) -> bool:
-        if 'identifier' not in ctx.kwargs:
+        args = ctx.message.content.split(' ')[1:] #this is really hacky, if someone can do better please make PR
+        names = inspect.getfullargspec(ctx.command.callback)[0][2:]
+        kwargs = dictionary = dict(zip(names, args))
+        if 'identifier' not in kwargs:
             if ctx.channel.id not in ctx.bot.servers:
                 await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
                 raise ctx.bot.ErrorAlreadyShown()
         else:
-            identifier = ctx.kwargs['identifier']
+            identifier = kwargs['identifier']
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
             if identifier not in s_ids:
                 await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
