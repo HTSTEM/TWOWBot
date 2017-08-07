@@ -9,7 +9,7 @@ from cogs.util import results, twow_helper, checks
 
 
 class Host():
-    @commands.command()
+    @commands.command(aliases=['startvoting'])
     @checks.twow_exists()
     @checks.is_twow_host()
     async def start_voting(self, ctx):
