@@ -79,10 +79,10 @@ async def do_results(bot, channel, guild, nums, message=None):
     await bot.send_message(channel,msg)  
     
     if eliminated:
-            await ctx.bot.send_message(ctx.channel,
-                'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
-        else:
-            await ctx.bot.send_message(ctx.channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0..')
+        await ctx.bot.send_message(ctx.channel,
+            'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
+    else:
+        await ctx.bot.send_message(ctx.channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0..')
     
     # Do all the round incrementing and stuff.
     if len(totals) - len(eliminated) <= 1:
