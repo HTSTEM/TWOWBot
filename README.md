@@ -1,5 +1,4 @@
-<p align="center"><
-    img
+<p align="center"><img
     width="350"
     src="https://botter.doesnt-have-a.life/cq78pep.png"
 ></p>
