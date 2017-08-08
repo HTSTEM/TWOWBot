@@ -45,7 +45,7 @@ class Dev():
         `checks.no_sudo` check applied, in which case, sudo will
         refuse to run the command.
         '''
-    
+
         ctx.message.content = ctx.prefix + cmd
         await ctx.bot.process_commands_sudo(ctx.message)
 
@@ -53,17 +53,18 @@ class Dev():
     @checks.is_dev()
     async def git(self, ctx, *, command_for_git):
         '''Manage the git repository.'''
-        if sys.platform == 'win32':
-            process = subprocess.run('git ' + command_for_git, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.stdout, process.stderr
-        else:
-            process = await asyncio.create_subprocess_exec('git', command_for_git, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = await process.communicate()
+        with ctx.typing():
+            if sys.platform == 'win32':
+                process = subprocess.run('git ' + command_for_git, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = process.stdout, process.stderr
+            else:
+                process = await asyncio.create_subprocess_exec('git', command_for_git, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = await process.communicate()
 
-        stdout = stdout.decode().splitlines()
-        stdout = '\n'.join('+ ' + i for i in stdout)
-        stderr = stderr.decode().splitlines()
-        stderr = '\n'.join('- ' + i for i in stderr)
+            stdout = stdout.decode().splitlines()
+            stdout = '\n'.join('+ ' + i for i in stdout)
+            stderr = stderr.decode().splitlines()
+            stderr = '\n'.join('- ' + i for i in stderr)
 
         await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout, stderr))
 
