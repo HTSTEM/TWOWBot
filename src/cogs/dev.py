@@ -51,26 +51,27 @@ class Dev():
 
     @commands.command()
     @checks.is_dev()
-    async def git(self, ctx, *, command_for_git):
-        '''Manage the git repository.'''
+    async def git_pull(self, ctx):
+        '''Pull from git and update the bot.'''
         async with ctx.channel.typing():
             if sys.platform == 'win32':
-                process = subprocess.run('git ' + command_for_git, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.run('git pull', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = process.stdout, process.stderr
             else:
-                process = await asyncio.create_subprocess_exec('git', command_for_git, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = await asyncio.create_subprocess_exec('git', 'pull', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = await process.communicate()
 
-            stdout = stdout.decode()#.splitlines()
-            #stdout = '\n'.join('+ ' + i for i in stdout)
-            stderr = stderr.decode()#.splitlines()
-            #stderr = '\n'.join('- ' + i for i in stderr)
+            stdout = stdout.decode()
+            stderr = stderr.decode()
 
         await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
 
     @commands.command()
-    @checks.is_dev()
+    @checks.is_host()
+    @checks.no_sudo()
     async def git_cli(self, ctx):
+        '''Start a CLI for `git`.'''
+    
         await ctx.bot.send_message(ctx.channel, '`git` CLI started! `:q` to quit.')
 
         def check(m):
