@@ -68,6 +68,34 @@ class Dev():
 
         await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
 
+    @commands.command()
+    @checks.is_dev()
+    async def git_cli(self, ctx):
+        await ctx.bot.send_message(ctx.channel, '`git` CLI started! `:q` to quit.')
+
+        def check(m):
+            return m.channel == ctx.channel and m.author == ctx.author and (m.content.startswith('git ') or m.content == ':q')
+
+        resp = None
+        async with ctx.channel.typing():
+            while resp != ':q':
+                resp = (await ctx.bot.wait_for('message', check=check)).content
+                if resp == ':q':
+                    break
+                
+                if sys.platform == 'win32':
+                    process = subprocess.run('git ' + resp[4:], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout, stderr = process.stdout, process.stderr
+                else:
+                    process = await asyncio.create_subprocess_exec('git', resp[4:], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout, stderr = await process.communicate()
+
+                stdout = stdout.decode()
+                stderr = stderr.decode()
+
+                await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
+        await ctx.bot.send_message(ctx.channel, 'You have left the `git` CLI.')
+
     @commands.command(aliases=['eval'])
     @checks.is_host()
     @checks.no_sudo()
