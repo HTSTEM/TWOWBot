@@ -49,7 +49,7 @@ class Dev():
         ctx.message.content = ctx.prefix + cmd
         await ctx.bot.process_commands_sudo(ctx.message)
 
-    @commands.command()
+    @commands.command(aliases=['gitpull'])
     @checks.is_dev()
     async def git_pull(self, ctx):
         '''Pull from git and update the bot.'''
