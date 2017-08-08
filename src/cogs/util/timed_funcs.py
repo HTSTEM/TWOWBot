@@ -66,6 +66,16 @@ async def do_results(bot, channel, guild, nums, message=None):
         return
     round['restimer'] = None
     await bot.send_message(channel,msg)
+    votec = len(round['votes'])
+    voterc = len(set([v['voter'] for v in round['votes']]))
+    votest = '{} voter'.format(votec)
+    if votec != 1: votest += 's'
+    voterst = '{} vote'.format(voterc)
+    if voterc != 1: voterst += 's'
+    
+    await asyncio.sleep(1)
+    await bot.send_message(channel, '{} submitted {}.'.format(votest, voterst))
+    
     for msg, dead, uid, n in results.get_results(totals, elim, round):
         user = guild.get_member(uid)
         name = ''
