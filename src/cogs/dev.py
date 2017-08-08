@@ -1,4 +1,6 @@
+import subprocess
 import inspect
+import sys
 
 from discord.ext import commands
 import ruamel.yaml as yaml
@@ -46,6 +48,44 @@ class Dev():
     
         ctx.message.content = ctx.prefix + cmd
         await ctx.bot.process_commands_sudo(ctx.message)
+
+    @commands.command()
+    @checks.is_dev()
+    async def git(self, ctx, *, command_for_git):
+        '''Manage the git repository.'''
+        if sys.platform == 'win32':
+            process = subprocess.run('git ' + command_for_git, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = process.stdout, process.stderr
+        else:
+            process = await asyncio.create_subprocess_exec('git', command_for_git, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = await process.communicate()
+
+        stdout = stdout.decode().splitlines()
+        stdout = '\n'.join('+ ' + i for i in stdout)
+        stderr = stderr.decode().splitlines()
+        stderr = '\n'.join('- ' + i for i in stderr)
+
+        await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout, stderr))
+
+    @commands.command(aliases=['git_pull'])
+    @checks.is_dev()
+    async def update(self, ctx):
+        '''Updates the bot from git'''
+
+        await ctx.bot.send_message(ctx.channel, ':warning: Warning! Pulling from git!')
+
+        if sys.platform == 'win32':
+            process = subprocess.run('git pull', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = process.stdout, process.stderr
+        else:
+            process = await asyncio.create_subprocess_exec('git', 'pull', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = await process.communicate()
+        stdout = stdout.decode().splitlines()
+        stdout = '\n'.join('+ ' + i for i in stdout)
+        stderr = stderr.decode().splitlines()
+        stderr = '\n'.join('- ' + i for i in stderr)
+
+        await ctx.bot.send_message(ctx.channel, '`Git` response: ```diff\n{}\n{}```'.format(stdout, stderr))
 
     @commands.command(aliases=['eval'])
     @checks.is_host()
