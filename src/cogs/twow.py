@@ -252,9 +252,19 @@ class TWOW():
         mess += 'This TWOW is waiting for {}.\n'.format(waiting_for)
         
         if waiting_for == 'votes':
-            mess += 'There are currently {} votes and {} responses.\n'.format(len(round['votes']), len(round['responses']))
+            if len(round['votes']) == 1: 
+                mess += 'There is currently 1 vote and '
+            else:
+                mess += 'There are currently {} votes '.format(len(round['votes']))
+            if len(round['responses']) == 1:
+                mess += '1 response.\n'.format(len(round['votes']))
+            else:
+                mess += '{} responses.\n'.format(len(round['votes']))
         elif waiting_for == 'responses':
-            mess += 'There are currently {} responses.\n'.format(len(round['responses']))
+            if len(round['responses']) == 1:
+                mess += 'There is currently 1 response.\n'
+            else:
+                mess += 'There are currently {} responses.\n'.format(len(round['responses']))
             
         mess += 'You are {}.\n'.format(pstatus)
         
