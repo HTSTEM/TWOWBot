@@ -53,7 +53,7 @@ class Dev():
     @checks.is_dev()
     async def git(self, ctx, *, command_for_git):
         '''Manage the git repository.'''
-        with ctx.typing():
+        async with ctx.channel.typing():
             if sys.platform == 'win32':
                 process = subprocess.run('git ' + command_for_git, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = process.stdout, process.stderr
@@ -61,12 +61,12 @@ class Dev():
                 process = await asyncio.create_subprocess_exec('git', command_for_git, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = await process.communicate()
 
-            stdout = stdout.decode().splitlines()
-            stdout = '\n'.join('+ ' + i for i in stdout)
-            stderr = stderr.decode().splitlines()
-            stderr = '\n'.join('- ' + i for i in stderr)
+            stdout = stdout.decode()#.splitlines()
+            #stdout = '\n'.join('+ ' + i for i in stdout)
+            stderr = stderr.decode()#.splitlines()
+            #stderr = '\n'.join('- ' + i for i in stderr)
 
-        await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout, stderr))
+        await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
 
     @commands.command(aliases=['eval'])
     @checks.is_host()
