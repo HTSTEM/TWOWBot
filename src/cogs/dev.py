@@ -72,7 +72,23 @@ class Dev():
     @checks.no_sudo()
     async def git_cli(self, ctx):
         '''Start a CLI for `git`.'''
-    
+        def special_split(string, char):
+            rtn = []
+            splitting = True
+            curr = ''
+            last = ''
+            for i in string:
+                if i == '"' and last != '\\':
+                    splitting = not splitting
+                elif i != '\\' and (i != char or not splitting):
+                    curr += i
+                elif i == char and splitting:
+                    rtn.append(curr)
+                    curr = ''
+                last = i
+            return rtn + [curr]
+                    
+
         await ctx.bot.send_message(ctx.channel, '`git` CLI started! `:q` to quit.')
 
         def check(m):
@@ -89,7 +105,7 @@ class Dev():
                     process = subprocess.run('git ' + resp[4:], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = process.stdout, process.stderr
                 else:
-                    process = await asyncio.create_subprocess_exec('git', resp[4:], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    process = await asyncio.create_subprocess_exec('git', *special_split(resp[4:], ' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = await process.communicate()
 
                 stdout = stdout.decode()
