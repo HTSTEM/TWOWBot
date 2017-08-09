@@ -161,8 +161,8 @@ class Host():
     @checks.is_twow_host()
     async def can_queue(self, ctx):
         '''Sets if there is a hosting queue. There is none by default'''
-        
-        
+        pass
+                
     @can_queue.command(pass_context=True)
     async def on(self, ctx):
         '''Allows queue'''
@@ -178,6 +178,14 @@ class Host():
         sd['canqueue'] = False
         sd['queue'] = []
         await ctx.bot.send_message(ctx.channel, 'Only the owner can now host in this channel!')
+        ctx.bot.save_data()
+        
+    @commands.command()
+    @checks.can_queue()
+    async def queue(self, ctx):
+        '''Puts yourself in queue for hosting.'''
+        ctx.bot.server_data[ctx.channel.id]['queue'].append(ctx.author.id)
+        await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
         ctx.bot.save_data()
 
     @commands.command()
