@@ -72,7 +72,9 @@ class Dev():
     @checks.no_sudo()
     async def git_cli(self, ctx):
         '''Start a CLI for `git`.'''
+
         def special_split(string, char):
+            '''Split a string, but respect "s'''
             rtn = []
             splitting = True
             curr = ''
