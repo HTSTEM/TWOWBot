@@ -96,6 +96,8 @@ class Dev():
                 stdout = stdout.decode()
                 stderr = stderr.decode()
 
+                resp = ''
+
             await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
         await ctx.bot.send_message(ctx.channel, 'You have left the `git` CLI.')
 
