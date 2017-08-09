@@ -1,7 +1,8 @@
 import subprocess
-import inspect
-import sys
 import asyncio
+import inspect
+import shlex
+import sys
 
 from discord.ext import commands
 import ruamel.yaml as yaml
@@ -72,7 +73,7 @@ class Dev():
     @checks.no_sudo()
     async def git_cli(self, ctx):
         '''Start a CLI for `git`.'''
-    
+
         await ctx.bot.send_message(ctx.channel, '`git` CLI started! `:q` to quit.')
 
         def check(m):
@@ -89,11 +90,13 @@ class Dev():
                     process = subprocess.run('git ' + resp[4:], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = process.stdout, process.stderr
                 else:
-                    process = await asyncio.create_subprocess_exec('git', resp[4:], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    process = await asyncio.create_subprocess_exec('git', *shlex.split(resp[4:]), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = await process.communicate()
 
                 stdout = stdout.decode()
                 stderr = stderr.decode()
+
+                resp = ''
 
             await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
         await ctx.bot.send_message(ctx.channel, 'You have left the `git` CLI.')
