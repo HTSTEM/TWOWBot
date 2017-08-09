@@ -282,6 +282,19 @@ class TWOW():
             pass
         
         await ctx.bot.send_message(ctx.channel, mess)
+    @commands.command()
+    @checks.twow_exists()
+    @checks.can_queue()
+    async def queue(self, ctx):
+        lineup = ctx.bot.server_data[ctx.channel.id]['queue']
+        if len(lineup) == 0:
+            await ctx.bot.send_message(ctx.channel, 'No one is in the queue!')
+        else:
+            mess = '**Hosting Queue:**\n'
+            mess += '1.) **{}**\n'.format(ctx.bot.get_user(lineup[0]).name)
+            for n, uid in enumerate(lineup[1:]):
+                mess += '{}.) {}\n'.format(n+2, ctx.bot.get_user(uid).name)
+            await ctx.bot.send_message(ctx.channel, mess)
     
 def setup(bot):
     bot.add_cog(TWOW())

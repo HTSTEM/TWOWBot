@@ -143,7 +143,6 @@ def get_delta(times):
 
 async def next_host(bot, channel, sd):
     sd['queue'].pop(0)
-    print(sd['queue'])
     if len(sd['queue']) > 0:
         name = channel.guild.get_member(sd['queue'][0]).mention
         await bot.send_message(channel, '{} is now hosting!'.format(name))

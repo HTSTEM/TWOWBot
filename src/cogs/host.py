@@ -126,6 +126,16 @@ class Host():
             await ctx.author.send(file=discord.File(server_file))
 
             
+    @commands.command(aliases=['skiphost'])
+    @checks.twow_exists()
+    @checks.can_queue()
+    @checks.is_twow_host()
+    async def skip_host(self, ctx):
+        '''Skip to next host'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        await twow_helper.next_host(ctx.bot, ctx.channel, sd)
+        
+        
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -180,16 +190,20 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'Only the owner can now host in this channel!')
         ctx.bot.save_data()
         
-    @commands.command()
+    @commands.command(aliases=['joinqueue'])
     @checks.can_queue()
-    async def queue(self, ctx):
+    async def join_queue(self, ctx):
         '''Puts yourself in queue for hosting.'''
-        ctx.bot.server_data[ctx.channel.id]['queue'].append(ctx.author.id)
-        await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
-        ctx.bot.save_data()
-        if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
-            name = ctx.author.mention
-            await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
+        queue = ctx.bot.server_data[ctx.channel.id]['queue']
+        if ctx.author.id in queue:
+            await ctx.bot.send_message(ctx.channel, 'You are already in the queue!')
+        else:
+            queue.append(ctx.author.id)
+            await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
+            ctx.bot.save_data()
+            if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
+                name = ctx.author.mention
+                await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
 
     @commands.command()
     @checks.twow_exists()
