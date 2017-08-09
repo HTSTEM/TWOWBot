@@ -95,7 +95,7 @@ class Dev():
                 stdout = stdout.decode()
                 stderr = stderr.decode()
 
-                await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
+            await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
         await ctx.bot.send_message(ctx.channel, 'You have left the `git` CLI.')
 
     @commands.command(aliases=['eval'])
@@ -112,31 +112,33 @@ class Dev():
          `save_data`
          `ctx`
         '''
-        result = None
-        env = {
-            'channel': ctx.channel,
-            'author': ctx.author,
-            'bot': ctx.bot,
-            'message': ctx.message,
-            'channel': ctx.channel,
-            'save_data': ctx.bot.save_data,
-            'ctx': ctx,
-        }
-        env.update(globals())
+        embed = None
+        async with ctx.channel.typing():
+            result = None
+            env = {
+                'channel': ctx.channel,
+                'author': ctx.author,
+                'bot': ctx.bot,
+                'message': ctx.message,
+                'channel': ctx.channel,
+                'save_data': ctx.bot.save_data,
+                'ctx': ctx,
+            }
+            env.update(globals())
 
-        try:
-            result = eval(code, env)
+            try:
+                result = eval(code, env)
 
-            if inspect.isawaitable(result):
-                result = await result
+                if inspect.isawaitable(result):
+                    result = await result
 
-            colour = 0x00FF00
-        except Exception as e:
-            result = type(e).__name__ + ': ' + str(e)
-            colour = 0xFF0000
+                colour = 0x00FF00
+            except Exception as e:
+                result = type(e).__name__ + ': ' + str(e)
+                colour = 0xFF0000
 
-        embed = discord.Embed(colour=colour, title=code, description='```py\n{}```'.format(result))
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+            embed = discord.Embed(colour=colour, title=code, description='```py\n{}```'.format(result))
+            embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         try:
             await ctx.channel.send(embed=embed)
         except discord.errors.Forbidden:
