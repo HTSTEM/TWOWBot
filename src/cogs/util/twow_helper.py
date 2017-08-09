@@ -125,6 +125,7 @@ def get_delta(times):
     days = 0
     hours = 0
     minutes = 0
+    seconds = 0
     current = ''
     for c in times:
         if c == 'd':
@@ -133,12 +134,14 @@ def get_delta(times):
             hours = int(current)
         elif c == 'm':
             minutes = int(current)
+        elif c == 's':
+            seconds = int(current)
         else:
             current += c
             continue
         current = ''
     
-    delta = datetime.timedelta(days=days, hours=hours, minutes=minutes)
+    delta = datetime.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
     return delta
 
 async def next_host(bot, channel, sd):

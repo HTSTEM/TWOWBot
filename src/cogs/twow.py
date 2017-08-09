@@ -282,6 +282,7 @@ class TWOW():
             pass
         
         await ctx.bot.send_message(ctx.channel, mess)
+        
     @commands.command()
     @checks.twow_exists()
     @checks.can_queue()
