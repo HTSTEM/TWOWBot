@@ -1,6 +1,7 @@
 import subprocess
 import inspect
 import sys
+import asyncio
 
 from discord.ext import commands
 import ruamel.yaml as yaml
@@ -66,7 +67,7 @@ class Dev():
 
         await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
 
-    @commands.command()
+    @commands.command(alias=['gitcli'])
     @checks.is_host()
     @checks.no_sudo()
     async def git_cli(self, ctx):
@@ -78,9 +79,9 @@ class Dev():
             return m.channel == ctx.channel and m.author == ctx.author and (m.content.startswith('git ') or m.content == ':q')
 
         resp = None
-        async with ctx.channel.typing():
-            while resp != ':q':
-                resp = (await ctx.bot.wait_for('message', check=check)).content
+        while resp != ':q':
+            resp = (await ctx.bot.wait_for('message', check=check)).content
+            async with ctx.channel.typing():
                 if resp == ':q':
                     break
                 
