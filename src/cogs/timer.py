@@ -37,7 +37,7 @@ class Timer():
             
     @commands.command(aliases=['settimes','settimer','set_timer'])
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def set_times(self, ctx, *times):
         '''Set timer for next events. Events are voting and results.
         Time is specified in the format `[<days>d][<hours>h][<minutes>m]`

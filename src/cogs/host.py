@@ -108,7 +108,7 @@ class Host():
     
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def show_config(self, ctx, identifier:str = ''):
         '''Sends the config file for this channel.
         **WARNING!**
@@ -158,7 +158,7 @@ class Host():
         
     @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def can_queue(self, ctx):
         '''Sets if there is a hosting queue. There is none by default'''
         pass
@@ -193,7 +193,7 @@ class Host():
 
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def transfer(self, ctx):
         '''Transfer ownership of this mTWOW.
         Do `transfer @mention`.
@@ -231,7 +231,7 @@ class Host():
         
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def delete(self, ctx):
         '''Delete the mTWOW.
         An archive will be stored and can be located by the hoster of the bot.'''
