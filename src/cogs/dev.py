@@ -2,7 +2,7 @@ import subprocess
 import asyncio
 import inspect
 import shlex
-import sts
+import sys
 
 from discord.ext import commands
 import ruamel.yaml as yaml
