@@ -187,6 +187,9 @@ class Host():
         ctx.bot.server_data[ctx.channel.id]['queue'].append(ctx.author.id)
         await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
         ctx.bot.save_data()
+        if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
+            name = ctx.author.mention
+            await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
 
     @commands.command()
     @checks.twow_exists()

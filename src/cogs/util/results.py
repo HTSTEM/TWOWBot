@@ -69,5 +69,12 @@ def get_results(totals, elim, round):
         dead = n >= elim
         
         
-        msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format('=' * 50, ':skull_crossbones:' if dead else ':white_check_mark:', n + 1, symbol, round['responses'][v['name']].decode('utf-8'), '{}', builtins.round(score, 2), builtins.round(stdev, 2))
+        msg = '\n{}\n{} **{}{} place**: *{}*\n**{}** ({}% σ={})'.format(
+            '=' * 50, 
+            ':skull_crossbones:' if (dead and n!=0) else ':white_check_mark:', 
+            n + 1, symbol, round['responses'][v['name']].decode('utf-8'), 
+            '{}',
+            builtins.round(score, 2), 
+            builtins.round(stdev, 2)
+            )
         yield (msg, dead, v['name'], n)

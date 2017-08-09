@@ -1,6 +1,6 @@
 import asyncio
 
-from cogs.util import results
+from cogs.util import results, twow_helper
 
 async def start_voting(bot, channel):
     sd = bot.server_data[channel.id]
@@ -113,6 +113,8 @@ async def do_results(bot, channel, guild, nums, message=None):
         sd['round'] = 1
         sd['season'] += 1
         await bot.send_message(channel,'**We\'re now on season {}!**'.format(sd['season']))
+        if sd['canqueue']:
+            await twow_helper.next_host(bot, channel, sd)
     else:
         sd['round'] += 1
         await bot.send_message(channel,'**We\'re now on round {}!**'.format(sd['round']))

@@ -200,12 +200,13 @@ class TWOW():
     async def owner(self, ctx):
         '''Get the owner of the mTWOW in the current channel.'''
         id = ctx.channel.id
-            
         sd = ctx.bot.server_data[id]
-        
         user = ctx.bot.get_user(sd['owner'])
-        
-        await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}'.format(user.name))
+        if sd['canqueue'] and len(sd['queue']) > 0:
+            host = ctx.bot.get_user(sd['queue'][0])
+            await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}. {} is hosting.'.format(user.name, host.name))
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}.'.format(user.name))
         
     @commands.command()
     @checks.twow_exists()
