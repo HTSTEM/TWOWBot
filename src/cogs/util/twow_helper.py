@@ -12,6 +12,7 @@ def new_twow(db, identifier, channel, owner):
     s['round'] = 1
     s['season'] = 1
     s['voting'] = False
+    s['canqueue'] = False
     s['seasons'] = {'season-1':
                     {'rounds':
                         {'round-1':

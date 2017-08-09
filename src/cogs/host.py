@@ -155,7 +155,31 @@ class Host():
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
             ctx.bot.save_data()
             return
-    
+        
+    @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
+    @checks.twow_exists()
+    @checks.is_twow_host()
+    async def can_queue(self, ctx):
+        '''Sets if there is a hosting queue. There is none by default'''
+        
+        
+    @can_queue.command(pass_context=True)
+    async def on(self, ctx):
+        '''Allows queue'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['canqueue'] = True
+        await ctx.bot.send_message(ctx.channel, 'Anyone can now host in this channel!')
+        ctx.bot.save_data()
+        
+    @can_queue.command(pass_context=True)
+    async def off(self, ctx):
+        '''Disallows queue'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['canqueue'] = False
+        sd['queue'] = []
+        await ctx.bot.send_message(ctx.channel, 'Only the owner can now host in this channel!')
+        ctx.bot.save_data()
+
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_host()
