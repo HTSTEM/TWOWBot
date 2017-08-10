@@ -278,12 +278,12 @@ class TWOW():
             waiting_for = 'votes'
             
         pstatus = 'spectating'
-        if ctx.author.id in nowa:
+        if sd['canqueue'] and len(sd['queue']) > 0 and sd['queue'][0] == ctx.author.id:
+            pstatus = 'hosting'
+        elif ctx.author.id in nowa:
             pstatus = 'alive'
         elif ctx.author.id in starta:
             pstatus = 'dead'
-        elif sd['canqueue'] and len(sd['queue']) > 0 and sd['queue'][0] == ctx.author.id:
-            pstatus = 'hosting'
         if len(starta) == 1:
             sustr = '1 person'
         else:
