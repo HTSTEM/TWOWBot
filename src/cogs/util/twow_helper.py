@@ -16,6 +16,8 @@ def new_twow(db, identifier, channel, owner):
     s['queue'] = []
     s['elim'] = '20%'
     s['hosttimer'] = None
+    s['words'] = 10
+    s['blacklist'] = []
     s['queuetimer'] = {
         'prompt':None,
         'voting':None,

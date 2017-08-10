@@ -87,6 +87,7 @@ class TWOW():
         
     @commands.command()
     @checks.twow_exists()
+    @checks.in_twow()
     async def vote(self, ctx, identifier:str = '', *responsel):
         '''Vote on the responses.
         This command will only work in DMs.
@@ -185,6 +186,7 @@ class TWOW():
             
     @commands.command(aliases=['submit'])
     @checks.twow_exists()
+    @checks.in_twow()
     async def respond(self, ctx, identifier:str = '', *responsel):
         '''Respond to the current prompt.
         You can get the channel identifier by using `id` in that channel.
