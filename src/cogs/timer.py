@@ -26,15 +26,16 @@ class Timer():
                 elif type(restime) == datetime.datetime and current_time > restime:
                     if votetime != 'waiting':
                         channel = self.bot.get_channel(cid)
-                        await timed_funcs.do_results(
+                        asyncio.ensure_future(timed_funcs.do_results(
                             self.bot, 
                             channel, 
                             channel.guild, 
                             sd['elim']
-                        )
+                        ))
                 elif (sd['canqueue'] and round['prompt'] == None and 
-                  type(round['prompt']) == datetime.datetime and sd['hosttimer'] < now):
-                    twow_helper.next_host()
+                  type(sd['hosttimer']) == datetime.datetime and sd['hosttimer'] < current_time):
+                    channel = self.bot.get_channel(cid)
+                    asyncio.ensure_future(twow_helper.next_host(self.bot, channel, sd))
             
             await asyncio.sleep(5)
     

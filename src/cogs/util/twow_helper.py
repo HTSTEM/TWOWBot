@@ -156,6 +156,7 @@ def get_delta(times):
 async def next_host(bot, channel, sd):
     prev = sd['queue'].pop(0)
     name = channel.guild.get_member(prev).mention
+    sd['hosttimer'] = None
     await bot.send_message(channel, '{} is no longer hosting!'.format(name))
     if len(sd['queue']) > 0:
         if sd['queuetimer']['prompt'] != None:
