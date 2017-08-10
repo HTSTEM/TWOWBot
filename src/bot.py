@@ -38,7 +38,12 @@ class TWOWBot(commands.Bot):
                     data = self.yaml.load(data_file)
                     for key, s in data['queuetimer'].items():
                         if s != 'None':
-                            t = datetime.datetime.strptime(s,"%H:%M:%S")
+                            if 'days' in s:
+                                t = datetime.datetime.strptime(s,"%d days, %H:%M:%S")
+                            elif 'day' in s:
+                                t = datetime.datetime.strptime(s,"%d day, %H:%M:%S")
+                            else:
+                                t = datetime.datetime.strptime(s,"%H:%M:%S")
                             data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
                     if 'words' not in data:
                         data['words'] = 10
