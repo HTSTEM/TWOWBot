@@ -1,3 +1,4 @@
+import datetime
 import inspect
 import asyncio
 
@@ -34,8 +35,6 @@ class Host():
         return
         
     @commands.command()
-    @checks.twow_exists()
-    @checks.is_twow_host()
     async def responses(self, ctx, identifier:str = ''):
         '''List all responses this round.
         This command will send the responses via DMs.
@@ -43,11 +42,23 @@ class Host():
         id = None
         if identifier:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
             id = s_ids[identifier]
         else:
+            if ctx.channel.id not in ctx.bot.server_data:
+                await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
+                return
+        
             id = ctx.channel.id
-            
+        
         sd = ctx.bot.server_data[id]
+        
+        if sd['owner'] != ctx.author.id:
+            return
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -71,7 +82,47 @@ class Host():
             await ctx.bot.send_message(ctx.author,m)
         if isinstance(ctx.channel, discord.TextChannel):
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
-            
+    
+    @commands.command()
+    async def remove_response(self, ctx, identifier:str, respondee:str):
+        s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+        if identifier not in s_ids:
+            await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+            return
+        id = s_ids[identifier]
+        sd = ctx.bot.server_data[id]
+        
+        if sd['owner'] != ctx.author.id:
+            return
+        
+        if 'season-{}'.format(sd['season']) not in sd['seasons']:
+            sd['seasons']['season-{}'.format(sd['season'])] = {}
+        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+        
+        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+        
+        for i in round['responses'].items():
+            u = ctx.bot.get_user(i[0])
+            if u is not None:
+                n = u.name
+            else:
+                n = i[0]
+            if n.lower() == respondee.lower():
+                break
+        else:
+            await ctx.bot.send_message(ctx.channel, '`{}` doesn\'t appear to have responded.'.format(respondee.replace('`', '\\`')))
+            return
+        
+        await ctx.bot.send_message(ctx.channel, '<@{}>s response of {} has been removed.'.format(u.id, i[1].decode('utf-8')))
+        del round['responses'][i[0]]
+        chan = ctx.bot.get_channel(id)
+        if chan:
+            await ctx.bot.send_message(chan, '<@{}>, your response has been removed by <@{}>.'.format(u.id, sd['owner']))
+        
+        ctx.bot.save_data()
+        
+    
     @commands.command()
     async def register(self, ctx, identifier:str = ''):
         '''Setup channel initially
@@ -153,8 +204,7 @@ class Host():
         '''Skip to next host'''
         sd = ctx.bot.server_data[ctx.channel.id]
         await twow_helper.next_host(ctx.bot, ctx.channel, sd)
-        
-        
+
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
     @checks.is_twow_host()
