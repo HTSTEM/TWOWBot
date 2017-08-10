@@ -20,6 +20,9 @@ async def start_voting(bot, channel):
 
     sd['voting'] = True
     round['votetimer'] = None
+    if sd['queuetimer']['results'] != None:
+        import datetime
+        round['restimer'] = datetime.datetime.utcnow()+sd['queuetimer']['results']
     bot.save_data()
     await bot.send_message(channel, 'Voting has been activated.')
     
@@ -63,9 +66,11 @@ async def do_results(bot, channel, guild, nums='', message=None):
         else:
             elim = len(totals) - int(nums)
     except ValueError:
-        await bot.send_message(channel, '{} doesn\'t look like a number to me.'.format(nums))
+        await bot.send_message(channel, '{} isn\'t in a valid format.'.format(nums))
         return
     round['restimer'] = None
+    if not sd['canqueue']:
+        sd['queuetimer']['results'] = sd['queuetimer']['voting'] = None
     await bot.send_message(channel,msg)
     votec = len(round['votes'])
     voterc = len(set([v['voter'] for v in round['votes']]))
@@ -119,7 +124,10 @@ async def do_results(bot, channel, guild, nums='', message=None):
     else:
         sd['round'] += 1
         await bot.send_message(channel,'**We\'re now on round {}!**'.format(sd['round']))
-        
+        if sd['canqueue'] and len(sd['queue']) > 0:
+            if sd['queuetimer']['prompt'] != None:
+                sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
+                
     if 'season-{}'.format(sd['season']) not in sd['seasons']:#new season
         sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
         living = []
