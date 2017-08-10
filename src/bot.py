@@ -37,8 +37,9 @@ class TWOWBot(commands.Bot):
                 with open('server_data/{}.yml'.format(i)) as data_file:
                     data = self.yaml.load(data_file)
                     for key, s in data['queuetimer'].items():
-                        t = datetime.datetime.strptime(s,"%H:%M:%S")
-                        data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                        if s != 'None':
+                            t = datetime.datetime.strptime(s,"%H:%M:%S")
+                            data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
                     self.server_data[i] = data
 
         with open('config.yml') as data_file:

@@ -21,11 +21,20 @@ class TWOW():
             
     @commands.command()
     @checks.twow_exists()
-    async def prompt(self, ctx):
+    async def prompt(self, ctx, identifier:str = ''):
         '''Get the current prompt.
         The host of this mTWOW can use `set_prompt` to set it.
         '''
-        sd = ctx.bot.server_data[ctx.channel.id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -42,17 +51,35 @@ class TWOW():
         
     @commands.command()
     @checks.twow_exists()
-    async def season(self, ctx):
+    async def season(self, ctx, identifier:str = ''):
         '''Get the current season number.'''
-        sd = ctx.bot.server_data[ctx.channel.id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
         
         await ctx.bot.send_message(ctx.channel, 'We are on season {}'.format(sd['season']))
         
     @commands.command()
     @checks.twow_exists()
-    async def round(self, ctx):
+    async def round(self, ctx, identifier:str = ''):
         '''Get the current round number.'''
-        sd = ctx.bot.server_data[ctx.channel.id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
         
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
         
@@ -197,10 +224,19 @@ class TWOW():
         
     @commands.command()
     @checks.twow_exists()
-    async def owner(self, ctx):
+    async def owner(self, ctx, identifier:str = ''):
         '''Get the owner of the mTWOW in the current channel.'''
-        id = ctx.channel.id
-        sd = ctx.bot.server_data[id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
+        
         user = ctx.bot.get_user(sd['owner'])
         if sd['canqueue'] and len(sd['queue']) > 0:
             host = ctx.bot.get_user(sd['queue'][0])
@@ -212,14 +248,19 @@ class TWOW():
     @checks.twow_exists()
     async def status(self, ctx, identifier:str = ''):
         '''Get information about a mTWOW.'''
-        id = None
-        if identifier:
+        if identifier:            
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
             id = s_ids[identifier]
         else:
+            sd = ctx.bot.server_data[ctx.channel.id]
             id = ctx.channel.id
             
-        sd = ctx.bot.server_data[id]
         seasonn = sd['season']
         roundn = sd['round']
         round = sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-{}'.format(roundn)]
