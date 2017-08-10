@@ -28,7 +28,8 @@ class Core():
             d += '\n**Categories:**\n'
             for cat in cats:
                 d += '**`{}`**\n'.format(cat)
-            d += '\nUse `{}help <category>` to list commands in a category\n'.format(ctx.prefix)
+            d += '\nUse `{}help <category>` to list commands in a category'.format(ctx.prefix)
+            d += '\nUse `{}help <command>` to get indepth help for a command\n'.format(ctx.prefix)
         elif len(args) == 1:
             cats = {}
             for cmd in cmds:
