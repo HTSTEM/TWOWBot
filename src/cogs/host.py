@@ -83,8 +83,14 @@ class Host():
         if isinstance(ctx.channel, discord.TextChannel):
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
     
-    @commands.command()
+    @commands.command(aliases=['del_response', 'rem_response', 'delresponse', 'remresponse'])
     async def remove_response(self, ctx, identifier:str, respondee:str):
+        '''Removes a response that has been submitted.
+        `respondee` must be the exact name as shown in `responses`.
+        A message is sent to the channel running the mTWOW, so be prepared
+        to defend your reasoning.
+        '''
+    
         s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
         if identifier not in s_ids:
             await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
