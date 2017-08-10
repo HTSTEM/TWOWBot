@@ -302,7 +302,7 @@ class TWOW():
             if len(round['votes']) == 1: 
                 mess += 'There is currently 1 vote and '
             else:
-                mess += 'There are currently {} votes '.format(len(round['votes']))
+                mess += 'There are currently {} votes and '.format(len(round['votes']))
             if len(round['responses']) == 1:
                 mess += '1 response.\n'.format(len(round['responses']))
             else:
