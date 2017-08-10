@@ -247,6 +247,7 @@ class Host():
     @checks.twow_exists()
     @checks.is_twow_host()
     async def set_words(self, ctx, words:int):
+        '''Set the maximum words for a response.'''
         sd = ctx.bot.server_data[ctx.channel.id]
         
         if words > 0:
@@ -257,6 +258,36 @@ class Host():
             sd['words'] = 0
         ctx.bot.save_data()
         
+    @commands.group(pass_context=True, invoke_without_command=True)
+    @checks.twow_exists()
+    async def blacklist(self, ctx):
+        '''Are rude words banned?'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        if sd['blacklist']:
+            await ctx.bot.send_message(ctx.channel, 'The blacklist is **enabled**.')
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The blacklist is **dissabled**.')
+        
+    @blacklist.command(pass_context=True, aliases=['enable'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def on(ctx):
+        '''Enable the blacklist'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['blacklist'] = True
+        await ctx.bot.send_message(ctx.channel, 'The blacklist has been **enabled** for this mTWOW.')
+        ctx.bot.save_data()
+    
+    @blacklist.command(pass_context=True, aliases=['dissable'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def off(ctx):
+        '''Dissable the blacklist'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['blacklist'] = False
+        await ctx.bot.send_message(ctx.channel, 'The blacklist has been **dissabled** for this mTWOW.')
+        ctx.bot.save_data()
+        
     @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
     @checks.twow_exists()
     @checks.is_twow_owner()
@@ -265,6 +296,8 @@ class Host():
         pass
                 
     @can_queue.command(pass_context=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
     async def on(self, ctx):
         '''Allows queue'''
         sd = ctx.bot.server_data[ctx.channel.id]
@@ -273,6 +306,8 @@ class Host():
         ctx.bot.save_data()
         
     @can_queue.command(pass_context=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
     async def off(self, ctx):
         '''Disallows queue'''
         sd = ctx.bot.server_data[ctx.channel.id]

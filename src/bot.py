@@ -42,6 +42,8 @@ class TWOWBot(commands.Bot):
                             data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
                     if 'words' not in data:
                         data['words'] = 10
+                    if 'blacklist' not in data:
+                        data['blacklist'] = True
                     self.server_data[i] = data
 
         with open('config.yml') as data_file:

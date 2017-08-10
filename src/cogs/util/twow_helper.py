@@ -74,17 +74,18 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     if len(response) > 140:
         return (9, '')
     
-    changed = False
-    with open('static_data/banned_words.txt') as bw:
-        banned_w = bw.read().split('\n')
-    for i in banned_w:
-        if i:
-            pattern = re.compile('\\b' + re.escape(i) + '\\b', re.IGNORECASE)
-            if pattern.findall(response):
-                response = pattern.sub('\\*' * len(i), response)
-                changed = True
-    if changed:
-        success += 8
+    if sd['blacklist']:
+        changed = False
+        with open('static_data/banned_words.txt') as bw:
+            banned_w = bw.read().split('\n')
+        for i in banned_w:
+            if i:
+                pattern = re.compile('\\b' + re.escape(i) + '\\b', re.IGNORECASE)
+                if pattern.findall(response):
+                    response = pattern.sub('\\*' * len(i), response)
+                    changed = True
+        if changed:
+            success += 8
     
     round['responses'][responder] = response.encode('utf-8')
     db.save_data()
