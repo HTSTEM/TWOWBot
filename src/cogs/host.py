@@ -242,10 +242,10 @@ class Host():
         
         if round['prompt'] is None:
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
-            ctx.bot.save_data()
             await ctx.bot.send_message(ctx.channel, 'The prompt has been set to `{}` for this round.'.format(prompt.replace('@', '@\u200b').replace('`', '\\`')))
             if sd['queuetimer']['voting'] != None:
                 round['votetimer'] = datetime.datetime.utcnow()+sd['queuetimer']['voting']
+            ctx.bot.save_data()
             return
         else:
             await ctx.bot.send_message(ctx.channel, 'The prompt has been changed from `{}` to `{}` for this round.'.format(round['prompt'].decode('utf-8'), prompt.replace('@', '@\u200b').replace('`', '\\`')))
