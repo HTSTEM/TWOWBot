@@ -15,14 +15,16 @@ class Core():
             d = '**TWOWBot help:**'
 
             for cmd in cmds:
-                d += '\n`{}{}`'.format(ctx.prefix, cmd.name)
+                if 'is_dev' not in [i.__qualname__.split('.')[0] for i in cmd.checks] and \
+                   'is_host' not in [i.__qualname__.split('.')[0] for i in cmd.checks]:
+                    d += '\n`{}{}`'.format(ctx.prefix, cmd.name)
 
-                brief = cmd.brief
-                if brief is None and cmd.help is not None:
-                    brief = cmd.help.split('\n')[0]
+                    brief = cmd.brief
+                    if brief is None and cmd.help is not None:
+                        brief = cmd.help.split('\n')[0]
 
-                if brief is not None:
-                    d += ' - {}'.format(brief)
+                    if brief is not None:
+                        d += ' - {}'.format(brief)
         elif len(args) == 1:
             if args[0] not in ctx.bot.all_commands:
                 d = 'Command not found.'
@@ -72,6 +74,7 @@ class Core():
             cmd = ctx.bot
             cmd_name = ''
             for i in args:
+                i = i.replace('@', '@\u200b')
                 if hasattr(cmd, 'all_commands') and i in cmd.all_commands:
                     cmd = cmd.all_commands[i]
                     cmd_name += cmd.name + ' '
