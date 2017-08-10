@@ -302,9 +302,9 @@ class TWOW():
             else:
                 mess += 'There are currently {} votes '.format(len(round['votes']))
             if len(round['responses']) == 1:
-                mess += '1 response.\n'.format(len(round['votes']))
+                mess += '1 response.\n'.format(len(round['responses']))
             else:
-                mess += '{} responses.\n'.format(len(round['votes']))
+                mess += '{} responses.\n'.format(len(round['responses']))
             
             if round['restimer'] == 'waiting':
                 mess += 'Results will start once we get a vote.\n'
