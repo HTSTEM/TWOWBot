@@ -15,9 +15,9 @@ def count_votes(round, alive):
     
     for vote in round['votes']:
         if vote['voter'] not in vote_weights:
-            vote_weights['voter'] = 1
+            vote_weights[vote['voter']] = 1
         else:
-            vote_weights['voter'] += 1
+            vote_weights[vote['voter']] += 1
     for i in vote_weights:
         vote_weights[i] = 1 / vote_weights[i]
     
@@ -25,8 +25,8 @@ def count_votes(round, alive):
         c = len(vote['vote'])
         for n, v in enumerate(vote['vote']):
             bc = c - n - 1
-            totals[v]['borda'] += bc
-            totals[v]['votes'] += 1
+            totals[v]['borda'] += bc * vote_weights[vote['voter']]
+            totals[v]['votes'] += vote_weights[vote['voter']]
             totals[v]['raw_borda'].append(bc / (c - 1) * 100)
     
     totals = [{'name': i[0], **i[1]} for i in totals.items()]
