@@ -242,6 +242,20 @@ class Host():
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
             ctx.bot.save_data()
             return
+
+    @commands.command(aliases=['setwords'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
+    async def set_words(self, ctx, words:int):
+        sd = ctx.bot.server_data[ctx.channel.id]
+        
+        if words > 0:
+            await ctx.bot.send_message(ctx.channel, 'The word limit has been set to {}.'.format(words))
+            sd['words'] = words
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The word limit has been removed.')
+            sd['words'] = 0
+        ctx.bot.save_data()
         
     @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
     @checks.twow_exists()

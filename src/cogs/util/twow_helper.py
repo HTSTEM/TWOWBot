@@ -41,7 +41,7 @@ def new_twow(db, identifier, channel, owner):
     db.servers[channel] = identifier
     db.save_data()
     
-def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 = no prompt, 7 = dead, 9 = too many words
+def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 = no prompt, 7 = dead, 9 = too many chars, 11 = too many words
     s_ids = {i[1]:i[0] for i in db.servers.items()}
     if id not in s_ids:
         return (1, '')
@@ -69,8 +69,8 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     success = 0
     if responder in round['responses']:
         success += 2
-    if len(response.split(' ')) > 10:
-        success += 4
+    if sd['words'] > 0 and len(response.split(' ')) > sd['words']:
+        return (11, (sd['words'], len(response.split(' '))))
     if len(response) > 140:
         return (9, '')
     

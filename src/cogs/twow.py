@@ -199,7 +199,6 @@ class TWOW():
                 'Usage: `{0}respond <TWOW id> <response>`\nUse `{0}id` in the channel to get the id.'.format(ctx.prefix))
             return
         
-        
         response = ' '.join(responsel)
         success, response = twow_helper.respond(ctx.bot, identifier, ctx.author.id, response)
         if success == 1: 
@@ -213,11 +212,11 @@ class TWOW():
             await ctx.bot.send_message(ctx.channel, 'You are unable to submit this round. Please wait for the next season.')
         elif success == 9:
             await ctx.bot.send_message(ctx.channel, 'That is a lot of characters. Why don\'t we tone it down a bit?')
+        elif success == 11:
+            await ctx.bot.send_message(ctx.channel, ':no_good: Your response is over {} words ({}).'.format(*response))
         else:
             if success // 2 % 2 == 1: 
                 await ctx.bot.send_message(ctx.channel, '**Warning! Overwriting current response!**')
-            if success // 4 % 2 == 1: 
-                await ctx.bot.send_message(ctx.channel, ':no_good: **Warning! Your response looks to be over 10 words ({}).**\nThis can be ignored if you are playing a variation TWOW that doesn\'t have this limit'.format(len(response.split(' '))))
             if success // 8 % 2 == 1:
                 await ctx.bot.send_message(ctx.channel, ':unamused: **Due to rude words, your submission has been changed to:**\n{}'.format(response))
             await ctx.bot.send_message(ctx.channel, ':writing_hand: **Submission recorded**')

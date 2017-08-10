@@ -40,6 +40,8 @@ class TWOWBot(commands.Bot):
                         if s != 'None':
                             t = datetime.datetime.strptime(s,"%H:%M:%S")
                             data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                    if 'words' not in data:
+                        data['words'] = 10
                     self.server_data[i] = data
 
         with open('config.yml') as data_file:
