@@ -81,7 +81,12 @@ class TWOWBot(commands.Bot):
                 
     def save_archive(self, sid):
         with open('./server_data/archive/{}-{}.yml'.format(sid, str(datetime.datetime.utcnow()).replace(':', '.')), 'w') as data_file:
-            self.yaml.dump(self.server_data[sid], data_file)
+            to_save = dict(self.server_data[sid])
+            queuetimer = dict(to_save['queuetimer'])
+            for key, timedelta in queuetimer.items():
+                queuetimer[key] = str(timedelta)
+            to_save['queuetimer'] = queuetimer
+            self.yaml.dump(to_save, data_file)
 
     async def send_message(self, to, msg):
         try:

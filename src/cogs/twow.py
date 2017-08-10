@@ -1,12 +1,14 @@
 import inspect
 import string
 import re
+import datetime
 
 from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
 from cogs.util import twow_helper, checks, timed_funcs
+from cogs.timer import delta_to_string
 
 
 class TWOW():
@@ -181,7 +183,7 @@ class TWOW():
                     )
             
             
-    @commands.command()
+    @commands.command(aliases=['submit'])
     @checks.twow_exists()
     async def respond(self, ctx, identifier:str = '', *responsel):
         '''Respond to the current prompt.
@@ -216,7 +218,7 @@ class TWOW():
             await ctx.bot.send_message(ctx.channel, ':no_good: Your response is over {} words ({}).'.format(*response))
         else:
             if success // 2 % 2 == 1: 
-                await ctx.bot.send_message(ctx.channel, '**Warning! Overwriting current response!**')
+                await ctx.bot.send_message(ctx.channel, ':warning:**Warning! Overwriting current response!**:warning:')
             if success // 8 % 2 == 1:
                 await ctx.bot.send_message(ctx.channel, ':unamused: **Due to rude words, your submission has been changed to:**\n{}'.format(response))
             await ctx.bot.send_message(ctx.channel, ':writing_hand: **Submission recorded**')
@@ -278,6 +280,8 @@ class TWOW():
             pstatus = 'alive'
         elif ctx.author.id in starta:
             pstatus = 'dead'
+        elif sd['canqueue'] and len(sd['queue']) > 0 and sd['queue'][0] == ctx.author.id:
+            pstatus = 'hosting'
         if len(starta) == 1:
             sustr = '1 person'
         else:
@@ -301,11 +305,27 @@ class TWOW():
                 mess += '1 response.\n'.format(len(round['votes']))
             else:
                 mess += '{} responses.\n'.format(len(round['votes']))
+            
+            if round['restimer'] == 'waiting':
+                mess += 'Results will start once we get a vote.\n'
+            elif type(round['restimer']) == datetime.datetime:
+                mess += 'Results will start in {}.\n'.format(delta_to_string(round['restimer']-datetime.datetime.utcnow()))
+                
+            
         elif waiting_for == 'responses':
             if len(round['responses']) == 1:
                 mess += 'There is currently 1 response.\n'
             else:
                 mess += 'There are currently {} responses.\n'.format(len(round['responses']))
+                
+            if round['votetimer'] == 'waiting':
+                mess += 'Voting will start once we get 2 responses.\n'
+            elif type(round['votetimer']) == datetime.datetime:
+                mess += 'Voting will start in {}.\n'.format(delta_to_string(round['votetimer']-datetime.datetime.utcnow()))
+                
+        elif waiting_for == 'a prompt':
+            if type(sd['hosttimer']) == datetime.datetime:
+                mess += 'The host has {} to create a prompt.\n'.format(delta_to_string(sd['hosttimer']-datetime.datetime.utcnow()))
             
         mess += 'You are {}.\n'.format(pstatus)
         

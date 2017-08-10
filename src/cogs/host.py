@@ -35,6 +35,8 @@ class Host():
         return
         
     @commands.command()
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def responses(self, ctx, identifier:str = ''):
         '''List all responses this round.
         This command will send the responses via DMs.
@@ -56,9 +58,6 @@ class Host():
             id = ctx.channel.id
         
         sd = ctx.bot.server_data[id]
-        
-        if sd['owner'] != ctx.author.id:
-            return
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -84,6 +83,8 @@ class Host():
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
     
     @commands.command(aliases=['del_response', 'rem_response', 'delresponse', 'remresponse'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
     async def remove_response(self, ctx, identifier:str, respondee:str):
         '''Removes a response that has been submitted.
         `respondee` must be the exact name as shown in `responses`.
@@ -97,9 +98,6 @@ class Host():
             return
         id = s_ids[identifier]
         sd = ctx.bot.server_data[id]
-        
-        if sd['owner'] != ctx.author.id:
-            return
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}

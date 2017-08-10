@@ -92,7 +92,7 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     if round['votetimer'] == 'waiting' and len(round['responses']) > 1:
         import asyncio
         if type(sd['queuetimer']['results']) == datetime.timedelta:
-            round['restimer'] = datetime.utcnow() + sd['queuetimer']['results']
+            round['restimer'] = datetime.datetime.utcnow() + sd['queuetimer']['results']
         asyncio.ensure_future(timed_funcs.start_voting(db, db.get_channel(s_ids[id])))
         
     return success, response

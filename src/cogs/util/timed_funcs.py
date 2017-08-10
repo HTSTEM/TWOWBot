@@ -111,7 +111,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
             'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
     else:
         await bot.send_message(channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0.')
-    
+    advance = False
     # Do all the round incrementing and stuff.
     if len(totals) - len(eliminated) <= 1:
         await bot.send_message(channel,'**This season has ended! The winner was {}!**'.format(name))
@@ -120,7 +120,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
         sd['season'] += 1
         await bot.send_message(channel,'**We\'re now on season {}!**'.format(sd['season']))
         if sd['canqueue']:
-            await twow_helper.next_host(bot, channel, sd)
+            advance = True
     else:
         sd['round'] += 1
         await bot.send_message(channel,'**We\'re now on round {}!**'.format(sd['round']))
@@ -141,6 +141,9 @@ async def do_results(bot, channel, guild, nums='', message=None):
             'votetimer':None,
             'restimer':None,
             }
+        
+    if advance:
+        await twow_helper.next_host(bot, channel, sd)
     
     sd['voting'] = False
     
