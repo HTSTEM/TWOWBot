@@ -7,9 +7,11 @@ import ruamel.yaml as yaml
 import discord
 
 from cogs.util import twow_helper, checks, timed_funcs
+from cogs.util.categories import category
 
 
 class TWOW():
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     async def id(self, ctx):
@@ -18,7 +20,8 @@ class TWOW():
         '''
         await ctx.bot.send_message(ctx.channel, 
             'This mTWOW\'s identifier is `{}`'.format(ctx.bot.servers[ctx.channel.id]))
-            
+    
+    @category('twow')    
     @commands.command()
     @checks.twow_exists()
     async def prompt(self, ctx):
@@ -40,6 +43,7 @@ class TWOW():
         
         await ctx.bot.send_message(ctx.channel, 'The current prompt is:\n{}\n'.format(round['prompt'].decode('utf-8')))
         
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     async def season(self, ctx):
@@ -48,6 +52,7 @@ class TWOW():
         
         await ctx.bot.send_message(ctx.channel, 'We are on season {}'.format(sd['season']))
         
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     async def round(self, ctx):
@@ -55,7 +60,8 @@ class TWOW():
         sd = ctx.bot.server_data[ctx.channel.id]
         
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
-        
+
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     async def vote(self, ctx, identifier:str = '', *responsel):
@@ -153,7 +159,7 @@ class TWOW():
                         '20%' #TODO make this an option
                     )
             
-            
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     async def respond(self, ctx, identifier:str = '', *responsel):
@@ -195,6 +201,7 @@ class TWOW():
                 await ctx.bot.send_message(ctx.channel, ':unamused: **Due to rude words, your submission has been changed to:**\n{}'.format(response))
             await ctx.bot.send_message(ctx.channel, ':writing_hand: **Submission recorded**')
         
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     async def owner(self, ctx):
@@ -207,7 +214,8 @@ class TWOW():
             await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}. {} is hosting.'.format(user.name, host.name))
         else:
             await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}.'.format(user.name))
-        
+    
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     async def status(self, ctx, identifier:str = ''):
@@ -283,6 +291,7 @@ class TWOW():
         
         await ctx.bot.send_message(ctx.channel, mess)
         
+    @category('twow')
     @commands.command()
     @checks.twow_exists()
     @checks.can_queue()

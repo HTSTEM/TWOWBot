@@ -9,10 +9,12 @@ import ruamel.yaml as yaml
 import discord
 
 from cogs.util import checks
+from cogs.util.categories import category
 #all of these need to be dev only
 
 
 class Dev():
+    @category('developer')
     @commands.command(aliases=['quit', 'kill'])
     @checks.is_dev()
     async def die(self, ctx):
@@ -20,6 +22,7 @@ class Dev():
         await ctx.bot.send_message(ctx.channel, ':wave:')
         await ctx.bot.logout()
 
+    @category('developer')
     @commands.command()
     @checks.is_dev()
     async def say(self, ctx, channel:int, *, words:str):
@@ -30,6 +33,7 @@ class Dev():
         if channel is not None:
             await ctx.bot.send_message(channel, words)
 
+    @category('developer')
     @commands.command()
     @checks.is_dev()
     async def role_ids(self, ctx):
@@ -39,6 +43,7 @@ class Dev():
             '\n'.join(['{}: {}'.format(role.name.replace('@', '@\u200b'), role.id) for role in ctx.guild.roles]))
         await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
 
+    @category('developer')
     @commands.command()
     @checks.is_dev()
     async def sudo(self, ctx, *, cmd:str):
@@ -51,6 +56,7 @@ class Dev():
         ctx.message.content = ctx.prefix + cmd
         await ctx.bot.process_commands_sudo(ctx.message)
 
+    @category('developer')
     @commands.command(aliases=['gitpull'])
     @checks.is_dev()
     async def git_pull(self, ctx):
@@ -68,6 +74,7 @@ class Dev():
 
         await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
 
+    @category('developer')
     @commands.command(alias=['gitcli'])
     @checks.is_host()
     @checks.no_sudo()
@@ -101,6 +108,7 @@ class Dev():
             await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
         await ctx.bot.send_message(ctx.channel, 'You have left the `git` CLI.')
 
+    @category('developer')
     @commands.command(aliases=['eval'])
     @checks.is_host()
     @checks.no_sudo()

@@ -4,20 +4,43 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-class Core():
+from cogs.util.categories import category
 
+
+class Core():
+    @category('info')
     @commands.command()
     async def help(self, ctx, *args):
         '''This help message :D'''
         cmds = {i for i in ctx.bot.all_commands.values()}
 
         if len(args) == 0:
-            d = '**TWOWBot help:**'
+            d = ''#'**TWOWBot help:**'
 
+            cats = {}
             for cmd in cmds:
-                if 'is_dev' not in [i.__qualname__.split('.')[0] for i in cmd.checks] and \
-                   'is_host' not in [i.__qualname__.split('.')[0] for i in cmd.checks]:
-                    d += '\n`{}{}`'.format(ctx.prefix, cmd.name)
+                if not hasattr(cmd, 'category'):
+                    cmd.category = 'Misc'
+                if cmd.category not in cats:
+                    cats[cmd.category] = []
+                cats[cmd.category].append(cmd)
+
+            d += '\n**Categories:**\n'
+            for cat in cats:
+                d += '**`{}`**\n'.format(cat)
+            d += '\nUse `{}help <category>` to list commands in a category\n'.format(ctx.prefix)
+        elif len(args) == 1:
+            cats = {}
+            for cmd in cmds:
+                if not hasattr(cmd, 'category'):
+                    cmd.category = 'Misc'
+                if cmd.category not in cats:
+                    cats[cmd.category] = []
+                cats[cmd.category].append(cmd)
+            if args[0].title() in cats:
+                d = 'Commands in caterogy **`{}`**:\n'.format(args[0])
+                for cmd in sorted(cats[args[0].title()], key=lambda x:x.name):
+                    d += '\n  `{}{}`'.format(ctx.prefix, cmd.name)
 
                     brief = cmd.brief
                     if brief is None and cmd.help is not None:
@@ -25,50 +48,51 @@ class Core():
 
                     if brief is not None:
                         d += ' - {}'.format(brief)
-        elif len(args) == 1:
-            if args[0] not in ctx.bot.all_commands:
-                d = 'Command not found.'
+                d += '\n'
             else:
-                cmd = ctx.bot.all_commands[args[0]]
-                d = 'Help for command `{}`:\n'.format(cmd.name)
-                d += '\n**Usage:**\n'
-
-                if type(cmd) != commands.core.Group:
-                    params = list(cmd.clean_params.items())
-                    p_str = ''
-                    for p in params:
-                        if p[1].default == p[1].empty:
-                            p_str += ' [{}]'.format(p[0])
-                        else:
-                            p_str += ' <{}>'.format(p[0])
-                    d += '`{}{}{}`\n'.format(ctx.prefix, cmd.name, p_str)
+                if args[0] not in ctx.bot.all_commands:
+                    d = 'Command not found.'
                 else:
-                    d += '`{}{} '.format(ctx.prefix, cmd.name)
-                    if cmd.invoke_without_command:
-                        d += '['
+                    cmd = ctx.bot.all_commands[args[0]]
+                    d = 'Help for command `{}`:\n'.format(cmd.name)
+                    d += '\n**Usage:**\n'
+
+                    if type(cmd) != commands.core.Group:
+                        params = list(cmd.clean_params.items())
+                        p_str = ''
+                        for p in params:
+                            if p[1].default == p[1].empty:
+                                p_str += ' [{}]'.format(p[0])
+                            else:
+                                p_str += ' <{}>'.format(p[0])
+                        d += '`{}{}{}`\n'.format(ctx.prefix, cmd.name, p_str)
                     else:
-                        d += '<'
-                    d += '|'.join(cmd.all_commands.keys())
-                    if cmd.invoke_without_command:
-                        d += ']`\n'
-                    else:
-                        d += '>`\n'
-                
-                d += '\n**Description:**\n'
-                d += '{}\n'.format('None' if cmd.help is None else cmd.help.strip())
+                        d += '`{}{} '.format(ctx.prefix, cmd.name)
+                        if cmd.invoke_without_command:
+                            d += '['
+                        else:
+                            d += '<'
+                        d += '|'.join(cmd.all_commands.keys())
+                        if cmd.invoke_without_command:
+                            d += ']`\n'
+                        else:
+                            d += '>`\n'
+                    
+                    d += '\n**Description:**\n'
+                    d += '{}\n'.format('None' if cmd.help is None else cmd.help.strip())
 
-                if cmd.checks:
-                    d += '\n**Checks:**'
-                    for check in cmd.checks:
-                        d += '\n{}'.format(check.__qualname__.split('.')[0])
-                    d += '\n'
+                    if cmd.checks:
+                        d += '\n**Checks:**'
+                        for check in cmd.checks:
+                            d += '\n{}'.format(check.__qualname__.split('.')[0])
+                        d += '\n'
 
-                if cmd.aliases:
-                    d += '\n**Aliases:**'
-                    for alias in cmd.aliases:
-                        d += '\n`{}{}`'.format(ctx.prefix, alias)
+                    if cmd.aliases:
+                        d += '\n**Aliases:**'
+                        for alias in cmd.aliases:
+                            d += '\n`{}{}`'.format(ctx.prefix, alias)
 
-                    d += '\n'
+                        d += '\n'
         else:
             d = ''
             cmd = ctx.bot
@@ -146,11 +170,13 @@ class Core():
         d += '\n*Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493*'
         await ctx.bot.send_message(ctx.channel, d)
 
+    @category('info')
     @commands.command()
     async def ping(self, ctx):
         '''Ping the bot.'''
         await ctx.bot.send_message(ctx.channel, 'Pong!')
 
+    @category('info')
     @commands.command(aliases=['info'])
     async def about(self, ctx):
         '''Get info about the bot.
@@ -170,6 +196,7 @@ class Core():
         mess += '*Invite TWOWBot to your server:* <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(ctx.bot.user.id)
         await ctx.bot.send_message(ctx.channel, mess)
 
+    @category('info')
     @commands.command(aliases=['aboutme','boutme','\'boutme'])
     async def me(self, ctx):
         '''Get info about yourself.'''
@@ -197,6 +224,7 @@ class Core():
         except discord.errors.Forbidden:
             pass
         
+    @category('info')
     @commands.command(aliases=['instructions'])
     async def how(self, ctx):
         '''Get instructions on hosting a mTWOW.'''

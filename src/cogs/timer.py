@@ -5,6 +5,7 @@ from discord.ext import commands
 import discord
 
 from cogs.util import checks, twow_helper, timed_funcs
+from cogs.util.categories import category
 
 
 class Timer():
@@ -39,7 +40,7 @@ class Timer():
             
             await asyncio.sleep(5)
     
-            
+    @category('hosting')        
     @commands.command(aliases=['settimes','settimer','set_timer'])
     @checks.twow_exists()
     @checks.is_twow_owner()
@@ -77,7 +78,8 @@ class Timer():
                     net.days, net.seconds//3600, net.seconds//60%60, net.seconds%60))
                 
         ctx.bot.save_data()
-        
+    
+    @category('hosting')
     @commands.command(aliases=['queuetimes','queuetimer','queue_timer'])
     @checks.twow_exists()
     @checks.is_twow_owner()

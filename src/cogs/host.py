@@ -6,9 +6,11 @@ import ruamel.yaml as yaml
 import discord
 
 from cogs.util import results, twow_helper, checks, timed_funcs
+from cogs.util.categories import category
 
 
 class Host():
+    @category('hosting')
     @commands.command(aliases=['startvoting'])
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -20,6 +22,7 @@ class Host():
         await timed_funcs.start_voting(ctx.bot, ctx.channel)
         return
     
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -32,7 +35,8 @@ class Host():
 
         await timed_funcs.do_results(ctx.bot, ctx.channel, ctx.guild, nums, message=ctx.message)
         return
-        
+    
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -71,7 +75,8 @@ class Host():
             await ctx.bot.send_message(ctx.author,m)
         if isinstance(ctx.channel, discord.TextChannel):
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
-            
+
+    @category('hosting')
     @commands.command()
     async def register(self, ctx, identifier:str = ''):
         '''Setup channel initially
@@ -106,6 +111,7 @@ class Host():
             else:
                 await ctx.bot.send_message(ctx.channel, 'Usage: `{}register <short identifier>`'.format(ctx.prefix))
     
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_owner()
@@ -124,7 +130,8 @@ class Host():
         
         with open('./server_data/{}.yml'.format(ctx.channel.id), 'rb') as server_file:
             await ctx.author.send(file=discord.File(server_file))
-            
+    
+    @category('hosting')
     @commands.command(aliases=['setelim'])
     @checks.twow_exists()
     @checks.is_twow_owner()
@@ -144,7 +151,8 @@ class Host():
         sd['elim'] = amount
         ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
         ctx.bot.save_data()
-            
+    
+    @category('hosting')
     @commands.command(aliases=['skiphost'])
     @checks.twow_exists()
     @checks.can_queue()
@@ -154,7 +162,7 @@ class Host():
         sd = ctx.bot.server_data[ctx.channel.id]
         await twow_helper.next_host(ctx.bot, ctx.channel, sd)
         
-        
+    @category('hosting')
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -187,6 +195,7 @@ class Host():
             ctx.bot.save_data()
             return
         
+    @category('hosting')
     @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
     @checks.twow_exists()
     @checks.is_twow_owner()
@@ -211,6 +220,7 @@ class Host():
         await ctx.bot.send_message(ctx.channel, 'Only the owner can now host in this channel!')
         ctx.bot.save_data()
         
+    @category('hosting')
     @commands.command(aliases=['joinqueue'])
     @checks.can_queue()
     async def join_queue(self, ctx):
@@ -230,6 +240,7 @@ class Host():
                 await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
             ctx.bot.save_data()
 
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_owner()
@@ -268,6 +279,7 @@ class Host():
         ctx.bot.save_data()
         await ctx.bot.send_message(ctx.channel, 'mTWOW has been transfered to {}.'.format(ctx.message.mentions[0].name))
         
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_owner()
