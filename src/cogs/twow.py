@@ -139,7 +139,7 @@ class TWOW():
             
             m = '**Your slide is:**'
             for n, i in enumerate(slide):
-                m += '\n:regional_indicator_{}: {}'.format(string.ascii_lowercase[n], round['responses'][i].decode())
+                m += '\n:regional_indicator_{0}: {2} **({1})**'.format(string.ascii_lowercase[n], len(round['responses'][i].decode().split(' ')), round['responses'][i].decode())
                 if len(m) > 1500:
                     await ctx.bot.send_message(ctx.channel,m)
                     m = ''
