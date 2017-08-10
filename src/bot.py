@@ -207,7 +207,7 @@ class TWOWBot(commands.Bot):
                                                exception.__traceback__)
 
             self.logger.error(''.join(lines))
-            await self.notify_devs(lines, ctx.message)
+            #await self.notify_devs(lines, ctx.message)
 
             return
 
