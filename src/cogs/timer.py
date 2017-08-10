@@ -32,6 +32,9 @@ class Timer():
                             channel.guild, 
                             sd['elim']
                         )
+                elif (sd['canqueue'] and round['prompt'] == None and 
+                  type(round['prompt']) == datetime.datetime and sd['hosttimer'] < now):
+                    twow_helper.next_host()
             
             await asyncio.sleep(5)
     

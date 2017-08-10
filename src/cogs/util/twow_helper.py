@@ -15,6 +15,7 @@ def new_twow(db, identifier, channel, owner):
     s['canqueue'] = False
     s['queue'] = []
     s['elim'] = '20%'
+    s['hosttimer'] = None
     s['queuetimer'] = {
         'prompt':None,
         'voting':None,
@@ -153,8 +154,12 @@ def get_delta(times):
     return delta
 
 async def next_host(bot, channel, sd):
-    sd['queue'].pop(0)
+    prev = sd['queue'].pop(0)
+    name = channel.guild.get_member(prev).mention
+    await bot.send_message(channel, '{} is no longer hosting!'.format(name))
     if len(sd['queue']) > 0:
+        if sd['queuetimer']['prompt'] != None:
+            sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
         name = channel.guild.get_member(sd['queue'][0]).mention
         await bot.send_message(channel, '{} is now hosting!'.format(name))
     

@@ -213,16 +213,20 @@ class Host():
     @checks.can_queue()
     async def join_queue(self, ctx):
         '''Puts yourself in queue for hosting.'''
-        queue = ctx.bot.server_data[ctx.channel.id]['queue']
+        sd = ctx.bot.server_data[ctx.channel.id]
+        queue = sd['queue']
         if ctx.author.id in queue:
             await ctx.bot.send_message(ctx.channel, 'You are already in the queue!')
         else:
             queue.append(ctx.author.id)
             await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
-            ctx.bot.save_data()
             if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
+                if sd['queuetimer']['prompt'] != None:
+                    import datetime
+                    sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
                 name = ctx.author.mention
                 await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
+            ctx.bot.save_data()
 
     @commands.command()
     @checks.twow_exists()

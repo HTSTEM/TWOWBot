@@ -32,13 +32,13 @@ class TWOWBot(commands.Bot):
         with open('server_data/servers.yml') as data_file:
             self.servers = self.yaml.load(data_file)
 
-
         for i in self.servers.keys():
             if '{}.yml'.format(i) in os.listdir('server_data'):
                 with open('server_data/{}.yml'.format(i)) as data_file:
                     data = self.yaml.load(data_file)
-                    for timedelta in data['queuetimer'].values():
-                        timedelta = pickle.loads(base64.b64decode(timedelta))
+                    for key, s in data['queuetimer'].items():
+                        t = datetime.datetime.strptime(s,"%H:%M:%S")
+                        data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
                     self.server_data[i] = data
 
         with open('config.yml') as data_file:
@@ -63,8 +63,10 @@ class TWOWBot(commands.Bot):
         for i in self.server_data.items():
             with open('server_data/{}.yml'.format(i[0]), 'w') as data_file:
                 to_save = dict(i[1])
-                for key, timedelta in to_save['queuetimer'].items():
-                    to_save['queuetimer'][key] = base64.b64encode(pickle.dumps(timedelta))
+                queuetimer = dict(to_save['queuetimer'])
+                for key, timedelta in queuetimer.items():
+                    queuetimer[key] = str(timedelta)
+                to_save['queuetimer'] = queuetimer
                 self.yaml.dump(to_save, data_file)
                 
     def save_archive(self, sid):
