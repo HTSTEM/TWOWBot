@@ -14,6 +14,12 @@ def new_twow(db, identifier, channel, owner):
     s['voting'] = False
     s['canqueue'] = False
     s['queue'] = []
+    s['elim'] = '20%'
+    s['queuetimer'] = {
+        'prompt':None,
+        'voting':None,
+        'results':None,
+        }
     s['seasons'] = {'season-1':
                     {'rounds':
                         {'round-1':
@@ -83,6 +89,8 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     db.save_data()
     if round['votetimer'] == 'waiting' and len(round['responses']) > 1:
         import asyncio
+        if type(sd['queuetimer']['results']) == datetime.timedelta:
+            round['restimer'] = datetime.utcnow() + sd['queuetimer']['results']
         asyncio.ensure_future(timed_funcs.start_voting(db, db.get_channel(s_ids[id])))
         
     return success, response

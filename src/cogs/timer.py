@@ -30,9 +30,9 @@ class Timer():
                             self.bot, 
                             channel, 
                             channel.guild, 
-                            '20%' #TODO make this an option
+                            sd['elim']
                         )
-                    
+            
             await asyncio.sleep(5)
     
             
@@ -54,16 +54,19 @@ class Timer():
         now = datetime.datetime.utcnow()
         if sd['voting']:
             round['restimer'] = now+times[0]
+            sd['queuetimer']['results'] = times[0]
             await ctx.bot.send_message(ctx.channel,
                 'Set results in {} days {} hours {} minutes and {} seconds.'.format(
                     times[0].days, times[0].seconds//3600, times[0].seconds//60%60, times[0].seconds//60%60))
         else:
             round['votetimer'] = now+times[0]
+            sd['queuetimer']['voting'] = times[0]
             await ctx.bot.send_message(ctx.channel,
                 'Set results in {} days {} hours {} minutes and {} seconds.'.format(
                     times[0].days, times[0].seconds//3600, times[0].seconds//60%60, times[0].seconds%60))
             if len(times) > 1:
                 net = times[0]+times[1]
+                sd['queuetimer']['results'] = times[1]
                 round['restimer'] = now+net
                 await ctx.bot.send_message(ctx.channel,
                 'Set results in {} days {} hours {} minutes and {} seconds.'.format(
@@ -79,13 +82,11 @@ class Timer():
         '''Set timer for queue events.
         Time is specified in the format `[<days>d][<hours>h][<minutes>m][<seconds>s]`
         '''
-        sd = ctx.bot.server_data[ctx.channel.id]
-        
-        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
-        
-        print(prompt_timeout)
-        print(votetimer)
-        print(resultstimer)
+        timers = ctx.bot.server_data[ctx.channel.id]['queuetimer']
+        timers['prompt'] = prompt_timeout
+        timers['voting'] = votetimer
+        timers['results'] = resultstimer
+        ctx.bot.save_data()
 
         
 def setup(bot):

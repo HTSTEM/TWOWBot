@@ -23,7 +23,7 @@ async def start_voting(bot, channel):
     bot.save_data()
     await bot.send_message(channel, 'Voting has been activated.')
     
-async def do_results(bot, channel, guild, nums, message=None):
+async def do_results(bot, channel, guild, nums='', message=None):
     sd = bot.server_data[channel.id]
     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
@@ -56,6 +56,7 @@ async def do_results(bot, channel, guild, nums, message=None):
     eliminated = []
     living = []
     elim = int(0.8 * len(totals))
+    if nums == '': nums = sd['elim']
     try:
         if nums[-1] == '%':
             elim = len(totals)*(100-int(nums[:-1]))//100
@@ -68,13 +69,13 @@ async def do_results(bot, channel, guild, nums, message=None):
     await bot.send_message(channel,msg)
     votec = len(round['votes'])
     voterc = len(set([v['voter'] for v in round['votes']]))
-    votest = '{} voter'.format(votec)
+    votest = '{} vote'.format(votec)
     if votec != 1: votest += 's'
-    voterst = '{} vote'.format(voterc)
+    voterst = '{} voter'.format(voterc)
     if voterc != 1: voterst += 's'
     
     await asyncio.sleep(1)
-    await bot.send_message(channel, '{} submitted {}.'.format(votest, voterst))
+    await bot.send_message(channel, '{} submitted {}.'.format(voterst, votest))
     
     for msg, dead, uid, n in results.get_results(totals, elim, round):
         user = guild.get_member(uid)
@@ -104,7 +105,7 @@ async def do_results(bot, channel, guild, nums, message=None):
         await bot.send_message(channel,
             'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
     else:
-        await bot.send_message(channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0..')
+        await bot.send_message(channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0.')
     
     # Do all the round incrementing and stuff.
     if len(totals) - len(eliminated) <= 1:

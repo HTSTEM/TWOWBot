@@ -124,7 +124,26 @@ class Host():
         
         with open('./server_data/{}.yml'.format(ctx.channel.id), 'rb') as server_file:
             await ctx.author.send(file=discord.File(server_file))
-
+            
+    @commands.command(aliases=['setelim'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def set_elim(self, ctx, amount):
+        '''Sets the default elimination threshold.
+        Use a number to specify number of contestants, e.g. `3`
+        Add a percentage to specify percentage of contestants, e.g. `20%`
+        '''
+        try:
+            if amount[-1] == '%': _ = int(amount[:-1])
+            else: _ = int(amount)
+        except ValueError:
+            ctx.bot.send_message(ctx.channel, '{} is not in a valid format.'.format(amount))
+            return
+            
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['elim'] = amount
+        ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
+        ctx.bot.save_data()
             
     @commands.command(aliases=['skiphost'])
     @checks.twow_exists()
