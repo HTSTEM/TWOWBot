@@ -207,6 +207,18 @@ class Host():
     async def skip_host(self, ctx):
         '''Skip to next host'''
         sd = ctx.bot.server_data[ctx.channel.id]
+        sd['round'] = 1
+        sd['season'] += 1
+        sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
+        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
+            'alive':[t[1].id for t in living], 
+            'prompt': None, 
+            'responses': {}, 
+            'slides': {}, 
+            'votes': [],
+            'votetimer':None,
+            'restimer':None,
+            }
         await twow_helper.next_host(ctx.bot, ctx.channel, sd)
 
     @commands.command(aliases=['setprompt'])
