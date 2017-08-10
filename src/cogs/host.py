@@ -207,19 +207,21 @@ class Host():
     async def skip_host(self, ctx):
         '''Skip to next host'''
         sd = ctx.bot.server_data[ctx.channel.id]
-        sd['round'] = 1
-        sd['season'] += 1
-        sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
-        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
-            'alive':[t[1].id for t in living], 
-            'prompt': None, 
-            'responses': {}, 
-            'slides': {}, 
-            'votes': [],
-            'votetimer':None,
-            'restimer':None,
-            }
+        if sd['round'] != 1 or sd['voting'] == True:
+            sd['round'] = 1
+            sd['season'] += 1
+            sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
+                'alive':[], 
+                'prompt': None, 
+                'responses': {}, 
+                'slides': {}, 
+                'votes': [],
+                'votetimer':None,
+                'restimer':None,
+                }
         await twow_helper.next_host(ctx.bot, ctx.channel, sd)
+        ctx.bot.save_data()
 
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
