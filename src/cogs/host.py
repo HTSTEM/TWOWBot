@@ -199,7 +199,7 @@ class Host():
             
         sd = ctx.bot.server_data[ctx.channel.id]
         sd['elim'] = amount
-        ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
+        await ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
         ctx.bot.save_data()
             
     @commands.command(aliases=['skiphost'])

@@ -158,14 +158,16 @@ async def next_host(bot, channel, sd):
     prev = sd['queue'].pop(0)
     name = channel.guild.get_member(prev).mention
     sd['hosttimer'] = None
+    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     await bot.send_message(channel, '{} is no longer hosting!'.format(name))
     if len(sd['queue']) > 0:
         if sd['queuetimer']['prompt'] != None:
             sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
         if sd['queuetimer']['voting'] != None:
-            votetimer = datetime.datetime.utcnow()+sd['queuetimer']['voting']
-        if sd['queuetimer']['results'] != None:
-            restimer = datetime.datetime.utcnow()+sd['queuetimer']['results']
+            round['votetimer'] = datetime.datetime.utcnow()+sd['queuetimer']['voting']
+            if sd['queuetimer']['results'] != None:
+                round['restimer'] = round['votetimer'] +sd['queuetimer']['voting']
+
         name = channel.guild.get_member(sd['queue'][0]).mention
         await bot.send_message(channel, '{} is now hosting!'.format(name))
     
