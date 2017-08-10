@@ -1,5 +1,7 @@
 import subprocess
+import asyncio
 import inspect
+import shlex
 import sys
 
 from discord.ext import commands
@@ -49,7 +51,7 @@ class Dev():
         ctx.message.content = ctx.prefix + cmd
         await ctx.bot.process_commands_sudo(ctx.message)
 
-    @commands.command()
+    @commands.command(aliases=['gitpull'])
     @checks.is_dev()
     async def git_pull(self, ctx):
         '''Pull from git and update the bot.'''
@@ -66,21 +68,21 @@ class Dev():
 
         await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
 
-    @commands.command()
+    @commands.command(alias=['gitcli'])
     @checks.is_host()
     @checks.no_sudo()
     async def git_cli(self, ctx):
         '''Start a CLI for `git`.'''
-    
+
         await ctx.bot.send_message(ctx.channel, '`git` CLI started! `:q` to quit.')
 
         def check(m):
             return m.channel == ctx.channel and m.author == ctx.author and (m.content.startswith('git ') or m.content == ':q')
 
         resp = None
-        async with ctx.channel.typing():
-            while resp != ':q':
-                resp = (await ctx.bot.wait_for('message', check=check)).content
+        while resp != ':q':
+            resp = (await ctx.bot.wait_for('message', check=check)).content
+            async with ctx.channel.typing():
                 if resp == ':q':
                     break
                 
@@ -88,13 +90,15 @@ class Dev():
                     process = subprocess.run('git ' + resp[4:], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = process.stdout, process.stderr
                 else:
-                    process = await asyncio.create_subprocess_exec('git', resp[4:], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    process = await asyncio.create_subprocess_exec('git', *shlex.split(resp[4:]), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = await process.communicate()
 
                 stdout = stdout.decode()
                 stderr = stderr.decode()
 
-                await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
+                resp = ''
+
+            await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
         await ctx.bot.send_message(ctx.channel, 'You have left the `git` CLI.')
 
     @commands.command(aliases=['eval'])
@@ -111,31 +115,33 @@ class Dev():
          `save_data`
          `ctx`
         '''
-        result = None
-        env = {
-            'channel': ctx.channel,
-            'author': ctx.author,
-            'bot': ctx.bot,
-            'message': ctx.message,
-            'channel': ctx.channel,
-            'save_data': ctx.bot.save_data,
-            'ctx': ctx,
-        }
-        env.update(globals())
+        embed = None
+        async with ctx.channel.typing():
+            result = None
+            env = {
+                'channel': ctx.channel,
+                'author': ctx.author,
+                'bot': ctx.bot,
+                'message': ctx.message,
+                'channel': ctx.channel,
+                'save_data': ctx.bot.save_data,
+                'ctx': ctx,
+            }
+            env.update(globals())
 
-        try:
-            result = eval(code, env)
+            try:
+                result = eval(code, env)
 
-            if inspect.isawaitable(result):
-                result = await result
+                if inspect.isawaitable(result):
+                    result = await result
 
-            colour = 0x00FF00
-        except Exception as e:
-            result = type(e).__name__ + ': ' + str(e)
-            colour = 0xFF0000
+                colour = 0x00FF00
+            except Exception as e:
+                result = type(e).__name__ + ': ' + str(e)
+                colour = 0xFF0000
 
-        embed = discord.Embed(colour=colour, title=code, description='```py\n{}```'.format(result))
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+            embed = discord.Embed(colour=colour, title=code, description='```py\n{}```'.format(result))
+            embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         try:
             await ctx.channel.send(embed=embed)
         except discord.errors.Forbidden:

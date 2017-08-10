@@ -108,7 +108,7 @@ class Host():
     
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def show_config(self, ctx, identifier:str = ''):
         '''Sends the config file for this channel.
         **WARNING!**
@@ -124,8 +124,37 @@ class Host():
         
         with open('./server_data/{}.yml'.format(ctx.channel.id), 'rb') as server_file:
             await ctx.author.send(file=discord.File(server_file))
-
             
+    @commands.command(aliases=['setelim'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def set_elim(self, ctx, amount):
+        '''Sets the default elimination threshold.
+        Use a number to specify number of contestants, e.g. `3`
+        Add a percentage to specify percentage of contestants, e.g. `20%`
+        '''
+        try:
+            if amount[-1] == '%': _ = int(amount[:-1])
+            else: _ = int(amount)
+        except ValueError:
+            ctx.bot.send_message(ctx.channel, '{} is not in a valid format.'.format(amount))
+            return
+            
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['elim'] = amount
+        ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
+        ctx.bot.save_data()
+            
+    @commands.command(aliases=['skiphost'])
+    @checks.twow_exists()
+    @checks.can_queue()
+    @checks.is_twow_host()
+    async def skip_host(self, ctx):
+        '''Skip to next host'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        await twow_helper.next_host(ctx.bot, ctx.channel, sd)
+        
+        
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -149,16 +178,61 @@ class Host():
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
             ctx.bot.save_data()
             await ctx.bot.send_message(ctx.channel, 'The prompt has been set to `{}` for this round.'.format(prompt.replace('@', '@\u200b').replace('`', '\\`')))
+            if sd['queuetimer']['voting'] != None:
+                round['votetimer'] = datetime.datetime.utcnow()+sd['queuetimer']['voting']
             return
         else:
             await ctx.bot.send_message(ctx.channel, 'The prompt has been changed from `{}` to `{}` for this round.'.format(round['prompt'].decode('utf-8'), prompt.replace('@', '@\u200b').replace('`', '\\`')))
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
             ctx.bot.save_data()
             return
-    
+        
+    @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def can_queue(self, ctx):
+        '''Sets if there is a hosting queue. There is none by default'''
+        pass
+                
+    @can_queue.command(pass_context=True)
+    async def on(self, ctx):
+        '''Allows queue'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['canqueue'] = True
+        await ctx.bot.send_message(ctx.channel, 'Anyone can now host in this channel!')
+        ctx.bot.save_data()
+        
+    @can_queue.command(pass_context=True)
+    async def off(self, ctx):
+        '''Disallows queue'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['canqueue'] = False
+        sd['queue'] = []
+        await ctx.bot.send_message(ctx.channel, 'Only the owner can now host in this channel!')
+        ctx.bot.save_data()
+        
+    @commands.command(aliases=['joinqueue'])
+    @checks.can_queue()
+    async def join_queue(self, ctx):
+        '''Puts yourself in queue for hosting.'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        queue = sd['queue']
+        if ctx.author.id in queue:
+            await ctx.bot.send_message(ctx.channel, 'You are already in the queue!')
+        else:
+            queue.append(ctx.author.id)
+            await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
+            if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
+                if sd['queuetimer']['prompt'] != None:
+                    import datetime
+                    sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
+                name = ctx.author.mention
+                await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
+            ctx.bot.save_data()
+
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def transfer(self, ctx):
         '''Transfer ownership of this mTWOW.
         Do `transfer @mention`.
@@ -196,7 +270,7 @@ class Host():
         
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def delete(self, ctx):
         '''Delete the mTWOW.
         An archive will be stored and can be located by the hoster of the bot.'''

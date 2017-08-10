@@ -4,6 +4,8 @@ import logging
 import sys
 import re
 import os
+import pickle
+import base64
 
 from discord.ext import commands
 from discord.ext.commands.errors import CommandError, CommandNotFound
@@ -30,11 +32,14 @@ class TWOWBot(commands.Bot):
         with open('server_data/servers.yml') as data_file:
             self.servers = self.yaml.load(data_file)
 
-
         for i in self.servers.keys():
             if '{}.yml'.format(i) in os.listdir('server_data'):
                 with open('server_data/{}.yml'.format(i)) as data_file:
-                    self.server_data[i] = self.yaml.load(data_file)
+                    data = self.yaml.load(data_file)
+                    for key, s in data['queuetimer'].items():
+                        t = datetime.datetime.strptime(s,"%H:%M:%S")
+                        data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                    self.server_data[i] = data
 
         with open('config.yml') as data_file:
             self.config = self.yaml.load(data_file)
@@ -57,7 +62,12 @@ class TWOWBot(commands.Bot):
             self.yaml.dump(self.servers, data_file)
         for i in self.server_data.items():
             with open('server_data/{}.yml'.format(i[0]), 'w') as data_file:
-                self.yaml.dump(i[1], data_file)
+                to_save = dict(i[1])
+                queuetimer = dict(to_save['queuetimer'])
+                for key, timedelta in queuetimer.items():
+                    queuetimer[key] = str(timedelta)
+                to_save['queuetimer'] = queuetimer
+                self.yaml.dump(to_save, data_file)
                 
     def save_archive(self, sid):
         with open('./server_data/archive/{}-{}.yml'.format(sid, str(datetime.datetime.utcnow()).replace(':', '.')), 'w') as data_file:

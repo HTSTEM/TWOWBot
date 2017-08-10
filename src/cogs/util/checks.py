@@ -36,11 +36,32 @@ def twow_exists():
         return True
     return commands.check(predicate)
 
-def is_twow_host():
+def is_twow_owner():
     async def predicate(ctx: commands.Context) -> bool:
         if ctx.bot.server_data[ctx.channel.id]['owner'] != ctx.author.id:
             return False
         return True
+    return commands.check(predicate)
+
+def is_twow_host():
+    async def predicate(ctx: commands.Context) -> bool:
+        sd = ctx.bot.server_data[ctx.channel.id]
+        if sd['owner'] == ctx.author.id:
+            return True
+        elif len(sd['queue']) > 0 and sd['queue'][0] == ctx.author.id:
+            return True
+        return False
+    return commands.check(predicate)
+
+def can_queue():
+    async def predicate(ctx: commands.Context) -> bool:
+        return ctx.bot.server_data[ctx.channel.id]['canqueue']
+    return commands.check(predicate)
+
+def can_manage():#maybe needed, keep just in case
+    async def predicate(ctx: commands.Context) -> bool:
+        perms = ctx.channel.permissions_for(ctx.author)
+        return perms.manage_channels
     return commands.check(predicate)
 
     

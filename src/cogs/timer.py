@@ -24,23 +24,28 @@ class Timer():
                 if type(votetime) == datetime.datetime and current_time > votetime:
                     asyncio.ensure_future(timed_funcs.start_voting(self.bot, self.bot.get_channel(cid)))
                 elif type(restime) == datetime.datetime and current_time > restime:
+                    if votetime != 'waiting':
+                        channel = self.bot.get_channel(cid)
+                        asyncio.ensure_future(timed_funcs.do_results(
+                            self.bot, 
+                            channel, 
+                            channel.guild, 
+                            sd['elim']
+                        ))
+                elif (sd['canqueue'] and round['prompt'] == None and 
+                  type(sd['hosttimer']) == datetime.datetime and sd['hosttimer'] < current_time):
                     channel = self.bot.get_channel(cid)
-                    await timed_funcs.do_results(
-                        self.bot, 
-                        channel, 
-                        channel.guild, 
-                        '20%' #TODO make this an option
-                    )
-                    
+                    asyncio.ensure_future(twow_helper.next_host(self.bot, channel, sd))
+            
             await asyncio.sleep(5)
     
             
     @commands.command(aliases=['settimes','settimer','set_timer'])
     @checks.twow_exists()
-    @checks.is_twow_host()
-    async def set_times(self, ctx, *times):
+    @checks.is_twow_owner()
+    async def set_times(self, ctx, *times: twow_helper.get_delta):
         '''Set timer for next events. Events are voting and results.
-        Time is specified in the format `[<days>d][<hours>h][<minutes>m]`
+        Time is specified in the format `[<days>d][<hours>h][<minutes>m][<seconds>s]`
         '''
         sd = ctx.bot.server_data[ctx.channel.id]
         
@@ -50,22 +55,41 @@ class Timer():
             await ctx.bot.send_message(ctx.channel, 'Usage: `{}set_times <times>`'.format(ctx.prefix))
             return
         
-        deltas = [twow_helper.get_delta(s) for s in times]
         now = datetime.datetime.utcnow()
         if sd['voting']:
-            round['restimer'] = now+deltas[0]
+            round['restimer'] = now+times[0]
+            sd['queuetimer']['results'] = times[0]
             await ctx.bot.send_message(ctx.channel,
-                'Set results in {} days {} hours and {} minutes.'.format(deltas[0].days, deltas[0].seconds//3600, deltas[0].seconds//60%60))
+                'Set results in {} days {} hours {} minutes and {} seconds.'.format(
+                    times[0].days, times[0].seconds//3600, times[0].seconds//60%60, times[0].seconds//60%60))
         else:
-            round['votetimer'] = now+deltas[0]
+            round['votetimer'] = now+times[0]
+            sd['queuetimer']['voting'] = times[0]
             await ctx.bot.send_message(ctx.channel,
-                'Set voting in {} days {} hours and {} minutes.'.format(deltas[0].days, deltas[0].seconds//3600, deltas[0].seconds//60%60))
+                'Set results in {} days {} hours {} minutes and {} seconds.'.format(
+                    times[0].days, times[0].seconds//3600, times[0].seconds//60%60, times[0].seconds%60))
             if len(times) > 1:
-                net = deltas[0]+deltas[1]
+                net = times[0]+times[1]
+                sd['queuetimer']['results'] = times[1]
                 round['restimer'] = now+net
                 await ctx.bot.send_message(ctx.channel,
-                'Set results in {} days {} hours and {} minutes.'.format(net.days, net.seconds//3600, net.seconds//60%60))
+                'Set results in {} days {} hours {} minutes and {} seconds.'.format(
+                    net.days, net.seconds//3600, net.seconds//60%60, net.seconds%60))
                 
+        ctx.bot.save_data()
+        
+    @commands.command(aliases=['queuetimes','queuetimer','queue_timer'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def queue_times(self, ctx, prompt_timeout: twow_helper.get_delta, 
+      votetimer: twow_helper.get_delta, resultstimer: twow_helper.get_delta):
+        '''Set timer for queue events.
+        Time is specified in the format `[<days>d][<hours>h][<minutes>m][<seconds>s]`
+        '''
+        timers = ctx.bot.server_data[ctx.channel.id]['queuetimer']
+        timers['prompt'] = prompt_timeout
+        timers['voting'] = votetimer
+        timers['results'] = resultstimer
         ctx.bot.save_data()
 
         

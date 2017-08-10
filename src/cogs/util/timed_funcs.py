@@ -1,6 +1,6 @@
 import asyncio
 
-from cogs.util import results
+from cogs.util import results, twow_helper
 
 async def start_voting(bot, channel):
     sd = bot.server_data[channel.id]
@@ -20,10 +20,13 @@ async def start_voting(bot, channel):
 
     sd['voting'] = True
     round['votetimer'] = None
+    if sd['queuetimer']['results'] != None:
+        import datetime
+        round['restimer'] = datetime.datetime.utcnow()+sd['queuetimer']['results']
     bot.save_data()
     await bot.send_message(channel, 'Voting has been activated.')
     
-async def do_results(bot, channel, guild, nums, message=None):
+async def do_results(bot, channel, guild, nums='', message=None):
     sd = bot.server_data[channel.id]
     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
@@ -56,16 +59,29 @@ async def do_results(bot, channel, guild, nums, message=None):
     eliminated = []
     living = []
     elim = int(0.8 * len(totals))
+    if nums == '': nums = sd['elim']
     try:
         if nums[-1] == '%':
             elim = len(totals)*(100-int(nums[:-1]))//100
         else:
             elim = len(totals) - int(nums)
     except ValueError:
-        await bot.send_message(channel, '{} doesn\'t look like a number to me.'.format(nums))
+        await bot.send_message(channel, '{} isn\'t in a valid format.'.format(nums))
         return
     round['restimer'] = None
+    if not sd['canqueue']:
+        sd['queuetimer']['results'] = sd['queuetimer']['voting'] = None
     await bot.send_message(channel,msg)
+    votec = len(round['votes'])
+    voterc = len(set([v['voter'] for v in round['votes']]))
+    votest = '{} vote'.format(votec)
+    if votec != 1: votest += 's'
+    voterst = '{} voter'.format(voterc)
+    if voterc != 1: voterst += 's'
+    
+    await asyncio.sleep(1)
+    await bot.send_message(channel, '{} submitted {}.'.format(voterst, votest))
+    
     for msg, dead, uid, n in results.get_results(totals, elim, round):
         user = guild.get_member(uid)
         name = ''
@@ -94,7 +110,7 @@ async def do_results(bot, channel, guild, nums, message=None):
         await bot.send_message(channel,
             'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
     else:
-        await bot.send_message(channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0..')
+        await bot.send_message(channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0.')
     
     # Do all the round incrementing and stuff.
     if len(totals) - len(eliminated) <= 1:
@@ -103,10 +119,15 @@ async def do_results(bot, channel, guild, nums, message=None):
         sd['round'] = 1
         sd['season'] += 1
         await bot.send_message(channel,'**We\'re now on season {}!**'.format(sd['season']))
+        if sd['canqueue']:
+            await twow_helper.next_host(bot, channel, sd)
     else:
         sd['round'] += 1
         await bot.send_message(channel,'**We\'re now on round {}!**'.format(sd['round']))
-        
+        if sd['canqueue'] and len(sd['queue']) > 0:
+            if sd['queuetimer']['prompt'] != None:
+                sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
+                
     if 'season-{}'.format(sd['season']) not in sd['seasons']:#new season
         sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
         living = []

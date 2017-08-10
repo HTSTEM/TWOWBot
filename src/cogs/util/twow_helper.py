@@ -12,6 +12,15 @@ def new_twow(db, identifier, channel, owner):
     s['round'] = 1
     s['season'] = 1
     s['voting'] = False
+    s['canqueue'] = False
+    s['queue'] = []
+    s['elim'] = '20%'
+    s['hosttimer'] = None
+    s['queuetimer'] = {
+        'prompt':None,
+        'voting':None,
+        'results':None,
+        }
     s['seasons'] = {'season-1':
                     {'rounds':
                         {'round-1':
@@ -81,6 +90,8 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     db.save_data()
     if round['votetimer'] == 'waiting' and len(round['responses']) > 1:
         import asyncio
+        if type(sd['queuetimer']['results']) == datetime.timedelta:
+            round['restimer'] = datetime.utcnow() + sd['queuetimer']['results']
         asyncio.ensure_future(timed_funcs.start_voting(db, db.get_channel(s_ids[id])))
         
     return success, response
@@ -123,6 +134,7 @@ def get_delta(times):
     days = 0
     hours = 0
     minutes = 0
+    seconds = 0
     current = ''
     for c in times:
         if c == 'd':
@@ -131,10 +143,29 @@ def get_delta(times):
             hours = int(current)
         elif c == 'm':
             minutes = int(current)
+        elif c == 's':
+            seconds = int(current)
         else:
             current += c
             continue
         current = ''
     
-    delta = datetime.timedelta(days=days, hours=hours, minutes=minutes)
+    delta = datetime.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
     return delta
+
+async def next_host(bot, channel, sd):
+    prev = sd['queue'].pop(0)
+    name = channel.guild.get_member(prev).mention
+    sd['hosttimer'] = None
+    await bot.send_message(channel, '{} is no longer hosting!'.format(name))
+    if len(sd['queue']) > 0:
+        if sd['queuetimer']['prompt'] != None:
+            sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
+        if sd['queuetimer']['voting'] != None:
+            votetimer = datetime.datetime.utcnow()+sd['queuetimer']['voting']
+        if sd['queuetimer']['results'] != None:
+            restimer = datetime.datetime.utcnow()+sd['queuetimer']['results']
+        name = channel.guild.get_member(sd['queue'][0]).mention
+        await bot.send_message(channel, '{} is now hosting!'.format(name))
+    
+    

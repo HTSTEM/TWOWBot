@@ -200,12 +200,13 @@ class TWOW():
     async def owner(self, ctx):
         '''Get the owner of the mTWOW in the current channel.'''
         id = ctx.channel.id
-            
         sd = ctx.bot.server_data[id]
-        
         user = ctx.bot.get_user(sd['owner'])
-        
-        await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}'.format(user.name))
+        if sd['canqueue'] and len(sd['queue']) > 0:
+            host = ctx.bot.get_user(sd['queue'][0])
+            await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}. {} is hosting.'.format(user.name, host.name))
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}.'.format(user.name))
         
     @commands.command()
     @checks.twow_exists()
@@ -252,9 +253,19 @@ class TWOW():
         mess += 'This TWOW is waiting for {}.\n'.format(waiting_for)
         
         if waiting_for == 'votes':
-            mess += 'There are currently {} votes and {} responses.\n'.format(len(round['votes']), len(round['responses']))
+            if len(round['votes']) == 1: 
+                mess += 'There is currently 1 vote and '
+            else:
+                mess += 'There are currently {} votes '.format(len(round['votes']))
+            if len(round['responses']) == 1:
+                mess += '1 response.\n'.format(len(round['votes']))
+            else:
+                mess += '{} responses.\n'.format(len(round['votes']))
         elif waiting_for == 'responses':
-            mess += 'There are currently {} responses.\n'.format(len(round['responses']))
+            if len(round['responses']) == 1:
+                mess += 'There is currently 1 response.\n'
+            else:
+                mess += 'There are currently {} responses.\n'.format(len(round['responses']))
             
         mess += 'You are {}.\n'.format(pstatus)
         
@@ -271,6 +282,20 @@ class TWOW():
             pass
         
         await ctx.bot.send_message(ctx.channel, mess)
+        
+    @commands.command()
+    @checks.twow_exists()
+    @checks.can_queue()
+    async def queue(self, ctx):
+        lineup = ctx.bot.server_data[ctx.channel.id]['queue']
+        if len(lineup) == 0:
+            await ctx.bot.send_message(ctx.channel, 'No one is in the queue!')
+        else:
+            mess = '**Hosting Queue:**\n'
+            mess += '1.) **{}**\n'.format(ctx.bot.get_user(lineup[0]).name)
+            for n, uid in enumerate(lineup[1:]):
+                mess += '{}.) {}\n'.format(n+2, ctx.bot.get_user(uid).name)
+            await ctx.bot.send_message(ctx.channel, mess)
     
 def setup(bot):
     bot.add_cog(TWOW())
