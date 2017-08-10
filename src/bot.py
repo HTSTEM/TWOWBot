@@ -37,7 +37,7 @@ class TWOWBot(commands.Bot):
                 with open('server_data/{}.yml'.format(i)) as data_file:
                     data = self.yaml.load(data_file)
                     for key, s in data['queuetimer'].items():
-                        if s != 'None':
+                        if s != 'None' and s != None:
                             if 'days' in s:
                                 t = datetime.datetime.strptime(s,"%d days, %H:%M:%S")
                             elif 'day' in s:
@@ -45,6 +45,10 @@ class TWOWBot(commands.Bot):
                             else:
                                 t = datetime.datetime.strptime(s,"%H:%M:%S")
                             data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                        elif s == 'None':
+                            data['queuetimer'][key] = None
+                            
+                            
                     if 'words' not in data:
                         data['words'] = 10
                     if 'blacklist' not in data:
@@ -75,7 +79,8 @@ class TWOWBot(commands.Bot):
                 to_save = dict(i[1])
                 queuetimer = dict(to_save['queuetimer'])
                 for key, timedelta in queuetimer.items():
-                    queuetimer[key] = str(timedelta)
+                    if timedelta != None:
+                        queuetimer[key] = str(timedelta)
                 to_save['queuetimer'] = queuetimer
                 self.yaml.dump(to_save, data_file)
                 
@@ -84,7 +89,8 @@ class TWOWBot(commands.Bot):
             to_save = dict(self.server_data[sid])
             queuetimer = dict(to_save['queuetimer'])
             for key, timedelta in queuetimer.items():
-                queuetimer[key] = str(timedelta)
+                if timedelta != None:
+                    queuetimer[key] = str(timedelta)
             to_save['queuetimer'] = queuetimer
             self.yaml.dump(to_save, data_file)
 
