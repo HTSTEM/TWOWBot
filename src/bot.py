@@ -37,8 +37,22 @@ class TWOWBot(commands.Bot):
                 with open('server_data/{}.yml'.format(i)) as data_file:
                     data = self.yaml.load(data_file)
                     for key, s in data['queuetimer'].items():
-                        t = datetime.datetime.strptime(s,"%H:%M:%S")
-                        data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                        if s != 'None' and s != None:
+                            if 'days' in s:
+                                t = datetime.datetime.strptime(s,"%d days, %H:%M:%S")
+                            elif 'day' in s:
+                                t = datetime.datetime.strptime(s,"%d day, %H:%M:%S")
+                            else:
+                                t = datetime.datetime.strptime(s,"%H:%M:%S")
+                            data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                        elif s == 'None':
+                            data['queuetimer'][key] = None
+                            
+                            
+                    if 'words' not in data:
+                        data['words'] = 10
+                    if 'blacklist' not in data:
+                        data['blacklist'] = True
                     self.server_data[i] = data
 
         with open('config.yml') as data_file:
@@ -65,13 +79,20 @@ class TWOWBot(commands.Bot):
                 to_save = dict(i[1])
                 queuetimer = dict(to_save['queuetimer'])
                 for key, timedelta in queuetimer.items():
-                    queuetimer[key] = str(timedelta)
+                    if timedelta != None:
+                        queuetimer[key] = str(timedelta)
                 to_save['queuetimer'] = queuetimer
                 self.yaml.dump(to_save, data_file)
                 
     def save_archive(self, sid):
         with open('./server_data/archive/{}-{}.yml'.format(sid, str(datetime.datetime.utcnow()).replace(':', '.')), 'w') as data_file:
-            self.yaml.dump(self.server_data[sid], data_file)
+            to_save = dict(self.server_data[sid])
+            queuetimer = dict(to_save['queuetimer'])
+            for key, timedelta in queuetimer.items():
+                if timedelta != None:
+                    queuetimer[key] = str(timedelta)
+            to_save['queuetimer'] = queuetimer
+            self.yaml.dump(to_save, data_file)
 
     async def send_message(self, to, msg):
         try:
@@ -186,7 +207,7 @@ class TWOWBot(commands.Bot):
                                                exception.__traceback__)
 
             self.logger.error(''.join(lines))
-            await self.notify_devs(lines, ctx.message)
+            #await self.notify_devs(lines, ctx.message)
 
             return
 

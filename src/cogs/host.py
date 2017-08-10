@@ -1,3 +1,4 @@
+import datetime
 import inspect
 import asyncio
 
@@ -47,10 +48,19 @@ class Host():
         id = None
         if identifier:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
             id = s_ids[identifier]
         else:
+            if ctx.channel.id not in ctx.bot.server_data:
+                await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
+                return
+        
             id = ctx.channel.id
-            
+        
         sd = ctx.bot.server_data[id]
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
@@ -77,6 +87,51 @@ class Host():
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
 
     @category('hosting')
+    @commands.command(aliases=['del_response', 'rem_response', 'delresponse', 'remresponse'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
+    async def remove_response(self, ctx, identifier:str, respondee:str):
+        '''Removes a response that has been submitted.
+        `respondee` must be the exact name as shown in `responses`.
+        A message is sent to the channel running the mTWOW, so be prepared
+        to defend your reasoning.
+        '''
+    
+        s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+        if identifier not in s_ids:
+            await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+            return
+        id = s_ids[identifier]
+        sd = ctx.bot.server_data[id]
+        
+        if 'season-{}'.format(sd['season']) not in sd['seasons']:
+            sd['seasons']['season-{}'.format(sd['season'])] = {}
+        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+        
+        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+        
+        for i in round['responses'].items():
+            u = ctx.bot.get_user(i[0])
+            if u is not None:
+                n = u.name
+            else:
+                n = i[0]
+            if n.lower() == respondee.lower():
+                break
+        else:
+            await ctx.bot.send_message(ctx.channel, '`{}` doesn\'t appear to have responded.'.format(respondee.replace('`', '\\`')))
+            return
+        
+        await ctx.bot.send_message(ctx.channel, '<@{}>s response of {} has been removed.'.format(u.id, i[1].decode('utf-8')))
+        del round['responses'][i[0]]
+        chan = ctx.bot.get_channel(id)
+        if chan:
+            await ctx.bot.send_message(chan, '<@{}>, your response has been removed by <@{}>.'.format(u.id, sd['owner']))
+        
+        ctx.bot.save_data()
+        
+    
     @commands.command()
     async def register(self, ctx, identifier:str = ''):
         '''Setup channel initially
@@ -149,7 +204,7 @@ class Host():
             
         sd = ctx.bot.server_data[ctx.channel.id]
         sd['elim'] = amount
-        ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
+        await ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
         ctx.bot.save_data()
     
     @category('hosting')
@@ -160,8 +215,22 @@ class Host():
     async def skip_host(self, ctx):
         '''Skip to next host'''
         sd = ctx.bot.server_data[ctx.channel.id]
+        if sd['round'] != 1 or sd['voting'] == True:
+            sd['round'] = 1
+            sd['season'] += 1
+            sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
+                'alive':[], 
+                'prompt': None, 
+                'responses': {}, 
+                'slides': {}, 
+                'votes': [],
+                'votetimer':None,
+                'restimer':None,
+                }
         await twow_helper.next_host(ctx.bot, ctx.channel, sd)
-        
+        ctx.bot.save_data()
+
     @category('hosting')
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
@@ -184,18 +253,63 @@ class Host():
         
         if round['prompt'] is None:
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
-            ctx.bot.save_data()
             await ctx.bot.send_message(ctx.channel, 'The prompt has been set to `{}` for this round.'.format(prompt.replace('@', '@\u200b').replace('`', '\\`')))
             if sd['queuetimer']['voting'] != None:
                 round['votetimer'] = datetime.datetime.utcnow()+sd['queuetimer']['voting']
+            ctx.bot.save_data()
             return
         else:
             await ctx.bot.send_message(ctx.channel, 'The prompt has been changed from `{}` to `{}` for this round.'.format(round['prompt'].decode('utf-8'), prompt.replace('@', '@\u200b').replace('`', '\\`')))
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
             ctx.bot.save_data()
             return
-        
+
     @category('hosting')
+    @commands.command(aliases=['setwords'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
+    async def set_words(self, ctx, words:int):
+        '''Set the maximum words for a response.'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        
+        if words > 0:
+            await ctx.bot.send_message(ctx.channel, 'The word limit has been set to {}.'.format(words))
+            sd['words'] = words
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The word limit has been removed.')
+            sd['words'] = 0
+        ctx.bot.save_data()
+        
+    @commands.group(pass_context=True, invoke_without_command=True)
+    @checks.twow_exists()
+    async def blacklist(self, ctx):
+        '''Are rude words banned?'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        if sd['blacklist']:
+            await ctx.bot.send_message(ctx.channel, 'The blacklist is **enabled**.')
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The blacklist is **dissabled**.')
+        
+    @blacklist.command(pass_context=True, aliases=['enable'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def on(ctx):
+        '''Enable the blacklist'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['blacklist'] = True
+        await ctx.bot.send_message(ctx.channel, 'The blacklist has been **enabled** for this mTWOW.')
+        ctx.bot.save_data()
+    
+    @blacklist.command(pass_context=True, aliases=['dissable'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def off(ctx):
+        '''Dissable the blacklist'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['blacklist'] = False
+        await ctx.bot.send_message(ctx.channel, 'The blacklist has been **dissabled** for this mTWOW.')
+        ctx.bot.save_data()
+        
     @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
     @checks.twow_exists()
     @checks.is_twow_owner()
@@ -204,6 +318,8 @@ class Host():
         pass
                 
     @can_queue.command(pass_context=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
     async def on(self, ctx):
         '''Allows queue'''
         sd = ctx.bot.server_data[ctx.channel.id]
@@ -212,6 +328,8 @@ class Host():
         ctx.bot.save_data()
         
     @can_queue.command(pass_context=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
     async def off(self, ctx):
         '''Disallows queue'''
         sd = ctx.bot.server_data[ctx.channel.id]

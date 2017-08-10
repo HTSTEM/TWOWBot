@@ -16,6 +16,8 @@ def new_twow(db, identifier, channel, owner):
     s['queue'] = []
     s['elim'] = '20%'
     s['hosttimer'] = None
+    s['words'] = 10
+    s['blacklist'] = []
     s['queuetimer'] = {
         'prompt':None,
         'voting':None,
@@ -41,7 +43,7 @@ def new_twow(db, identifier, channel, owner):
     db.servers[channel] = identifier
     db.save_data()
     
-def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 = no prompt, 7 = dead, 9 = too many words
+def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 = no prompt, 7 = dead, 9 = too many chars, 11 = too many words
     s_ids = {i[1]:i[0] for i in db.servers.items()}
     if id not in s_ids:
         return (1, '')
@@ -69,29 +71,30 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     success = 0
     if responder in round['responses']:
         success += 2
-    if len(response.split(' ')) > 10:
-        success += 4
+    if sd['words'] > 0 and len(response.split(' ')) > sd['words']:
+        return (11, (sd['words'], len(response.split(' '))))
     if len(response) > 140:
         return (9, '')
     
-    changed = False
-    with open('static_data/banned_words.txt') as bw:
-        banned_w = bw.read().split('\n')
-    for i in banned_w:
-        if i:
-            pattern = re.compile('\\b' + re.escape(i) + '\\b', re.IGNORECASE)
-            if pattern.findall(response):
-                response = pattern.sub('\\*' * len(i), response)
-                changed = True
-    if changed:
-        success += 8
+    if sd['blacklist']:
+        changed = False
+        with open('static_data/banned_words.txt') as bw:
+            banned_w = bw.read().split('\n')
+        for i in banned_w:
+            if i:
+                pattern = re.compile('\\b' + re.escape(i) + '\\b', re.IGNORECASE)
+                if pattern.findall(response):
+                    response = pattern.sub('\\*' * len(i), response)
+                    changed = True
+        if changed:
+            success += 8
     
     round['responses'][responder] = response.encode('utf-8')
     db.save_data()
     if round['votetimer'] == 'waiting' and len(round['responses']) > 1:
         import asyncio
         if type(sd['queuetimer']['results']) == datetime.timedelta:
-            round['restimer'] = datetime.utcnow() + sd['queuetimer']['results']
+            round['restimer'] = datetime.datetime.utcnow() + sd['queuetimer']['results']
         asyncio.ensure_future(timed_funcs.start_voting(db, db.get_channel(s_ids[id])))
         
     return success, response
@@ -157,14 +160,16 @@ async def next_host(bot, channel, sd):
     prev = sd['queue'].pop(0)
     name = channel.guild.get_member(prev).mention
     sd['hosttimer'] = None
+    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     await bot.send_message(channel, '{} is no longer hosting!'.format(name))
     if len(sd['queue']) > 0:
         if sd['queuetimer']['prompt'] != None:
             sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
         if sd['queuetimer']['voting'] != None:
-            votetimer = datetime.datetime.utcnow()+sd['queuetimer']['voting']
-        if sd['queuetimer']['results'] != None:
-            restimer = datetime.datetime.utcnow()+sd['queuetimer']['results']
+            round['votetimer'] = datetime.datetime.utcnow()+sd['queuetimer']['voting']
+            if sd['queuetimer']['results'] != None:
+                round['restimer'] = round['votetimer'] +sd['queuetimer']['voting']
+
         name = channel.guild.get_member(sd['queue'][0]).mention
         await bot.send_message(channel, '{} is now hosting!'.format(name))
     

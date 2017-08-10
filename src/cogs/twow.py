@@ -1,6 +1,7 @@
 import inspect
 import string
 import re
+import datetime
 
 from discord.ext import commands
 import ruamel.yaml as yaml
@@ -8,6 +9,7 @@ import discord
 
 from cogs.util import twow_helper, checks, timed_funcs
 from cogs.util.categories import category
+from cogs.timer import delta_to_string
 
 
 class TWOW():
@@ -24,11 +26,20 @@ class TWOW():
     @category('twow')    
     @commands.command()
     @checks.twow_exists()
-    async def prompt(self, ctx):
+    async def prompt(self, ctx, identifier:str = ''):
         '''Get the current prompt.
         The host of this mTWOW can use `set_prompt` to set it.
         '''
-        sd = ctx.bot.server_data[ctx.channel.id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}
@@ -46,24 +57,43 @@ class TWOW():
     @category('twow')
     @commands.command()
     @checks.twow_exists()
-    async def season(self, ctx):
+    async def season(self, ctx, identifier:str = ''):
         '''Get the current season number.'''
-        sd = ctx.bot.server_data[ctx.channel.id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
         
         await ctx.bot.send_message(ctx.channel, 'We are on season {}'.format(sd['season']))
         
     @category('twow')
     @commands.command()
     @checks.twow_exists()
-    async def round(self, ctx):
+    async def round(self, ctx, identifier:str = ''):
         '''Get the current round number.'''
-        sd = ctx.bot.server_data[ctx.channel.id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
         
         await ctx.bot.send_message(ctx.channel, 'We are on round {}'.format(sd['round']))
 
     @category('twow')
     @commands.command()
     @checks.twow_exists()
+    @checks.in_twow()
     async def vote(self, ctx, identifier:str = '', *responsel):
         '''Vote on the responses.
         This command will only work in DMs.
@@ -160,8 +190,9 @@ class TWOW():
                     )
             
     @category('twow')
-    @commands.command()
+    @commands.command(aliases=['submit'])
     @checks.twow_exists()
+    @checks.in_twow()
     async def respond(self, ctx, identifier:str = '', *responsel):
         '''Respond to the current prompt.
         You can get the channel identifier by using `id` in that channel.
@@ -178,7 +209,6 @@ class TWOW():
                 'Usage: `{0}respond <TWOW id> <response>`\nUse `{0}id` in the channel to get the id.'.format(ctx.prefix))
             return
         
-        
         response = ' '.join(responsel)
         success, response = twow_helper.respond(ctx.bot, identifier, ctx.author.id, response)
         if success == 1: 
@@ -192,11 +222,11 @@ class TWOW():
             await ctx.bot.send_message(ctx.channel, 'You are unable to submit this round. Please wait for the next season.')
         elif success == 9:
             await ctx.bot.send_message(ctx.channel, 'That is a lot of characters. Why don\'t we tone it down a bit?')
+        elif success == 11:
+            await ctx.bot.send_message(ctx.channel, ':no_good: Your response is over {} words ({}).'.format(*response))
         else:
             if success // 2 % 2 == 1: 
-                await ctx.bot.send_message(ctx.channel, '**Warning! Overwriting current response!**')
-            if success // 4 % 2 == 1: 
-                await ctx.bot.send_message(ctx.channel, ':no_good: **Warning! Your response looks to be over 10 words ({}).**\nThis can be ignored if you are playing a variation TWOW that doesn\'t have this limit'.format(len(response.split(' '))))
+                await ctx.bot.send_message(ctx.channel, ':warning:**Warning! Overwriting current response!**:warning:')
             if success // 8 % 2 == 1:
                 await ctx.bot.send_message(ctx.channel, ':unamused: **Due to rude words, your submission has been changed to:**\n{}'.format(response))
             await ctx.bot.send_message(ctx.channel, ':writing_hand: **Submission recorded**')
@@ -204,10 +234,19 @@ class TWOW():
     @category('twow')
     @commands.command()
     @checks.twow_exists()
-    async def owner(self, ctx):
+    async def owner(self, ctx, identifier:str = ''):
         '''Get the owner of the mTWOW in the current channel.'''
-        id = ctx.channel.id
-        sd = ctx.bot.server_data[id]
+        if identifier:            
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
+        else:
+            sd = ctx.bot.server_data[ctx.channel.id]
+        
         user = ctx.bot.get_user(sd['owner'])
         if sd['canqueue'] and len(sd['queue']) > 0:
             host = ctx.bot.get_user(sd['queue'][0])
@@ -220,14 +259,19 @@ class TWOW():
     @checks.twow_exists()
     async def status(self, ctx, identifier:str = ''):
         '''Get information about a mTWOW.'''
-        id = None
-        if identifier:
+        if identifier:            
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
+            sd = ctx.bot.server_data[s_ids[identifier]]
             id = s_ids[identifier]
         else:
+            sd = ctx.bot.server_data[ctx.channel.id]
             id = ctx.channel.id
             
-        sd = ctx.bot.server_data[id]
         seasonn = sd['season']
         roundn = sd['round']
         round = sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-{}'.format(roundn)]
@@ -242,7 +286,9 @@ class TWOW():
             waiting_for = 'votes'
             
         pstatus = 'spectating'
-        if ctx.author.id in nowa:
+        if sd['canqueue'] and len(sd['queue']) > 0 and sd['queue'][0] == ctx.author.id:
+            pstatus = 'hosting'
+        elif ctx.author.id in nowa:
             pstatus = 'alive'
         elif ctx.author.id in starta:
             pstatus = 'dead'
@@ -264,16 +310,32 @@ class TWOW():
             if len(round['votes']) == 1: 
                 mess += 'There is currently 1 vote and '
             else:
-                mess += 'There are currently {} votes '.format(len(round['votes']))
+                mess += 'There are currently {} votes and '.format(len(round['votes']))
             if len(round['responses']) == 1:
-                mess += '1 response.\n'.format(len(round['votes']))
+                mess += '1 response.\n'.format(len(round['responses']))
             else:
-                mess += '{} responses.\n'.format(len(round['votes']))
+                mess += '{} responses.\n'.format(len(round['responses']))
+            
+            if round['restimer'] == 'waiting':
+                mess += 'Results will start once we get a vote.\n'
+            elif type(round['restimer']) == datetime.datetime:
+                mess += 'Results will start in {}.\n'.format(delta_to_string(round['restimer']-datetime.datetime.utcnow()))
+                
+            
         elif waiting_for == 'responses':
             if len(round['responses']) == 1:
                 mess += 'There is currently 1 response.\n'
             else:
                 mess += 'There are currently {} responses.\n'.format(len(round['responses']))
+                
+            if round['votetimer'] == 'waiting':
+                mess += 'Voting will start once we get 2 responses.\n'
+            elif type(round['votetimer']) == datetime.datetime:
+                mess += 'Voting will start in {}.\n'.format(delta_to_string(round['votetimer']-datetime.datetime.utcnow()))
+                
+        elif waiting_for == 'a prompt':
+            if type(sd['hosttimer']) == datetime.datetime:
+                mess += 'The host has {} to create a prompt.\n'.format(delta_to_string(sd['hosttimer']-datetime.datetime.utcnow()))
             
         mess += 'You are {}.\n'.format(pstatus)
         

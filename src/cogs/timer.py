@@ -61,21 +61,18 @@ class Timer():
             round['restimer'] = now+times[0]
             sd['queuetimer']['results'] = times[0]
             await ctx.bot.send_message(ctx.channel,
-                'Set results in {} days {} hours {} minutes and {} seconds.'.format(
-                    times[0].days, times[0].seconds//3600, times[0].seconds//60%60, times[0].seconds//60%60))
+                'Set results in {}.'.format(delta_to_string(times[0])))
         else:
             round['votetimer'] = now+times[0]
             sd['queuetimer']['voting'] = times[0]
             await ctx.bot.send_message(ctx.channel,
-                'Set results in {} days {} hours {} minutes and {} seconds.'.format(
-                    times[0].days, times[0].seconds//3600, times[0].seconds//60%60, times[0].seconds%60))
+                'Set results in {}.'.format(delta_to_string(times[0])))
             if len(times) > 1:
                 net = times[0]+times[1]
                 sd['queuetimer']['results'] = times[1]
                 round['restimer'] = now+net
                 await ctx.bot.send_message(ctx.channel,
-                'Set results in {} days {} hours {} minutes and {} seconds.'.format(
-                    net.days, net.seconds//3600, net.seconds//60%60, net.seconds%60))
+                'Set results in {}.'.format(delta_to_string(net[0])))
                 
         ctx.bot.save_data()
     
@@ -93,6 +90,32 @@ class Timer():
         timers['voting'] = votetimer
         timers['results'] = resultstimer
         ctx.bot.save_data()
+        await ctx.bot.send_message(ctx.channel, 
+            'The host will have {} to make a prompt, the contestants will have  {} to respond and the voters will have {} to vote.'
+            .format(delta_to_string(prompt_timeout),delta_to_string(votetimer),delta_to_string(resultstimer)))
+        
+def delta_to_string(delta):
+    days = delta.days
+    hours = delta.seconds//3600%60
+    minutes = delta.seconds//60%60
+    seconds = delta.seconds%60
+    strings = []
+    if days == 1: strings.append('1 day')
+    elif days: strings.append('{} days '.format(days))
+    
+    if hours == 1: strings.append('1 hour')
+    elif hours: strings.append('{} hours'.format(hours))
+    
+    if minutes == 1: strings.append('1 minute')
+    elif minutes: strings.append('{} minutes'.format(minutes))
+    
+    if seconds == 1: strings.append('1 second')
+    elif seconds or not strings: strings.append('{} seconds'.format(seconds))
+    
+    if len(strings)==1:
+        return strings[0]
+    else:
+        return ' '.join(strings[:-1])+' and '+strings[-1]
 
         
 def setup(bot):

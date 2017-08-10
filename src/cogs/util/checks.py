@@ -64,4 +64,20 @@ def can_manage():#maybe needed, keep just in case
         return perms.manage_channels
     return commands.check(predicate)
 
+def in_twow():
+    async def predicate(ctx: commands.Context) -> bool:
+        args = ctx.message.content.split(' ')[1:] #this is really hacky, if someone can do better please make PR
+        names = inspect.getfullargspec(ctx.command.callback)[0][2:]
+        kwargs = dictionary = dict(zip(names, args))
+        identifier = kwargs['identifier']
+        s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+        if identifier not in s_ids:
+            await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+            raise ctx.bot.ErrorAlreadyShown()
+        elif ctx.bot.get_channel(s_ids[identifier]).guild.get_member(ctx.author.id) != None:
+            return True
+        await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+        raise ctx.bot.ErrorAlreadyShown()
+    return commands.check(predicate)
+
     
