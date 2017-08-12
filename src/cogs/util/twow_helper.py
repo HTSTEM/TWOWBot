@@ -40,6 +40,8 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     success = 0
     if responder in round['responses']:
         success += 2
+    while '  ' in response:
+        response = response.replace('  ', ' ')
     if sd['words'] > 0 and len(response.split(' ')) > sd['words']:
         return (11, (sd['words'], len(response.split(' '))))
     if len(response) > 140:

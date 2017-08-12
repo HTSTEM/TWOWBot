@@ -139,7 +139,7 @@ class TWOW():
             
             m = '**Your slide is:**'
             for n, i in enumerate(slide):
-                m += '\n:regional_indicator_{}: {}'.format(string.ascii_lowercase[n], round['responses'][i].decode())
+                m += '\n:regional_indicator_{0}: {2} **({1})**'.format(string.ascii_lowercase[n], len(round['responses'][i].decode().split(' ')), round['responses'][i].decode())
                 if len(m) > 1500:
                     await ctx.bot.send_message(ctx.channel,m)
                     m = ''
@@ -223,7 +223,7 @@ class TWOW():
         elif success == 9:
             await ctx.bot.send_message(ctx.channel, 'That is a lot of characters. Why don\'t we tone it down a bit?')
         elif success == 11:
-            await ctx.bot.send_message(ctx.channel, ':no_good: Your response is over {} words ({}).'.format(*response))
+            await ctx.bot.send_message(ctx.channel, ':no_good: Your response is over {} word{} ({}).'.format(response[0], 's' if response[0] != 1 else '', response[1]))
         else:
             if success // 2 % 2 == 1: 
                 await ctx.bot.send_message(ctx.channel, ':warning:**Warning! Overwriting current response!**:warning:')
