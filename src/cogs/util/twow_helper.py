@@ -2,43 +2,12 @@ import re
 import random
 import datetime
 
-from cogs.util import timed_funcs
+from cogs.util import timed_funcs, templates
 
 RESPONSES_PER_SLIDE = 10
 
 def new_twow(db, identifier, channel, owner):
-    s = {}
-    s['owner'] = owner
-    s['round'] = 1
-    s['season'] = 1
-    s['voting'] = False
-    s['canqueue'] = False
-    s['queue'] = []
-    s['elim'] = '20%'
-    s['hosttimer'] = None
-    s['words'] = 10
-    s['blacklist'] = []
-    s['queuetimer'] = {
-        'prompt':None,
-        'voting':None,
-        'results':None,
-        }
-    s['seasons'] = {'season-1':
-                    {'rounds':
-                        {'round-1':
-                        {
-                        'alive':[],
-                        'prompt': None,
-                        'responses': {},
-                        'slides': {},
-                        'votes': [],
-                        'votetimer':None,
-                        'restimer':None,
-                        }
-                        }
-                    }
-                    }
-    
+    s = templates.twow    
     db.server_data[channel] = s
     db.servers[channel] = identifier
     db.save_data()
@@ -56,7 +25,7 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     if 'season-{}'.format(sd['season']) not in sd['seasons']:
         sd['seasons']['season-{}'.format(sd['season'])] = {}
     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = templates.round
     
     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     

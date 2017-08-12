@@ -6,7 +6,7 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-from cogs.util import results, twow_helper, checks, timed_funcs
+from cogs.util import results, twow_helper, checks, timed_funcs, templates
 from cogs.util.categories import category
 
 
@@ -66,7 +66,7 @@ class Host():
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}
         if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = templates.round
         
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
