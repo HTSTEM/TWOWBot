@@ -73,6 +73,14 @@ class Dev():
             stderr = stderr.decode()
 
         await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
+        
+    @category('developer')
+    @commands.command()
+    @checks.is_dev()
+    async def exception(self, ctx):
+        '''Raise an exception.
+        '''
+        raise Exception('Causing Errors!')
 
     @category('developer')
     @commands.command(alias=['gitcli'])

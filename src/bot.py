@@ -153,42 +153,41 @@ class TWOWBot(commands.Bot):
             exc = CommandNotFound('Command "{}" is not found'.format(ctx.invoked_with))
             self.dispatch('command_error', ctx, exc)
         
-    '''
+    
     async def notify_devs(self, lines, message: discord.Message = None):
         # form embed
-        embed = discord.Embed(colour=0xFF0000, title='An error occurred \N{FROWNING FACE WITH OPEN MOUTH}')
-
+        errorlog = self.get_channel(346011284346503168)
+        if errorlog is None:
+            self.logger.error('Could not find channel')
+            return
+        
+        await errorlog.send('====================Start Error====================')
         if message is not None:
-            if len(message.content) > 400:
-                url = await self.uploader_client.upload(message.content, 'Message triggering error')
-                embed.add_field(name='Command', value=url, inline=False)
-            else:
-                embed.add_field(name='Command', value='```\n{}\n```'.format(message.content), inline=False)
-            embed.set_author(name=message.author, icon_url=message.author.avatar_url_as(format='png'))
+            await errorlog.send('==========Message triggering error==========')
+            counter = 0
+            while True:
+                to_send = message.content[counter:counter+1900]
+                if to_send:
+                    await errorlog.send('```{}```'.format(to_send))
+                    counter += 1900
+                else:
+                    break
+            await errorlog.send('in channel {0} by {1}'.format(message.channel.mention, message.author.name))
 
-        embed.set_footer(text='{} UTC'.format(datetime.datetime.utcnow()))
-
+        await errorlog.send('{} UTC'.format(datetime.datetime.utcnow()))
+        await errorlog.send('===============Error Message===============')
         error_message = ''.join(lines)
-        if len(error_message) > 1000:
-            url = await self.uploader_client.upload(error_message, 'Error')
+        counter = 0
+        while True:
+            to_send = error_message[counter:counter+1900]
+            if to_send:
+                await errorlog.send('```{}```'.format(to_send))
+                counter += 1900
+            else:
+                break
 
-            embed.add_field(name='Error', value=url, inline=False)
-        else:
-            embed.add_field(name='Error', value='```py\n{}\n```'.format(''.join(lines), inline=False))
+        await errorlog.send('====================End Error====================')
 
-        # loop through all developers, send the embed
-        for dev in self.config.get('ids', {}).get('developers', []):
-            dev = self.get_user(dev)
-
-            if dev is None:
-                self.logger.warning('Could not get developer with an ID of {0.id}, skipping.'.format(dev))
-                continue
-            try:
-                await dev.send(embed=embed)
-            except Exception as e:
-                self.logger.error('Couldn\'t send error embed to developer {0.id}. {1}'
-                                  .format(dev, type(e).__name__ + ': ' + str(e)))
-    '''
     async def on_command_error(self, ctx: commands.Context, exception: Exception):
         if isinstance(exception, commands.CommandInvokeError):
             # all exceptions are wrapped in CommandInvokeError if they are not a subclass of CommandError
@@ -207,7 +206,7 @@ class TWOWBot(commands.Bot):
                                                exception.__traceback__)
 
             self.logger.error(''.join(lines))
-            #await self.notify_devs(lines, ctx.message)
+            await self.notify_devs(lines, ctx.message)
 
             return
 
@@ -228,11 +227,11 @@ class TWOWBot(commands.Bot):
         else:
             info = traceback.format_exception(type(exception), exception, exception.__traceback__, chain=False)
             self.logger.error('Unhandled command exception - {}'.format(''.join(info)))
-            #await self.notify_devs(info, ctx.message)
+            await self.notify_devs(info, ctx.message)
 
     async def on_error(self, event_method, *args, **kwargs):
         info = sys.exc_info()
-        #await self.notify_devs(traceback.format_exception(*info, chain=False))
+        await self.notify_devs(traceback.format_exception(*info, chain=False))
 
     async def on_ready(self):
         self.logger.info('Connected to Discord')
