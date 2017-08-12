@@ -7,7 +7,8 @@ from cogs.util import timed_funcs, templates
 RESPONSES_PER_SLIDE = 10
 
 def new_twow(db, identifier, channel, owner):
-    s = templates.twow    
+    s = templates.twow
+    s['owner'] = owner
     db.server_data[channel] = s
     db.servers[channel] = identifier
     db.save_data()

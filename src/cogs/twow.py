@@ -248,6 +248,7 @@ class TWOW():
             sd = ctx.bot.server_data[ctx.channel.id]
         
         user = ctx.bot.get_user(sd['owner'])
+        print(sd['owner'])
         if sd['canqueue'] and len(sd['queue']) > 0:
             host = ctx.bot.get_user(sd['queue'][0])
             await ctx.bot.send_message(ctx.channel, 'The owner of this mTWOW is {}. {} is hosting.'.format(user.name, host.name))
