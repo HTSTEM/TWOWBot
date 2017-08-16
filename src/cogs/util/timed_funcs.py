@@ -41,7 +41,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
     if 'season-{}'.format(sd['season']) not in sd['seasons']:
         sd['seasons']['season-{}'.format(sd['season'])] = {}
     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = templates.round
+        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = dict(templates.round)
     
     voted_ons = set()
     for vote in round['votes']: voted_ons |= set(vote['vote'])
@@ -133,7 +133,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
         sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
         living = []
     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:#new round
-        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = templates.round
+        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = dict(templates.round)
         sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]['alive']=[t[1].id for t in living]
         
     if advance:
