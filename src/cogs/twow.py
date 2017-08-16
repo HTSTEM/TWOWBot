@@ -341,7 +341,7 @@ class TWOW():
         mess += 'You are {}.\n'.format(pstatus)
         
         try:
-            mess += 'Last season\'s winner was {}.'.format(
+            mess += 'Last season\'s winner was {}. '.format(
                 ctx.bot.get_user(sd['seasons']['season-{}'.format(seasonn-1)]['winner']).name)
         except KeyError:
             pass
