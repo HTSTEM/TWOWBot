@@ -66,7 +66,7 @@ class Host():
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}
         if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = dict(templates.round)
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = dict(templates.round())
         
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         

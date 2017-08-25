@@ -72,7 +72,7 @@ class Timer():
                 sd['queuetimer']['results'] = times[1]
                 round['restimer'] = now+net
                 await ctx.bot.send_message(ctx.channel,
-                'Set results in {}.'.format(delta_to_string(net[0])))
+                'Set results in {}.'.format(delta_to_string(net)))
                 
         ctx.bot.save_data()
     
