@@ -21,7 +21,7 @@ class HelperBodge():
 
 
 class TWOWBot(commands.Bot):
-    class ErrorAlreadyShown: pass
+    class ErrorAlreadyShown(Exception): pass
 
     def __init__(self, log_file=None, *args, **kwargs):
         self.debug = False
@@ -209,9 +209,6 @@ class TWOWBot(commands.Bot):
             await self.notify_devs(lines, ctx.message)
 
             return
-
-        if isinstance(exception, self.ErrorAlreadyShown):
-            return
         
         if isinstance(exception, commands.CheckFailure):
             await ctx.send('You can\'t do that.')
@@ -231,6 +228,8 @@ class TWOWBot(commands.Bot):
 
     async def on_error(self, event_method, *args, **kwargs):
         info = sys.exc_info()
+        if isinstance(info[1], self.ErrorAlreadyShown):
+            return
         await self.notify_devs(traceback.format_exception(*info, chain=False))
 
     async def on_ready(self):
