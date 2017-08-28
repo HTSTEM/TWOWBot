@@ -101,7 +101,7 @@ def delta_to_string(delta):
     seconds = delta.seconds%60
     strings = []
     if days == 1: strings.append('1 day')
-    elif days: strings.append('{} days '.format(days))
+    elif days: strings.append('{} days'.format(days))
     
     if hours == 1: strings.append('1 hour')
     elif hours: strings.append('{} hours'.format(hours))
