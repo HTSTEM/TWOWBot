@@ -4,7 +4,6 @@ import logging
 import sys
 import re
 import os
-import pickle
 import base64
 
 from discord.ext import commands
@@ -37,14 +36,8 @@ class TWOWBot(commands.Bot):
                 with open('server_data/{}.yml'.format(i)) as data_file:
                     data = self.yaml.load(data_file)
                     for key, s in data['queuetimer'].items():
-                        if s != 'None' and s != None:
-                            if 'days' in s:
-                                t = datetime.datetime.strptime(s,"%d days, %H:%M:%S")
-                            elif 'day' in s:
-                                t = datetime.datetime.strptime(s,"%d day, %H:%M:%S")
-                            else:
-                                t = datetime.datetime.strptime(s,"%H:%M:%S")
-                            data['queuetimer'][key] = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                        if s != 'None' and s is not None:
+                            data['queuetimer'][key] = datetime.timedelta(seconds=s)
                         elif s == 'None':
                             data['queuetimer'][key] = None
                             
@@ -80,7 +73,7 @@ class TWOWBot(commands.Bot):
                 queuetimer = dict(to_save['queuetimer'])
                 for key, timedelta in queuetimer.items():
                     if timedelta != None:
-                        queuetimer[key] = str(timedelta)
+                        queuetimer[key] = timedelta.total_seconds()
                 to_save['queuetimer'] = queuetimer
                 self.yaml.dump(to_save, data_file)
                 
@@ -90,7 +83,7 @@ class TWOWBot(commands.Bot):
             queuetimer = dict(to_save['queuetimer'])
             for key, timedelta in queuetimer.items():
                 if timedelta != None:
-                    queuetimer[key] = str(timedelta)
+                    queuetimer[key] = timedelta.total_seconds()
             to_save['queuetimer'] = queuetimer
             self.yaml.dump(to_save, data_file)
 
