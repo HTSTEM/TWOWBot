@@ -261,7 +261,8 @@ class Core():
         msg += 'If you are interested in hosting this bot for yourself, check the GitHub linked in the **`about`** command,\n'
         msg += 'or DM one of the developers (also in the **`about`** command).'
         
-        await ctx.bot.send_message(ctx.channel, msg)
+        await ctx.bot.send_message(ctx.author, msg)
+        await ctx.bot.send_message(ctx, ':mailbox_with_mail:')
 
 def setup(bot):
     bot.add_cog(Core())
