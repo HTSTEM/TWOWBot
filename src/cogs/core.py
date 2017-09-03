@@ -189,8 +189,8 @@ class Core():
         mess += 'Noahkiq#0493\n'
         mess += '\n**This bot is being hosted by:**\n'
         mess += '{}\n'.format(ctx.bot.get_user(ctx.bot.BOT_HOSTER))
-        #mess +='**\nTWOWBot\'s avatar by:**\n'
-        #mess += 'name#discrim\n'
+        mess +='**\n(Official) TWOWBot\'s avatar by:**\n'
+        mess += 'Imagine4#8208\n'
         mess += '\n**Resources:**\n'
         mess += '*The official TWOWBot discord server:* https://discord.gg/eZhpeMM\n'
         mess += '*Go contribute to TWOWBot on GitHub:* https://github.com/HTSTEM/TWOW_Bot\n'
