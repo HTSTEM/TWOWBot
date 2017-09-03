@@ -193,7 +193,7 @@ class Core():
         mess += 'Imagine4#8208\n'
         mess += '\n**Resources:**\n'
         mess += '*The official TWOWBot discord server:* https://discord.gg/eZhpeMM\n'
-        mess += '*Go contribute to TWOWBot on GitHub:* https://github.com/HTSTEM/TWOW_Bot\n'
+        mess += '*Go contribute to TWOWBot on GitHub:* <https://github.com/HTSTEM/TWOW_Bot>\n'
         mess += '*Invite TWOWBot to your server:* <https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(ctx.bot.user.id)
         await ctx.bot.send_message(ctx.channel, mess)
 
