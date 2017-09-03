@@ -83,6 +83,7 @@ class Timer():
     async def queue_times(self, ctx, prompt_timeout: twow_helper.get_delta, 
       votetimer: twow_helper.get_delta, resultstimer: twow_helper.get_delta):
         '''Set timer for queue events.
+        If prompt_timeout is reached and the hoster has not created a prompt, they will be skipped.
         Time is specified in the format `[<days>d][<hours>h][<minutes>m][<seconds>s]`
         '''
         timers = ctx.bot.server_data[ctx.channel.id]['queuetimer']
