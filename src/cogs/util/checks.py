@@ -70,7 +70,7 @@ def in_twow():
         names = inspect.getfullargspec(ctx.command.callback)[0][2:]
         kwargs = dictionary = dict(zip(names, args))
         if 'identifier' in kwargs: identifier = kwargs['identifier']
-        else: identifier = None
+        else: identifier = ''
         s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
         if identifier not in s_ids:
             await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
