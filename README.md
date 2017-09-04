@@ -28,6 +28,12 @@ The host of an mTWOW has a couple of commands for them to use:
 * **`start_voting`** will then close responses and allow people to vote.
 * Finally, **`results`** will end the round and show results
 * You can also use **`transfer`** to make someone else the host of the mTWOW.
+#### Traditional mTWOWs:
+The owner of a mTWOW can setup a traditional mTWOW where anyone can host:
+* **`can_queue on`** will allow people to join the hosting queue with **`join_queue`**.
+* **`queue_timer`** will allow you to set a timer for the events.
+* Use **`help queue_timer`** for help.
+* **`skip_host`** will skip the current host and start a fresh season.
 #### Participating in an mTWOW:
 When you are participating, you also have some commands you can use:
 * **`respond`**, when in a DM, allows you to respond to a prompt.
@@ -40,6 +46,11 @@ There are a few commands that are useful to know:
 respectively.
 * **`id`** will get you the channel identifier for that mTWOW. This is needed
 when responding or voting.
+#### Getting help:
+All of these commands, and more, are available in the **`help`** command.
+If you want to invite the bot to your server, or join the official one, use **`about`**.
+If you are interested in hosting this bot for yourself, check the GitHub linked in the **`about`** command,
+or DM one of the developers (also in the **`about`** command).
 
 ---
 ### All commands:
