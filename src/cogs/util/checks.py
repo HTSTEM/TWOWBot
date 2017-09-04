@@ -55,7 +55,10 @@ def is_twow_host():
 
 def can_queue():
     async def predicate(ctx: commands.Context) -> bool:
-        return ctx.bot.server_data[ctx.channel.id]['canqueue']
+        if ctx.channel.id in ctx.bot.server_data:
+            return ctx.bot.server_data[ctx.channel.id]['canqueue']
+        else:
+            return False
     return commands.check(predicate)
 
 def can_manage():#maybe needed, keep just in case
