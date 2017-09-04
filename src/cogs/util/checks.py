@@ -1,4 +1,5 @@
 import inspect
+import discord
 
 from discord.ext import commands
 
@@ -69,16 +70,19 @@ def can_manage():#maybe needed, keep just in case
 
 def in_twow():
     async def predicate(ctx: commands.Context) -> bool:
+        if isinstance(ctx.channel, discord.TextChannel):
+            return True
+        
         args = ctx.message.content.split(' ')[1:] #this is really hacky, if someone can do better please make PR
         names = inspect.getfullargspec(ctx.command.callback)[0][2:]
         kwargs = dictionary = dict(zip(names, args))
         if 'identifier' in kwargs: identifier = kwargs['identifier']
-        else: identifier = ''
+        else: identifier = None
         s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
-        if identifier not in s_ids:
+        if identifier is not None and identifier not in s_ids:
             await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
             raise ctx.bot.ErrorAlreadyShown()
-        elif ctx.bot.get_channel(s_ids[identifier]).guild.get_member(ctx.author.id) != None:
+        elif ctx.bot.get_channel(s_ids[identifier]).guild.get_member(ctx.author.id) is not None:
             return True
         await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
         raise ctx.bot.ErrorAlreadyShown()
