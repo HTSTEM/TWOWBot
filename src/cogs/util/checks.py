@@ -46,7 +46,21 @@ def is_twow_owner():
 
 def is_twow_host():
     async def predicate(ctx: commands.Context) -> bool:
-        sd = ctx.bot.server_data[ctx.channel.id]
+        args = ctx.message.content.split(' ')[1:]
+        names = inspect.getfullargspec(ctx.command.callback)[0][2:]
+        kwargs = dictionary = dict(zip(names, args))
+        if 'identifier' in kwargs:
+            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            if kwargs['identifier'] in s_ids:
+                sd = ctx.bot.server_data[s_ids[kwargs['identifier']]]
+            else:
+                await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
+                raise ctx.bot.ErrorAlreadyShown()
+        elif ctx.channel.id in ctx.bot.server_data:
+            sd = ctx.bot.server_data[ctx.channel.id]
+        else:
+            return False
+        
         if sd['owner'] == ctx.author.id:
             return True
         elif len(sd['queue']) > 0 and sd['queue'][0] == ctx.author.id:
