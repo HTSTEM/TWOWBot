@@ -99,7 +99,8 @@ class TWOW():
         This command will only work in DMs.
         *I think it makes me a hot dog. Not sure.*'''
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
-            await ctx.message.delete()
+            try: await ctx.message.delete()
+            except discord.errors.Forbidden: pass
             await ctx.bot.send_message(ctx.channel, 'Please only vote in DMs')
             return
         
@@ -200,7 +201,8 @@ class TWOW():
         *Probbly handles the controlling of my kitten army*
         '''
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
-            await ctx.message.delete()
+            try: await ctx.message.delete()
+            except discord.errors.Forbidden: pass
             await ctx.bot.send_message(ctx.channel, 'Please only respond in DMs')
             return
         
