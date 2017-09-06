@@ -56,7 +56,8 @@ async def do_results(bot, channel, guild, nums='', message=None):
     totals = results.count_votes(round, round['alive'])
     msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
     if message != None:
-        await message.delete()
+        try: await message.delete()
+        except: pass
     eliminated = []
     living = []
     elim = int(0.8 * len(totals))
