@@ -11,6 +11,7 @@ from cogs.util.categories import category
 
 
 class Host():
+
     @category('hosting')
     @commands.command(aliases=['startvoting'])
     @checks.twow_exists()
