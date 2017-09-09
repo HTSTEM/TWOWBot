@@ -199,6 +199,7 @@ class Core():
 
     @category('info')
     @commands.command(aliases=['aboutme','boutme','\'boutme'])
+    @commands.guild_only()
     async def me(self, ctx):
         '''Get info about yourself.'''
         member = ctx.author
