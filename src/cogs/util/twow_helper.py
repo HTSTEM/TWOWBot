@@ -134,6 +134,7 @@ async def next_host(bot, channel, sd):
     sd['hosttimer'] = None
     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     await bot.send_message(channel, '{} is no longer hosting!'.format(name))
+    sd['voting'] = False
     if len(sd['queue']) > 0:
         if sd['queuetimer']['prompt'] != None:
             sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']

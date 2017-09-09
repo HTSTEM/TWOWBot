@@ -100,7 +100,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
         await asyncio.sleep(len(totals) - n / 2)
         await bot.send_message(channel, msg.format(name))
 
-    # Winner/looser stuff
+    # Winner/loser stuff
     user = guild.get_member(totals[0]['name'])
     if user is not None:
         name = user.mention
