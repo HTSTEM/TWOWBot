@@ -1,3 +1,4 @@
+import datetime
 import inspect
 import asyncio
 
@@ -5,10 +6,13 @@ from discord.ext import commands
 import ruamel.yaml as yaml
 import discord
 
-from cogs.util import results, twow_helper, checks
+from cogs.util import results, twow_helper, checks, timed_funcs, templates
+from cogs.util.categories import category
 
 
 class Host():
+
+    @category('hosting')
     @commands.command(aliases=['startvoting'])
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -16,22 +20,11 @@ class Host():
         '''Start voting..
         This will end responding and will allow people to use `vote`.
         '''
-        sd = ctx.bot.server_data[ctx.channel.id]
         
-        if sd['voting']:
-            await ctx.bot.send_message(ctx.channel, 'Voting is already active.')
-            return
-        roundn = sd['round']
-        seasonn = sd['season']
-        if len(sd['seasons']['season-{}'.format(seasonn)]['rounds']['round-{}'.format(roundn)]['responses']) < 2:
-            await ctx.bot.send_message(ctx.channel, 'There aren\'t enough responses to start voting. You need at least 2.')
-            return
-        
-        sd['voting'] = True
-        ctx.bot.save_data()
-        await ctx.bot.send_message(ctx.channel, 'Voting has been activated.')
+        await timed_funcs.start_voting(ctx.bot, ctx.channel)
         return
     
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -41,98 +34,14 @@ class Host():
         or it it a set number of people to elimintate this round.
         *Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.*
         '''
-        sd = ctx.bot.server_data[ctx.channel.id]
-        
-        if not sd['voting']:
-            await ctx.bot.send_message(ctx.channel, 'Voting hasn\'t even started yet...')
-            return
-        
-        if 'season-{}'.format(sd['season']) not in sd['seasons']:
-            sd['seasons']['season-{}'.format(sd['season'])] = {}
-        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
-        
-        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
-        voted_ons = set()
-        for vote in round['votes']: voted_ons |= set(vote['vote'])
-        if set(round['responses']) != voted_ons:
-            await ctx.bot.send_message(ctx.channel, 'Not every response has been voted on yet!')
-            return
-        totals = results.count_votes(round, round['alive'])
-        
-        msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
-        await ctx.message.delete()
-        await ctx.bot.send_message(ctx.channel,msg)
-        
-        eliminated = []
-        living = []
-        
-        elim = int(0.8 * len(totals))
-        try:
-            if nums[-1] == '%':
-                elim = len(totals)*(100-int(nums[:-1]))//100
-            else:
-                elim = len(totals) - int(nums)
-        except ValueError:
-            await ctx.bot.send_message(ctx.channel, '{} doesn\'t look like a number to me.'.format(nums))
-            return
-            
-        for msg, dead, uid, n in results.get_results(totals, elim, round):
-            user = ctx.guild.get_member(uid)
-            if user is not None:
-                name = user.mention
-            else:
-                name = str(uid)
-                
-            if dead:
-                eliminated.append((name, user))
-            else:
-                living.append((name, user))
-            
-            await asyncio.sleep(len(totals) - n / 2)
-            await ctx.bot.send_message(ctx.channel,msg.format(name)) 
 
-        user = ctx.guild.get_member(totals[0]['name'])
-        if user is not None:
-            name = user.mention
-        else:
-            name = str(v['name'])
-        msg = '{}\nThe winner was {}! Well done!'.format('=' * 50, name)
-        await ctx.bot.send_message(ctx.channel,msg)  
-        
-        await ctx.bot.send_message(ctx.channel,
-            'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
-
-        # Do all the round incrementing and stuff.
-        if len(totals) - len(eliminated) <= 1:
-            await ctx.bot.send_message(ctx.channel,'**This season has ended! The winner was {}!**'.format(name))
-            sd['round'] = 1
-            sd['season'] += 1
-            await ctx.bot.send_message(ctx.channel,'**We\'re now on season {}!**'.format(sd['season']))
-        else:
-            sd['round'] += 1
-            await ctx.bot.send_message(ctx.channel,'**We\'re now on round {}!**'.format(sd['round']))
-            
-        if 'season-{}'.format(sd['season']) not in sd['seasons']:#new season
-            sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
-            living = []
-        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:#new round
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
-                'alive':[t[1].id for t in living], 
-                'prompt': None, 
-                'responses': {}, 
-                'slides': {}, 
-                'votes': [],
-                'votetimer':None,
-                'restimer':None,
-                }
-        
-        sd['voting'] = False
-        
-        ctx.bot.save_data()
-        
+        await timed_funcs.do_results(ctx.bot, ctx.channel, ctx.guild, nums, message=ctx.message)
+        return
+    
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
+    @checks.is_twow_host()
     async def responses(self, ctx, identifier:str = ''):
         '''List all responses this round.
         This command will send the responses via DMs.
@@ -140,19 +49,25 @@ class Host():
         id = None
         if identifier:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            
+            if identifier not in s_ids:
+                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                return
+            
             id = s_ids[identifier]
         else:
+            if ctx.channel.id not in ctx.bot.server_data:
+                await ctx.bot.send_message(ctx.channel, 'There isn\'t an entry for this mTWOW in my data.')
+                return
+        
             id = ctx.channel.id
-            
-        if ctx.bot.server_data[id]['owner'] != ctx.author.id:
-            return
-            
+        
         sd = ctx.bot.server_data[id]
         
         if 'season-{}'.format(sd['season']) not in sd['seasons']:
             sd['seasons']['season-{}'.format(sd['season'])] = {}
         if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = dict(templates.round())
         
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
@@ -171,7 +86,53 @@ class Host():
             await ctx.bot.send_message(ctx.author,m)
         if isinstance(ctx.channel, discord.TextChannel):
             await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
-            
+
+    @category('hosting')
+    @commands.command(aliases=['del_response', 'rem_response', 'delresponse', 'remresponse'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
+    async def remove_response(self, ctx, identifier:str, respondee:str):
+        '''Removes a response that has been submitted.
+        `respondee` must be the exact name as shown in `responses`.
+        A message is sent to the channel running the mTWOW, so be prepared
+        to defend your reasoning.
+        '''
+    
+        s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+        if identifier not in s_ids:
+            await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+            return
+        id = s_ids[identifier]
+        sd = ctx.bot.server_data[id]
+        
+        if 'season-{}'.format(sd['season']) not in sd['seasons']:
+            sd['seasons']['season-{}'.format(sd['season'])] = {}
+        if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {'prompt': None, 'responses': {}, 'slides': {}, 'votes': []}
+        
+        round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+        
+        for i in round['responses'].items():
+            u = ctx.bot.get_user(i[0])
+            if u is not None:
+                n = u.name
+            else:
+                n = i[0]
+            if n.lower() == respondee.lower():
+                break
+        else:
+            await ctx.bot.send_message(ctx.channel, '`{}` doesn\'t appear to have responded.'.format(respondee.replace('`', '\\`')))
+            return
+        
+        await ctx.bot.send_message(ctx.channel, '<@{}>s response of {} has been removed.'.format(u.id, i[1].decode('utf-8')))
+        del round['responses'][i[0]]
+        chan = ctx.bot.get_channel(id)
+        if chan:
+            await ctx.bot.send_message(chan, '<@{}>, your response has been removed by <@{}>.'.format(u.id, sd['owner']))
+        
+        ctx.bot.save_data()
+        
+    
     @commands.command()
     async def register(self, ctx, identifier:str = ''):
         '''Setup channel initially
@@ -206,9 +167,10 @@ class Host():
             else:
                 await ctx.bot.send_message(ctx.channel, 'Usage: `{}register <short identifier>`'.format(ctx.prefix))
     
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def show_config(self, ctx, identifier:str = ''):
         '''Sends the config file for this channel.
         **WARNING!**
@@ -223,9 +185,54 @@ class Host():
             id = ctx.channel.id
         
         with open('./server_data/{}.yml'.format(ctx.channel.id), 'rb') as server_file:
-            await ctx.channel.send(file=discord.File(server_file))
-
+            await ctx.author.send(file=discord.File(server_file))
+    
+    @category('hosting')
+    @commands.command(aliases=['setelim'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def set_elim(self, ctx, amount):
+        '''Sets the default elimination threshold.
+        Use a number to specify number of contestants, e.g. `3`
+        Add a percentage to specify percentage of contestants, e.g. `20%`
+        '''
+        try:
+            if amount[-1] == '%': _ = int(amount[:-1])
+            else: _ = int(amount)
+        except ValueError:
+            ctx.bot.send_message(ctx.channel, '{} is not in a valid format.'.format(amount))
+            return
             
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['elim'] = amount
+        await ctx.bot.send_message(ctx.channel, 'Set elimination threshold to {}.'.format(amount))
+        ctx.bot.save_data()
+    
+    @category('hosting')
+    @commands.command(aliases=['skiphost'])
+    @checks.twow_exists()
+    @checks.can_queue()
+    @checks.is_twow_host()
+    async def skip_host(self, ctx):
+        '''Skip to next host'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        if sd['round'] != 1 or sd['voting'] == True:
+            sd['round'] = 1
+            sd['season'] += 1
+            sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
+            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
+                'alive':[], 
+                'prompt': None, 
+                'responses': {}, 
+                'slides': {}, 
+                'votes': [],
+                'votetimer':None,
+                'restimer':None,
+                }
+        await twow_helper.next_host(ctx.bot, ctx.channel, sd)
+        ctx.bot.save_data()
+
+    @category('hosting')
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
     @checks.is_twow_host()
@@ -247,18 +254,115 @@ class Host():
         
         if round['prompt'] is None:
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
-            ctx.bot.save_data()
             await ctx.bot.send_message(ctx.channel, 'The prompt has been set to `{}` for this round.'.format(prompt.replace('@', '@\u200b').replace('`', '\\`')))
+            if sd['queuetimer']['voting'] != None:
+                round['votetimer'] = datetime.datetime.utcnow()+sd['queuetimer']['voting']
+            ctx.bot.save_data()
             return
         else:
             await ctx.bot.send_message(ctx.channel, 'The prompt has been changed from `{}` to `{}` for this round.'.format(round['prompt'].decode('utf-8'), prompt.replace('@', '@\u200b').replace('`', '\\`')))
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
             ctx.bot.save_data()
             return
-    
-    @commands.command()
+
+    @category('hosting')
+    @commands.command(aliases=['setwords'])
     @checks.twow_exists()
     @checks.is_twow_host()
+    async def set_words(self, ctx, words:int):
+        '''Set the maximum words for a response.'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        
+        if words > 0:
+            await ctx.bot.send_message(ctx.channel, 'The word limit has been set to {}.'.format(words))
+            sd['words'] = words
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The word limit has been removed.')
+            sd['words'] = 0
+        ctx.bot.save_data()
+        
+    @commands.group(pass_context=True, invoke_without_command=True)
+    @checks.twow_exists()
+    async def blacklist(self, ctx):
+        '''Are rude words banned?'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        if sd['blacklist']:
+            await ctx.bot.send_message(ctx.channel, 'The blacklist is **enabled**.')
+        else:
+            await ctx.bot.send_message(ctx.channel, 'The blacklist is **dissabled**.')
+        
+    @blacklist.command(pass_context=True, aliases=['enable'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def on(ctx):
+        '''Enable the blacklist'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['blacklist'] = True
+        await ctx.bot.send_message(ctx.channel, 'The blacklist has been **enabled** for this mTWOW.')
+        ctx.bot.save_data()
+    
+    @blacklist.command(pass_context=True, aliases=['dissable'])
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def off(ctx):
+        '''Dissable the blacklist'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['blacklist'] = False
+        await ctx.bot.send_message(ctx.channel, 'The blacklist has been **dissabled** for this mTWOW.')
+        ctx.bot.save_data()
+        
+    @commands.group(aliases=['canqueue'], pass_context=True, invoke_without_command=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def can_queue(self, ctx):
+        '''Sets if there is a hosting queue. There is none by default'''
+        pass
+                
+    @can_queue.command(pass_context=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def on(self, ctx):
+        '''Allows queue'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['canqueue'] = True
+        await ctx.bot.send_message(ctx.channel, 'Anyone can now host in this channel!')
+        ctx.bot.save_data()
+        
+    @can_queue.command(pass_context=True)
+    @checks.twow_exists()
+    @checks.is_twow_owner()
+    async def off(self, ctx):
+        '''Disallows queue'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        sd['canqueue'] = False
+        sd['queue'] = []
+        await ctx.bot.send_message(ctx.channel, 'Only the owner can now host in this channel!')
+        ctx.bot.save_data()
+        
+    @category('hosting')
+    @commands.command(aliases=['joinqueue'])
+    @checks.can_queue()
+    async def join_queue(self, ctx):
+        '''Puts yourself in queue for hosting.'''
+        sd = ctx.bot.server_data[ctx.channel.id]
+        queue = sd['queue']
+        if ctx.author.id in queue:
+            await ctx.bot.send_message(ctx.channel, 'You are already in the queue!')
+        else:
+            queue.append(ctx.author.id)
+            await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
+            if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
+                if sd['queuetimer']['prompt'] != None:
+                    import datetime
+                    sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
+                name = ctx.author.mention
+                await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
+            ctx.bot.save_data()
+
+    @category('hosting')
+    @commands.command()
+    @checks.twow_exists()
+    @checks.is_twow_owner()
     async def transfer(self, ctx):
         '''Transfer ownership of this mTWOW.
         Do `transfer @mention`.
@@ -294,9 +398,10 @@ class Host():
         ctx.bot.save_data()
         await ctx.bot.send_message(ctx.channel, 'mTWOW has been transfered to {}.'.format(ctx.message.mentions[0].name))
         
+    @category('hosting')
     @commands.command()
     @checks.twow_exists()
-    @checks.is_twow_host()
+    @checks.is_twow_owner()
     async def delete(self, ctx):
         '''Delete the mTWOW.
         An archive will be stored and can be located by the hoster of the bot.'''

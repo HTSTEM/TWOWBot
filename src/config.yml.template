@@ -8,7 +8,7 @@ ids:
     - devid2
 
   host:
-    -bothostid
+    bothostid
     
 prefix:
   'tb!'

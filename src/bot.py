@@ -4,6 +4,7 @@ import logging
 import sys
 import re
 import os
+import base64
 
 from discord.ext import commands
 from discord.ext.commands.errors import CommandError, CommandNotFound
@@ -19,7 +20,7 @@ class HelperBodge():
 
 
 class TWOWBot(commands.Bot):
-    class ErrorAlreadyShown: pass
+    class ErrorAlreadyShown(Exception): pass
 
     def __init__(self, log_file=None, *args, **kwargs):
         self.debug = False
@@ -30,11 +31,22 @@ class TWOWBot(commands.Bot):
         with open('server_data/servers.yml') as data_file:
             self.servers = self.yaml.load(data_file)
 
-
         for i in self.servers.keys():
             if '{}.yml'.format(i) in os.listdir('server_data'):
                 with open('server_data/{}.yml'.format(i)) as data_file:
-                    self.server_data[i] = self.yaml.load(data_file)
+                    data = self.yaml.load(data_file)
+                    for key, s in data['queuetimer'].items():
+                        if s != 'None' and s is not None:
+                            data['queuetimer'][key] = datetime.timedelta(seconds=s)
+                        elif s == 'None':
+                            data['queuetimer'][key] = None
+                            
+                            
+                    if 'words' not in data:
+                        data['words'] = 10
+                    if 'blacklist' not in data:
+                        data['blacklist'] = True
+                    self.server_data[i] = data
 
         with open('config.yml') as data_file:
             self.config = self.yaml.load(data_file)
@@ -57,11 +69,23 @@ class TWOWBot(commands.Bot):
             self.yaml.dump(self.servers, data_file)
         for i in self.server_data.items():
             with open('server_data/{}.yml'.format(i[0]), 'w') as data_file:
-                self.yaml.dump(i[1], data_file)
+                to_save = dict(i[1])
+                queuetimer = dict(to_save['queuetimer'])
+                for key, timedelta in queuetimer.items():
+                    if timedelta != None:
+                        queuetimer[key] = timedelta.total_seconds()
+                to_save['queuetimer'] = queuetimer
+                self.yaml.dump(to_save, data_file)
                 
     def save_archive(self, sid):
         with open('./server_data/archive/{}-{}.yml'.format(sid, str(datetime.datetime.utcnow()).replace(':', '.')), 'w') as data_file:
-            self.yaml.dump(self.server_data[sid], data_file)
+            to_save = dict(self.server_data[sid])
+            queuetimer = dict(to_save['queuetimer'])
+            for key, timedelta in queuetimer.items():
+                if timedelta != None:
+                    queuetimer[key] = timedelta.total_seconds()
+            to_save['queuetimer'] = queuetimer
+            self.yaml.dump(to_save, data_file)
 
     async def send_message(self, to, msg):
         try:
@@ -122,42 +146,41 @@ class TWOWBot(commands.Bot):
             exc = CommandNotFound('Command "{}" is not found'.format(ctx.invoked_with))
             self.dispatch('command_error', ctx, exc)
         
-    '''
+    
     async def notify_devs(self, lines, message: discord.Message = None):
         # form embed
-        embed = discord.Embed(colour=0xFF0000, title='An error occurred \N{FROWNING FACE WITH OPEN MOUTH}')
-
+        errorlog = self.get_channel(346011284346503168)
+        if errorlog is None:
+            self.logger.error('Could not find channel')
+            return
+        
+        await errorlog.send('====================Start Error====================')
         if message is not None:
-            if len(message.content) > 400:
-                url = await self.uploader_client.upload(message.content, 'Message triggering error')
-                embed.add_field(name='Command', value=url, inline=False)
-            else:
-                embed.add_field(name='Command', value='```\n{}\n```'.format(message.content), inline=False)
-            embed.set_author(name=message.author, icon_url=message.author.avatar_url_as(format='png'))
+            await errorlog.send('==========Message triggering error==========')
+            counter = 0
+            while True:
+                to_send = message.content[counter:counter+1900]
+                if to_send:
+                    await errorlog.send('```{}```'.format(to_send))
+                    counter += 1900
+                else:
+                    break
+            await errorlog.send('in channel {0} by {1}'.format(message.channel.mention, message.author.name))
 
-        embed.set_footer(text='{} UTC'.format(datetime.datetime.utcnow()))
-
+        await errorlog.send('{} UTC'.format(datetime.datetime.utcnow()))
+        await errorlog.send('===============Error Message===============')
         error_message = ''.join(lines)
-        if len(error_message) > 1000:
-            url = await self.uploader_client.upload(error_message, 'Error')
+        counter = 0
+        while True:
+            to_send = error_message[counter:counter+1900]
+            if to_send:
+                await errorlog.send('```{}```'.format(to_send))
+                counter += 1900
+            else:
+                break
 
-            embed.add_field(name='Error', value=url, inline=False)
-        else:
-            embed.add_field(name='Error', value='```py\n{}\n```'.format(''.join(lines), inline=False))
+        await errorlog.send('====================End Error====================')
 
-        # loop through all developers, send the embed
-        for dev in self.config.get('ids', {}).get('developers', []):
-            dev = self.get_user(dev)
-
-            if dev is None:
-                self.logger.warning('Could not get developer with an ID of {0.id}, skipping.'.format(dev))
-                continue
-            try:
-                await dev.send(embed=embed)
-            except Exception as e:
-                self.logger.error('Couldn\'t send error embed to developer {0.id}. {1}'
-                                  .format(dev, type(e).__name__ + ': ' + str(e)))
-    '''
     async def on_command_error(self, ctx: commands.Context, exception: Exception):
         if isinstance(exception, commands.CommandInvokeError):
             # all exceptions are wrapped in CommandInvokeError if they are not a subclass of CommandError
@@ -179,9 +202,6 @@ class TWOWBot(commands.Bot):
             await self.notify_devs(lines, ctx.message)
 
             return
-
-        if isinstance(exception, self.ErrorAlreadyShown):
-            return
         
         if isinstance(exception, commands.CheckFailure):
             await ctx.send('You can\'t do that.')
@@ -197,17 +217,21 @@ class TWOWBot(commands.Bot):
         else:
             info = traceback.format_exception(type(exception), exception, exception.__traceback__, chain=False)
             self.logger.error('Unhandled command exception - {}'.format(''.join(info)))
-            #await self.notify_devs(info, ctx.message)
+            await self.notify_devs(info, ctx.message)
 
     async def on_error(self, event_method, *args, **kwargs):
         info = sys.exc_info()
-        #await self.notify_devs(traceback.format_exception(*info, chain=False))
+        if isinstance(info[1], self.ErrorAlreadyShown):
+            return
+        await self.notify_devs(traceback.format_exception(*info, chain=False))
 
     async def on_ready(self):
         self.logger.info('Connected to Discord')
         self.logger.info('Guilds  : {}'.format(len(self.guilds)))
         self.logger.info('Users   : {}'.format(len(set(self.get_all_members()))))
         self.logger.info('Channels: {}'.format(len(list(self.get_all_channels()))))
+        game = discord.Game(name='Type "{}how" for info on starting a miniTWOW!'.format(self.command_prefix))
+        await self.change_presence(game=game)
 
     async def close(self):
         await super().close()
