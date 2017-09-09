@@ -81,6 +81,42 @@ class Dev():
         '''Raise an exception.
         '''
         raise Exception('Causing Errors!')
+    
+    @category('developer')
+    @commands.command(aliases=['getarchive'])
+    @checks.is_dev()
+    async def get_archive(self, ctx, twow: discord.TextChannel):
+        import os
+        mess = 'Here are the archives I found.\n```\n'
+        current = [d for d in os.listdir('./server_data') if d.startswith(str(twow.id))]
+        full = ['./server_data/'+d for d in current]
+        archives = [d for d in os.listdir('./server_data/archive') if d.startswith(str(twow.id))]
+        archives.sort()
+        full += ['./server_data/archive/'+d for d in archives]
+        archives = current+archives
+        
+        for n, d in enumerate(archives):
+            mess += '{}. {}\n'.format(n, d)
+            
+        mess += '```'
+        await ctx.send(mess)
+        
+        def check(m):
+            if m.author != ctx.author or m.channel != ctx.channel: return False
+            try: x=int(m.content)
+            except: return False
+            return x >= 0 and x < len(archives)
+        
+        resp = await ctx.bot.wait_for('message', check=check)
+        with open(full[int(resp.content)], 'rb') as server_file:
+            await ctx.send(file=discord.File(server_file))
+        
+    @category('developer')
+    @commands.command(aliases=['gettwows'])
+    @checks.is_dev()
+    async def get_twows(self, ctx):
+        with open('./server_data/servers.yml', 'rb') as server_file:
+            await ctx.send(file=discord.File(server_file))
 
     @category('developer')
     @commands.command(alias=['gitcli'])
@@ -115,6 +151,7 @@ class Dev():
 
             await ctx.bot.send_message(ctx.channel, '```diff\n{}\n{}```'.format(stdout.replace('```', '`\u200b`\u200b`'), stderr.replace('```', '`\u200b`\u200b`')))
         await ctx.bot.send_message(ctx.channel, 'You have left the `git` CLI.')
+
 
     @category('developer')
     @commands.command(aliases=['eval'])

@@ -165,7 +165,7 @@ class TWOWBot(commands.Bot):
                     counter += 1900
                 else:
                     break
-            await errorlog.send('in channel {0} by {1}'.format(message.channel.mention, message.author.name))
+            await errorlog.send('in channel {0} by {1}'.format(message.channel.id, message.author.name))
 
         await errorlog.send('{} UTC'.format(datetime.datetime.utcnow()))
         await errorlog.send('===============Error Message===============')
