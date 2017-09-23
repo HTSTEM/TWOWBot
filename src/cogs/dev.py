@@ -85,15 +85,17 @@ class Dev():
     @category('developer')
     @commands.command(aliases=['getarchive'])
     @checks.is_dev()
-    async def get_archive(self, ctx, twow: discord.TextChannel):
+    async def get_archive(self, ctx, channelid):
+        '''Get all of the archives for a particular channel'''   
         import os
         mess = 'Here are the archives I found.\n```\n'
-        current = [d for d in os.listdir('./server_data') if d.startswith(str(twow.id))]
+        current = [d for d in os.listdir('./server_data') if d.startswith(channelid)]
         full = ['./server_data/'+d for d in current]
-        archives = [d for d in os.listdir('./server_data/archive') if d.startswith(str(twow.id))]
+        archives = [d for d in os.listdir('./server_data/archive') if d.startswith(channelid)]
         archives.sort()
         full += ['./server_data/archive/'+d for d in archives]
         archives = current+archives
+        if not archives: return await ctx.send('Could not find any archives.')
         
         for n, d in enumerate(archives):
             mess += '{}. {}\n'.format(n, d)
@@ -107,7 +109,7 @@ class Dev():
             except: return False
             return x >= 0 and x < len(archives)
         
-        resp = await ctx.bot.wait_for('message', check=check)
+        resp = await ctx.bot.wait_for('message', check=check, timeout=60)
         with open(full[int(resp.content)], 'rb') as server_file:
             await ctx.send(file=discord.File(server_file))
         
@@ -115,6 +117,7 @@ class Dev():
     @commands.command(aliases=['gettwows'])
     @checks.is_dev()
     async def get_twows(self, ctx):
+        '''Get all of the twow channels and ids'''
         with open('./server_data/servers.yml', 'rb') as server_file:
             await ctx.send(file=discord.File(server_file))
 

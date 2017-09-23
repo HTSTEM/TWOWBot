@@ -226,6 +226,7 @@ class Core():
         except discord.errors.Forbidden:
             pass
         
+        
     @category('info')
     @commands.command(aliases=['instructions'])
     async def how(self, ctx):
@@ -242,7 +243,7 @@ class Core():
         msg += 'The owner of a mTWOW can setup a traditional mTWOW where anyone can host:\n'
         msg += '**`can_queue on`** will allow people to join the hosting queue with **`join_queue`**.\n'
         msg += '**`queue_timer`** will allow you to set a timer for the events.\n'
-        msg += 'Use **`help queue_timer`** for help.\n'
+        msg += 'Use **`help queue_timer`** and **`help set_timer`** help on the timer.\n'
         msg += '**`skip_host`** will skip the current host and start a fresh season.\n'
         
         msg += '\n**Participating in a mTWOW:**\n'
@@ -254,6 +255,7 @@ class Core():
         msg += 'There are a few commands that are useful to know:\n'
         msg += '**`prompt`** will show you the current prompt.\n'
         msg += '**`round`** and **`season`** will tell you the round and season number respectively.\n'
+        msg += '**`status`** and **`season`** will give you information about a mTWOW.\n'
         msg += '**`id`** will get you the channel identifier for that mTWOW. This is needed when responding or voting.\n'
         
         msg += '\n**Getting help:**\n'
