@@ -131,6 +131,12 @@ class TWOWBot(commands.Bot):
             self.dispatch('command', ctx)
             try:
                 if 'no_sudo' not in [i.__qualname__.split('.')[0] for i in ctx.command.checks]:
+                    if isinstance(ctx.command, commands.Group):
+                        subcommand = ctx.message.content.replace(ctx.prefix, '', 1)
+                        subcommand = ' '.join(ctx.message.content.split(' ')[1:])
+                        command = ctx.command.get_command(subcommand)
+                        ctx.command = command
+                        
                     vc = ctx.command._verify_checks
                     async def nvc(*args):
                         pass
