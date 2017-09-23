@@ -21,7 +21,7 @@ async def start_voting(bot, channel):
 
     sd['voting'] = True
     round['votetimer'] = None
-    if sd['queuetimer']['results'] != None:
+    if sd['queuetimer']['results'] is not None and round['restimer'] is None:
         import datetime
         round['restimer'] = datetime.datetime.utcnow()+sd['queuetimer']['results']
     bot.save_data()
@@ -33,9 +33,6 @@ async def do_results(bot, channel, guild, nums='', message=None):
 
     if not sd['voting']:
         await bot.send_message(channel, 'Voting hasn\'t even started yet...')
-        if round['restimer'] != None:
-            round['restimer'] = None
-            bot.save_data()
         return
 
     if 'season-{}'.format(sd['season']) not in sd['seasons']:
@@ -47,7 +44,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
     for vote in round['votes']: voted_ons |= set(vote['vote'])
     if set(round['responses']) != voted_ons:
         await bot.send_message(channel, 'Not every response has been voted on yet!')
-        if round['restimer'] != None:
+        if round['restimer'] is not None:
             await bot.send_message(channel, 'Waiting for more votes.')
             round['restimer'] = 'waiting'
             bot.save_data()
@@ -71,8 +68,6 @@ async def do_results(bot, channel, guild, nums='', message=None):
         await bot.send_message(channel, '{} isn\'t in a valid format.'.format(nums))
         return
     round['restimer'] = None
-    if not sd['canqueue']:
-        sd['queuetimer']['results'] = sd['queuetimer']['voting'] = None
     await bot.send_message(channel,msg)
     votec = len(round['votes'])
     voterc = len(set([v['voter'] for v in round['votes']]))

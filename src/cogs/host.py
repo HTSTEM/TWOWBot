@@ -216,19 +216,6 @@ class Host():
     async def skip_host(self, ctx):
         '''Skip to next host'''
         sd = ctx.bot.server_data[ctx.channel.id]
-        if sd['round'] != 1 or sd['voting'] == True:
-            sd['round'] = 1
-            sd['season'] += 1
-            sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
-            sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = {
-                'alive':[], 
-                'prompt': None, 
-                'responses': {}, 
-                'slides': {}, 
-                'votes': [],
-                'votetimer':None,
-                'restimer':None,
-                }
         await twow_helper.next_host(ctx.bot, ctx.channel, sd)
         ctx.bot.save_data()
 
@@ -255,7 +242,7 @@ class Host():
         if round['prompt'] is None:
             round['prompt'] = prompt.replace('@', '@\u200b').replace('`', '\\`').encode('utf-8')
             await ctx.bot.send_message(ctx.channel, 'The prompt has been set to `{}` for this round.'.format(prompt.replace('@', '@\u200b').replace('`', '\\`')))
-            if sd['queuetimer']['voting'] != None:
+            if sd['queuetimer']['voting'] is not None and round['votetimer'] is None:
                 round['votetimer'] = datetime.datetime.utcnow()+sd['queuetimer']['voting']
             ctx.bot.save_data()
             return
@@ -353,7 +340,6 @@ class Host():
             await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
             if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
                 if sd['queuetimer']['prompt'] != None:
-                    import datetime
                     sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
                 name = ctx.author.mention
                 await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))

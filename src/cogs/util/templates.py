@@ -1,16 +1,18 @@
 def round():
+    '''Generates a new round'''
     r = {
-            'alive':[], 
-            'prompt': None, 
-            'responses': {}, 
-            'slides': {}, 
-            'votes': [],
-            'votetimer':None,
-            'restimer':None,
-            }
+        'alive':[], 
+        'prompt': None, 
+        'responses': {}, 
+        'slides': {}, 
+        'votes': [],
+        'votetimer':None,
+        'restimer':None,
+        }
     return r
 
 def twow():
+    '''Generates a new twow'''
     t = {}
     t['owner'] = None
     t['round'] = 1

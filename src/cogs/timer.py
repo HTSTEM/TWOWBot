@@ -45,7 +45,7 @@ class Timer():
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def set_times(self, ctx, *times: twow_helper.get_delta):
-        '''Set timer for next events. Events are voting and results.
+        '''Set timer for next events for this round. Events are voting and results.
         Time is specified in the format `[<days>d][<hours>h][<minutes>m][<seconds>s]`
         '''
         sd = ctx.bot.server_data[ctx.channel.id]
@@ -58,21 +58,18 @@ class Timer():
         
         now = datetime.datetime.utcnow()
         if sd['voting']:
-            round['restimer'] = now+times[0]
-            sd['queuetimer']['results'] = times[0]
+            round['restimer'] = now+times[0] if times[0] else None
             await ctx.bot.send_message(ctx.channel,
                 'Set results in {}.'.format(delta_to_string(times[0])))
         else:
-            round['votetimer'] = now+times[0]
-            sd['queuetimer']['voting'] = times[0]
-            await ctx.bot.send_message(ctx.channel,
-                'Set results in {}.'.format(delta_to_string(times[0])))
+            round['votetimer'] = now+times[0] if times[0] else None
+            d = 'Set voting in {}. '.format(delta_to_string(times[0]))
             if len(times) > 1:
-                net = times[0]+times[1]
-                sd['queuetimer']['results'] = times[1]
-                round['restimer'] = now+net
-                await ctx.bot.send_message(ctx.channel,
-                'Set results in {}.'.format(delta_to_string(net)))
+                if times[1]:
+                    net = times[0]+times[1] 
+                    round['restimer'] = now+net
+                d += 'Set results in {}.'.format(delta_to_string(net))
+            await ctx.bot.send_message(ctx.channel, d)
                 
         ctx.bot.save_data()
     
@@ -80,22 +77,23 @@ class Timer():
     @commands.command(aliases=['queuetimes','queuetimer','queue_timer'])
     @checks.twow_exists()
     @checks.is_twow_owner()
-    async def queue_times(self, ctx, prompt_timeout: twow_helper.get_delta, 
-      votetimer: twow_helper.get_delta, resultstimer: twow_helper.get_delta):
-        '''Set timer for queue events.
+    async def queue_times(self, ctx, prompt_timeout: twow_helper.get_delta=0, 
+      votetimer: twow_helper.get_delta=0, resultstimer: twow_helper.get_delta=0):
+        '''Set timer for queue events. These will timers will come into effect each round.
         If prompt_timeout is reached and the hoster has not created a prompt, they will be skipped.
         Time is specified in the format `[<days>d][<hours>h][<minutes>m][<seconds>s]`
         '''
         timers = ctx.bot.server_data[ctx.channel.id]['queuetimer']
-        timers['prompt'] = prompt_timeout
-        timers['voting'] = votetimer
-        timers['results'] = resultstimer
+        timers['prompt'] = prompt_timeout if prompt_timeout else None
+        timers['voting'] = votetimer if votetimer else None
+        timers['results'] = resultstimer if resultstimer else None
         ctx.bot.save_data()
         await ctx.bot.send_message(ctx.channel, 
-            'The host will have {} to make a prompt, the contestants will have  {} to respond and the voters will have {} to vote.'
+            'The host will have {} to make a prompt, the contestants will have {} to respond and the voters will have {} to vote.'
             .format(delta_to_string(prompt_timeout),delta_to_string(votetimer),delta_to_string(resultstimer)))
         
 def delta_to_string(delta):
+    if not delta: return 'unlimited time'
     days = delta.days
     hours = delta.seconds//3600%60
     minutes = delta.seconds//60%60
@@ -113,10 +111,8 @@ def delta_to_string(delta):
     if seconds == 1: strings.append('1 second')
     elif seconds or not strings: strings.append('{} seconds'.format(seconds))
     
-    if len(strings)==1:
-        return strings[0]
-    else:
-        return ' '.join(strings[:-1])+' and '+strings[-1]
+    if len(strings)==1: return strings[0]
+    else: return ' '.join(strings[:-1])+' and '+strings[-1]
 
         
 def setup(bot):

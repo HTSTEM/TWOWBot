@@ -181,7 +181,6 @@ class TWOW():
                 voted_ons = set()
                 for vote in round['votes']: voted_ons |= set(vote['vote'])
                 if set(round['responses']) == voted_ons:
-                    import asyncio
                     channel = ctx.bot.get_channel(s_ids[id])
                     await timed_funcs.do_results(
                         ctx.bot, 

@@ -65,7 +65,8 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
     db.save_data()
     if round['votetimer'] == 'waiting' and len(round['responses']) > 1:
         import asyncio
-        if type(sd['queuetimer']['results']) == datetime.timedelta:
+        # if the persistent results timer exists and the current results timer doesn't, set the current results timer
+        if type(sd['queuetimer']['results']) == datetime.timedelta and type(round['restimer']) != datetime.timedelta:
             round['restimer'] = datetime.datetime.utcnow() + sd['queuetimer']['results']
         asyncio.ensure_future(timed_funcs.start_voting(db, db.get_channel(s_ids[id])))
         
@@ -129,9 +130,15 @@ def get_delta(times):
     return delta
 
 async def next_host(bot, channel, sd):
+    # if it is not a new season
+    if sd['round'] > 1 or sd['voting'] == True:
+        sd['round'] = 1
+        sd['season'] += 1
+        sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
+        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = templates.round()
+        
     prev = sd['queue'].pop(0)
     name = channel.guild.get_member(prev).mention
-    sd['hosttimer'] = None
     round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
     await bot.send_message(channel, '{} is no longer hosting!'.format(name))
     sd['voting'] = False
