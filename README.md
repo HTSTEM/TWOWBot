@@ -1,6 +1,6 @@
 <p align="center"><img
     width="350"
-    src="https://botter.doesnt-have-a.life/cq78pep.png"
+    src="https://i.imgur.com/3w0T9b5.png"
 ></p>
 <h1 align="center">TWOWBot</h1>
 
