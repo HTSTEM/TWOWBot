@@ -1,13 +1,12 @@
 import datetime
 
 from discord.ext import commands
-import ruamel.yaml as yaml
 import discord
 
-from cogs.util.categories import category
+from .util.categories import category
 
 
-class Core():
+class Core:
     @category('info')
     @commands.command()
     async def help(self, ctx, *args):

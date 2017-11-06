@@ -2,10 +2,9 @@ import datetime
 import asyncio
 
 from discord.ext import commands
-import discord
 
-from cogs.util import checks, twow_helper, timed_funcs
-from cogs.util.categories import category
+from .util import checks, twow_helper, timed_funcs
+from .util.categories import category
 
 
 class Timer():

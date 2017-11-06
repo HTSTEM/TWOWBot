@@ -1,6 +1,0 @@
-round1.yml
-server_data/*.yml
-server_data/archive/*.yml
-bot-token.txt
-config.yml
-__pycache__/

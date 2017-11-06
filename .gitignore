@@ -1,0 +1,6 @@
+src/server_data/servers.yml
+src/server_data/archive/*
+config.yml
+/__pycache__/
+.idea/
+

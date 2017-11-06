@@ -1,18 +1,16 @@
-import inspect
 import string
 import re
 import datetime
 
 from discord.ext import commands
-import ruamel.yaml as yaml
 import discord
 
-from cogs.util import twow_helper, checks, timed_funcs
-from cogs.util.categories import category
-from cogs.timer import delta_to_string
+from .util import twow_helper, checks, timed_funcs
+from .util.categories import category
+from .timer import delta_to_string
 
 
-class TWOW():
+class TWOW:
     @category('twow')
     @commands.command()
     @checks.twow_exists()
@@ -94,7 +92,7 @@ class TWOW():
     @commands.command()
     @checks.twow_exists()
     @checks.in_twow()
-    async def vote(self, ctx, identifier:str = '', *responsel):
+    async def vote(self, ctx, identifier:str = '', *, response):
         '''Vote on the responses.
         This command will only work in DMs.
         *I think it makes me a hot dog. Not sure.*'''
@@ -130,7 +128,7 @@ class TWOW():
         
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
-        if not responsel:  # New slides needed!
+        if not response:  # New slides needed!
             if ctx.author.id not in round['slides']:
                 success = twow_helper.create_slides(ctx.bot, round, ctx.author.id)
                 if not success:
@@ -148,7 +146,7 @@ class TWOW():
                 await ctx.bot.send_message(ctx.channel,m)
         else:
             id = identifier
-            vote_str = ' '.join(responsel).upper()
+            vote_str = response
             if ctx.author.id not in round['slides']:
                 await ctx.bot.send_message(ctx.author, ':triumph: You don\'t have a voting slide *to* vote on!\nUse `.vote {}` to generate one.'.format(id))
                 return

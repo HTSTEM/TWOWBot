@@ -5,15 +5,14 @@ import shlex
 import sys
 
 from discord.ext import commands
-import ruamel.yaml as yaml
 import discord
 
-from cogs.util import checks
-from cogs.util.categories import category
+from .util import checks
+from .util.categories import category
 #all of these need to be dev only
 
 
-class Dev():
+class Dev:
     @category('developer')
     @commands.command(aliases=['quit', 'kill'])
     @checks.is_dev()

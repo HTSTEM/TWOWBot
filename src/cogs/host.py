@@ -1,13 +1,11 @@
 import datetime
-import inspect
 import asyncio
 
 from discord.ext import commands
-import ruamel.yaml as yaml
 import discord
 
-from cogs.util import results, twow_helper, checks, timed_funcs, templates
-from cogs.util.categories import category
+from .util import results, twow_helper, checks, timed_funcs, templates
+from .util.categories import category
 
 
 class Host():
@@ -144,7 +142,7 @@ class Host():
                 await ctx.bot.send_message(ctx.channel, 'This channel is already setup. The owner is {}.'.format(owner.name.replace('@', '@\u200b')))
             else:
                 await ctx.bot.send_message(ctx.channel, 
-                    'I can\'t find the owner of this mTWOW. Please contact {} to resolve this.'.format(ctx.bot.get_user(BOT_HOSTER)))
+                    'I can\'t find the owner of this mTWOW. Please contact {} to resolve this.'.format(ctx.bot.get_user(ctx.bot.BOT_HOSTER)))
         else:
             if not ctx.channel.permissions_for(ctx.author).manage_channels:#if user can manage that channel. CHANGE THIS
                 return
@@ -223,11 +221,10 @@ class Host():
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
     @checks.is_twow_host()
-    async def set_prompt(self, ctx, *promptl):
+    async def set_prompt(self, ctx, *, prompt):
         '''Set the prompt for this round.
         *Summon unicorns*
         '''
-        prompt = ' '.join(promptl)
         
         sd = ctx.bot.server_data[ctx.channel.id]
         
