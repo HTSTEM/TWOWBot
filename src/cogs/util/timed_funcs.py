@@ -1,7 +1,9 @@
 import asyncio
 import datetime
+import discord
 
-from cogs.util import results, twow_helper, templates
+from . import results, twow_helper, templates
+
 
 async def start_voting(bot, channel):
     sd = bot.server_data[channel.id]
@@ -10,10 +12,10 @@ async def start_voting(bot, channel):
         await bot.send_message(channel, 'Voting is already active.')
         return
 
-    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+    round = sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}']
     if len(round['responses']) < 2:
         await bot.send_message(channel, 'There aren\'t enough responses to start voting. You need at least 2.')
-        if round['votetimer'] != None:
+        if round['votetimer'] is not None:
             await bot.send_message(channel, 'Waiting for more responses.')
             round['votetimer'] = 'waiting'
             bot.save_data()
@@ -27,9 +29,10 @@ async def start_voting(bot, channel):
     bot.save_data()
     await bot.send_message(channel, 'Voting has been activated.')
 
+
 async def do_results(bot, channel, guild, nums='', message=None):
     sd = bot.server_data[channel.id]
-    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+    round = sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}']
 
     if not sd['voting']:
         await bot.send_message(channel, 'Voting hasn\'t even started yet...')
@@ -38,7 +41,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
     if 'season-{}'.format(sd['season']) not in sd['seasons']:
         sd['seasons']['season-{}'.format(sd['season'])] = {}
     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:
-        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = dict(templates.round())
+        sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}'] = dict(templates.round())
 
     voted_ons = set()
     for vote in round['votes']: voted_ons |= set(vote['vote'])
@@ -52,12 +55,11 @@ async def do_results(bot, channel, guild, nums='', message=None):
 
     totals = results.count_votes(round, round['alive'])
     msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
-    if message != None:
+    if message is not None:
         try: await message.delete()
-        except: pass
+        except discord.Forbidden: pass
     eliminated = []
     living = []
-    elim = int(0.8 * len(totals))
     if nums == '': nums = sd['elim']
     try:
         if nums[-1] == '%':
@@ -68,7 +70,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
         await bot.send_message(channel, '{} isn\'t in a valid format.'.format(nums))
         return
     round['restimer'] = None
-    await bot.send_message(channel,msg)
+    await bot.send_message(channel, msg)
     votec = len(round['votes'])
     voterc = len(set([v['voter'] for v in round['votes']]))
     votest = '{} vote'.format(votec)
@@ -81,7 +83,6 @@ async def do_results(bot, channel, guild, nums='', message=None):
 
     for msg, dead, uid, n in results.get_results(totals, elim, round):
         user = guild.get_member(uid)
-        name = ''
         if user is not None:
             name = user.mention
         else:
@@ -96,44 +97,54 @@ async def do_results(bot, channel, guild, nums='', message=None):
         await bot.send_message(channel, msg.format(name))
 
     # Winner/loser stuff
-    user = guild.get_member(totals[0]['name'])
+    try:
+        user = guild.get_member(totals[0]['name'])
+    except IndexError:
+        await bot.send_message(channel, 'Somehow you did results with no one or something like that.')
+        return
+
     if user is not None:
         name = user.mention
     else:
-        name = str(v['name'])
+        name = str(totals[0]['name'])
     msg = '{}\nThe winner was {}! Well done!'.format('=' * 50, name)
-    await bot.send_message(channel,msg)
-    round['winner'] = user.id
+    await bot.send_message(channel, msg)
+    if user: round['winner'] = user.id
 
     if eliminated:
-        await bot.send_message(channel,
-            'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated])))
+        await bot.send_message(
+            channel,
+            'Sadly though, we have to say goodbye to {}.'.format(', '.join([i[0] for i in eliminated]))
+        )
     else:
-        await bot.send_message(channel, 'You all lived on. I would say well done, but The elimination threshold was probably at 0.')
+        await bot.send_message(
+            channel,
+            'You all lived on. I would say well done, but The elimination threshold was probably at 0.'
+        )
     advance = False
 
     # Do all the round incrementing and stuff.
     if len(totals) - len(eliminated) <= 1:
-        await bot.send_message(channel,'**This season has ended! The winner was {}!**'.format(name))
+        await bot.send_message(channel, f'**This season has ended! The winner was {name}!**')
         sd['seasons']['season-{}'.format(sd['season'])]['winner'] = user.id
         sd['round'] = 1
         sd['season'] += 1
-        await bot.send_message(channel,'**We\'re now on season {}!**'.format(sd['season']))
+        await bot.send_message(channel, '**We\'re now on season {}!**'.format(sd['season']))
         if sd['canqueue']:
             advance = True
     else:
         sd['round'] += 1
-        await bot.send_message(channel,'**We\'re now on round {}!**'.format(sd['round']))
+        await bot.send_message(channel, '**We\'re now on round {}!**'.format(sd['round']))
         if sd['canqueue'] and len(sd['queue']) > 0:
-            if sd['queuetimer']['prompt'] != None:
+            if sd['queuetimer']['prompt'] is not None:
                 sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
 
-    if 'season-{}'.format(sd['season']) not in sd['seasons']:#new season
-        sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
+    if 'season-{}'.format(sd['season']) not in sd['seasons']:  # new season
+        sd['seasons'][f'season-{sd["season"]}'] = {'rounds': {}}
         living = []
-    if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:#new round
-        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = dict(templates.round())
-        sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]['alive']=[t[1].id for t in living]
+    if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:  # new round
+        sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}'] = dict(templates.round())
+        sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}']['alive'] = [t[1].id for t in living]
 
     if advance:
         await twow_helper.next_host(bot, channel, sd)
