@@ -146,7 +146,7 @@ class TWOW:
                 await ctx.bot.send_message(ctx.channel,m)
         else:
             id = identifier
-            vote_str = response
+            vote_str = response.upper()
             if ctx.author.id not in round['slides']:
                 await ctx.bot.send_message(ctx.author, ':triumph: You don\'t have a voting slide *to* vote on!\nUse `.vote {}` to generate one.'.format(id))
                 return
