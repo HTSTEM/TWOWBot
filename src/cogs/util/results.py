@@ -4,7 +4,7 @@ SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
 
 def count_votes(round, alive):
     def f(v):
-        perc = (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
+        perc = (v['borda'] / v['votes']) * 100
         stdv = (sum((i - perc) ** 2 for i in v['raw_borda']) / len(v['raw_borda']))**0.5
         return (perc, -stdv)
 
@@ -16,28 +16,48 @@ def count_votes(round, alive):
 
     for vote in round['votes']:
         if vote['voter'] not in vote_weights:
-            vote_weights[vote['voter']] = 1
-        else:
-            vote_weights[vote['voter']] += 1
+            vote_weights[vote['voter']] = 0
+        vote_weights[vote['voter']] += 1
     for i in vote_weights:
         vote_weights[i] = 1 / vote_weights[i]
 
     for vote in round['votes']:
-        c = len(vote['vote'])
+        count = len(totals) - 1
         for n, v in enumerate(vote['vote']):
-            bc = c - n - 1
-            totals[v]['borda'] += bc * vote_weights[vote['voter']]
+            score = (count - n) / count
+            totals[v]['borda'] += score * vote_weights[vote['voter']]
             totals[v]['votes'] += vote_weights[vote['voter']]
-            totals[v]['raw_borda'].append((bc * vote_weights[vote['voter']]) / (c - 1) * 100)
+            totals[v]['raw_borda'].append(score * vote_weights[vote['voter']] * 100)
+
+        not_voted = 0
+        for i in totals:
+            if i not in vote['vote']:
+                not_voted += 1
+
+        for v in totals:
+            if v not in vote['vote']:
+                score = sum(range(0, not_voted)) / not_voted
+                score /= count
+
+                totals[v]['borda'] += score * vote_weights[vote['voter']]
+                totals[v]['votes'] += vote_weights[vote['voter']]
+                totals[v]['raw_borda'].append(score * vote_weights[vote['voter']] * 100)
 
     totals = [{'name': i[0], **i[1]} for i in totals.items()]
+
+    if sum(i['borda'] / i['votes'] for i in totals) / len(totals) != 0.5:
+        print('Weeeeeee-Woooooooo! Percentiles don\'t average to 50%.')
+        print('Here are the votes cast for debugging:')
+        print(votes)
 
     totals.sort(key=f, reverse=True)
     for twower in alive:
         if twower not in round['responses']:
             round['responses'][twower] = '*DNP*'.encode('UTF-8')
             totals.append({'name': twower, 'borda': 0, 'votes': 1, 'raw_borda': [0]})
+    
     return totals
+
 
 def get_results(totals, elim, round):
     def f(v):
