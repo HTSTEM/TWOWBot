@@ -89,12 +89,17 @@ class Host():
     @commands.command(aliases=['del_response', 'rem_response', 'delresponse', 'remresponse'])
     @checks.twow_exists()
     @checks.is_twow_host()
-    async def remove_response(self, ctx, identifier:str, respondee: discord.Member):
+    async def remove_response(self, ctx, identifier:str, respondee):
         '''Removes a response that has been submitted.
         A message is sent to the channel running the mTWOW, so be prepared
         to defend your reasoning.
         '''
-    
+        try:
+            respondee = await commands.MemberConverter().convert(ctx, respondee)
+            rid = respondee.id
+        except commands.BadArgument:
+            rid = int(''.join(c for c in respondee if c in '0123456789'))
+
         s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
         if identifier not in s_ids:
             await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
@@ -110,7 +115,7 @@ class Host():
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
         for uid, response in round['responses'].items():
-            if uid == respondee.id:
+            if uid == rid:
                 break
         else:
             await ctx.bot.send_message(ctx.channel, '`{}` doesn\'t appear to have responded.'.format(respondee))
@@ -120,7 +125,7 @@ class Host():
         del round['responses'][uid]
         chan = ctx.bot.get_channel(id)
         if chan:
-            await ctx.bot.send_message(chan, '{}, your response has been removed by {}.'.format(respondee.mention, ctx.author.mention))
+            await ctx.bot.send_message(chan, '<@{}>, your response has been removed by {}.'.format(rid, ctx.author.mention))
         
         ctx.bot.save_data()
         
