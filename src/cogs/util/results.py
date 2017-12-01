@@ -48,7 +48,6 @@ def count_votes(round, alive):
     if sum(i['borda'] / i['votes'] for i in totals) / len(totals) != 0.5:
         print('Weeeeeee-Woooooooo! Percentiles don\'t average to 50%.')
         print('Here are the votes cast for debugging:')
-        print(votes)
 
     totals.sort(key=f, reverse=True)
     for twower in alive:

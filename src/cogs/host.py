@@ -89,9 +89,8 @@ class Host():
     @commands.command(aliases=['del_response', 'rem_response', 'delresponse', 'remresponse'])
     @checks.twow_exists()
     @checks.is_twow_host()
-    async def remove_response(self, ctx, identifier:str, respondee:str):
+    async def remove_response(self, ctx, identifier:str, respondee: discord.Member):
         '''Removes a response that has been submitted.
-        `respondee` must be the exact name as shown in `responses`.
         A message is sent to the channel running the mTWOW, so be prepared
         to defend your reasoning.
         '''
@@ -110,23 +109,18 @@ class Host():
         
         round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
         
-        for i in round['responses'].items():
-            u = ctx.bot.get_user(i[0])
-            if u is not None:
-                n = u.name
-            else:
-                n = i[0]
-            if n.lower() == respondee.lower():
+        for uid, response in round['responses'].items():
+            if uid == respondee.id:
                 break
         else:
-            await ctx.bot.send_message(ctx.channel, '`{}` doesn\'t appear to have responded.'.format(respondee.replace('`', '\\`')))
+            await ctx.bot.send_message(ctx.channel, '`{}` doesn\'t appear to have responded.'.format(respondee))
             return
         
-        await ctx.bot.send_message(ctx.channel, '<@{}>s response of {} has been removed.'.format(u.id, i[1].decode('utf-8')))
-        del round['responses'][i[0]]
+        await ctx.bot.send_message(ctx.channel, '{}\'s response of `{}` has been removed.'.format(respondee, response.decode('utf-8')))
+        del round['responses'][uid]
         chan = ctx.bot.get_channel(id)
         if chan:
-            await ctx.bot.send_message(chan, '<@{}>, your response has been removed by <@{}>.'.format(u.id, sd['owner']))
+            await ctx.bot.send_message(chan, '{}, your response has been removed by {}.'.format(respondee.mention, ctx.author.mention))
         
         ctx.bot.save_data()
         

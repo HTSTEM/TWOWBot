@@ -136,7 +136,7 @@ async def next_host(bot, channel, sd):
         sd['season'] += 1
         sd['seasons']['season-{}'.format(sd['season'])] = {'rounds':{}}
         sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])] = templates.round()
-        
+    if not sd['queue']: return
     prev = sd['queue'].pop(0)
     prev_host = channel.guild.get_member(prev)
     name = prev_host.mention if prev_host else prev

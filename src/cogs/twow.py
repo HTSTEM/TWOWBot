@@ -195,7 +195,7 @@ class TWOW:
         '''Respond to the current prompt.
         You can get the channel identifier by using `id` in that channel.
         This command only works in DMs.
-        *Probbly handles the controlling of my kitten army*
+        *Probably handles the controlling of my kitten army*
         '''
         if not isinstance(ctx.channel, discord.abc.PrivateChannel):
             try: await ctx.message.delete()

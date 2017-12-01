@@ -64,8 +64,9 @@ class Timer():
             round['votetimer'] = now+times[0] if times[0] else None
             d = 'Set voting in {}. '.format(delta_to_string(times[0]))
             if len(times) > 1:
+                net = times[0]
                 if times[1]:
-                    net = times[0]+times[1] 
+                    net += times[1]
                     round['restimer'] = now+net
                 d += 'Set results in {}.'.format(delta_to_string(net))
             await ctx.bot.send_message(ctx.channel, d)
