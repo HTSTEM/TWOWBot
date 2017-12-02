@@ -126,6 +126,21 @@ class Host():
         chan = ctx.bot.get_channel(id)
         if chan:
             await ctx.bot.send_message(chan, '<@{}>, your response has been removed by {}.'.format(rid, ctx.author.mention))
+
+        for user, slide in round['slides'].copy().items():
+            if uid in slide:
+                del round['slides'][user]
+                try:
+                    voter = ctx.bot.get_user(user)
+                    await voter.send(
+                        'The slide you are voting on has had a response removed. Please generate a new one.'
+                    )
+                except (discord.Forbidden, AttributeError):
+                    pass
+
+        for vote in round['votes']:
+            if uid in vote['vote']:
+                vote['vote'].remove(uid)
         
         ctx.bot.save_data()
         
