@@ -24,7 +24,8 @@ def count_votes(round, alive):
     for vote in round['votes']:
         count = len(totals) - 1
         for n, v in enumerate(vote['vote']):
-            score = (count - n) / count
+            try: score = (count - n) / count
+            except ZeroDivisionError: score = 0.5
             totals[v]['borda'] += score * vote_weights[vote['voter']]
             totals[v]['votes'] += vote_weights[vote['voter']]
             totals[v]['raw_borda'].append(score * vote_weights[vote['voter']] * 100)
@@ -60,8 +61,12 @@ def count_votes(round, alive):
 
 def get_results(totals, elim, round):
     def f(v):
-        perc = (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
-        stdv = (sum((i - perc) ** 2 for i in v['raw_borda']) / len(v['raw_borda']))**0.5
+        try:
+            perc = (v['borda'] / v['votes']) / (len(round['votes'][0]['vote']) - 1) * 100
+            stdv = (sum((i - perc) ** 2 for i in v['raw_borda']) / len(v['raw_borda']))**0.5
+        except ZeroDivisionError:
+            perc = 50
+            stdv = 0
         return (perc, stdv)
 
     for n, v in list(enumerate(totals))[::-1]:
