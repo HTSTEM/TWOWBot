@@ -9,7 +9,6 @@ import discord
 
 from .util import checks
 from .util.categories import category
-#all of these need to be dev only
 
 
 class Dev:
@@ -18,6 +17,21 @@ class Dev:
     @checks.is_dev()
     async def die(self, ctx):
         '''Disconnects the bot.'''
+        ctx.bot.remove_command('results')
+        ctx.bot.remove_command('die')
+
+        @category('hosting')
+        @ctx.bot.command()
+        async def results(ctx):
+            await ctx.send('Bot is shutting down, please hold.')
+
+        @category('developer')
+        @ctx.bot.command(aliases=['quit', 'kill'])
+        async def die(ctx):
+            await ctx.send('A shutdown task has already been scheduled.')
+
+        await ctx.send('Shutting down in 20 seconds.')
+        await asyncio.sleep(20)
         await ctx.bot.send_message(ctx.channel, ':wave:')
         await ctx.bot.logout()
 
