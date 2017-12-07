@@ -89,9 +89,9 @@ async def do_results(bot, channel, guild, nums='', message=None):
             name = str(uid)
 
         if dead:
-            eliminated.append((name, user))
+            eliminated.append((name, uid))
         else:
-            living.append((name, user))
+            living.append((name, uid))
 
         await asyncio.sleep(len(totals) - n / 2)
         await bot.send_message(channel, msg.format(name))
@@ -144,7 +144,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
         living = []
     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:  # new round
         sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}'] = dict(templates.round())
-        sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}']['alive'] = [t[1].id for t in living]
+        sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}']['alive'] = [t[1] for t in living]
 
     if advance:
         await twow_helper.next_host(bot, channel, sd)
