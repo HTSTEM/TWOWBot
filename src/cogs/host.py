@@ -180,7 +180,7 @@ class Host():
                 await ctx.bot.send_message(ctx.channel, 'Usage: `{}register <short identifier>`'.format(ctx.prefix))
     
     @category('hosting')
-    @commands.command()
+    @commands.command(aliases=['showconfig'])
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def show_config(self, ctx, identifier:str = ''):
@@ -189,14 +189,13 @@ class Host():
         This file contains everyone's responses, as well as their votes, so
         don't use this command out of DMs.
         '''
-        id = None
         if identifier:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
             id = s_ids[identifier]
         else:
             id = ctx.channel.id
         
-        with open('./server_data/{}.yml'.format(ctx.channel.id), 'rb') as server_file:
+        with open('./server_data/{}.yml'.format(id), 'rb') as server_file:
             await ctx.author.send(file=discord.File(server_file))
     
     @category('hosting')
