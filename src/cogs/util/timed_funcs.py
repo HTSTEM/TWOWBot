@@ -93,7 +93,8 @@ async def do_results(bot, channel, guild, nums='', message=None):
         else:
             living.append((name, uid))
 
-        await asyncio.sleep(len(totals) - n / 2)
+        if dead: await asyncio.sleep(1)
+        else: await asyncio.sleep(1 + 5 * n / elim)
         await bot.send_message(channel, msg.format(name))
 
     # Winner/loser stuff

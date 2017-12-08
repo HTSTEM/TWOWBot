@@ -4,20 +4,20 @@ import asyncio
 from discord.ext import commands
 import discord
 
-from .util import results, twow_helper, checks, timed_funcs, templates
+from .util import twow_helper, checks, timed_funcs, templates
 from .util.categories import category
 
 
-class Host():
+class Host:
 
     @category('hosting')
     @commands.command(aliases=['startvoting'])
     @checks.twow_exists()
     @checks.is_twow_host()
     async def start_voting(self, ctx):
-        '''Start voting..
+        """Start voting..
         This will end responding and will allow people to use `vote`.
-        '''
+        """
         
         await timed_funcs.start_voting(ctx.bot, ctx.channel)
         return
@@ -26,12 +26,12 @@ class Host():
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_host()
-    async def results(self, ctx, nums:str = '20%'):
-        '''End this round and show results.
+    async def results(self, ctx, nums: str = '20%'):
+        """End this round and show results.
         `nums` is either a percentage denoted by `%` (for example `5%`),
         or it it a set number of people to elimintate this round.
         *Woah? Results. Let's hope I know how to calculate these.. Haha. I didn't.*
-        '''
+        """
 
         await timed_funcs.do_results(ctx.bot, ctx.channel, ctx.guild, nums, message=ctx.message)
         return
@@ -40,16 +40,19 @@ class Host():
     @commands.command()
     @checks.twow_exists()
     @checks.is_twow_host()
-    async def responses(self, ctx, identifier:str = ''):
-        '''List all responses this round.
+    async def responses(self, ctx, identifier: str = ''):
+        """List all responses this round.
         This command will send the responses via DMs.
-        '''
-        id = None
+        """
+
         if identifier:
-            s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+            s_ids = {i[1]: i[0] for i in ctx.bot.servers.items()}
             
             if identifier not in s_ids:
-                await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+                await ctx.bot.send_message(
+                    ctx.channel,
+                    'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`'))
+                )
                 return
             
             id = s_ids[identifier]
@@ -78,31 +81,34 @@ class Host():
                 n = i[0]
             m += '\n**{}**: {}'.format(n, i[1].decode('utf-8'))
             if len(m) > 1500:
-                await ctx.bot.send_message(ctx.author,m)
+                await ctx.bot.send_message(ctx.author, m)
                 m = ''
         if m:
-            await ctx.bot.send_message(ctx.author,m)
+            await ctx.bot.send_message(ctx.author, m)
         if isinstance(ctx.channel, discord.TextChannel):
-            await ctx.bot.send_message(ctx.channel,':mailbox_with_mail:')
+            await ctx.bot.send_message(ctx.channel, ':mailbox_with_mail:')
 
     @category('hosting')
     @commands.command(aliases=['del_response', 'rem_response', 'delresponse', 'remresponse'])
     @checks.twow_exists()
     @checks.is_twow_host()
-    async def remove_response(self, ctx, identifier:str, respondee):
-        '''Removes a response that has been submitted.
+    async def remove_response(self, ctx, identifier: str, respondee):
+        """Removes a response that has been submitted.
         A message is sent to the channel running the mTWOW, so be prepared
         to defend your reasoning.
-        '''
+        """
         try:
             respondee = await commands.MemberConverter().convert(ctx, respondee)
             rid = respondee.id
         except commands.BadArgument:
             rid = int(''.join(c for c in respondee if c in '0123456789'))
 
-        s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
+        s_ids = {i[1]: i[0] for i in ctx.bot.servers.items()}
         if identifier not in s_ids:
-            await ctx.bot.send_message(ctx.channel, 'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`')))
+            await ctx.bot.send_message(
+                ctx.channel,
+                'I can\'t find any mTWOW under the name `{}`.'.format(identifier.replace('`', '\\`'))
+            )
             return
         id = s_ids[identifier]
         sd = ctx.bot.server_data[id]
@@ -143,13 +149,12 @@ class Host():
                 vote['vote'].remove(uid)
         
         ctx.bot.save_data()
-        
-    
+
     @commands.command()
-    async def register(self, ctx, identifier:str = ''):
-        '''Setup channel initially
+    async def register(self, ctx, identifier: str = ''):
+        """Setup channel initially
         Do all the fancy stuff to get this channel ready to host a mTWOW!
-        '''
+        """
         if ctx.channel.id in ctx.bot.servers:
             owner = ctx.bot.get_user(ctx.bot.server_data[ctx.channel.id]['owner'])
             if owner is not None:
@@ -158,10 +163,10 @@ class Host():
                 await ctx.bot.send_message(ctx.channel, 
                     'I can\'t find the owner of this mTWOW. Please contact {} to resolve this.'.format(ctx.bot.get_user(ctx.bot.BOT_HOSTER)))
         else:
-            if not ctx.channel.permissions_for(ctx.author).manage_channels:#if user can manage that channel. CHANGE THIS
+            if not ctx.channel.permissions_for(ctx.author).manage_channels:  # if user can manage that channel. CHANGE THIS
                 return
             bot_perms = ctx.channel.permissions_for(ctx.guild.get_member(ctx.bot.user.id))
-            if not (bot_perms.send_messages and bot_perms.read_messages): #add any other perms you can think of
+            if not (bot_perms.send_messages and bot_perms.read_messages):  # add any other perms you can think of
                 return
             if identifier:
                 if ' ' in identifier:
@@ -183,12 +188,12 @@ class Host():
     @commands.command(aliases=['showconfig'])
     @checks.twow_exists()
     @checks.is_twow_owner()
-    async def show_config(self, ctx, identifier:str = ''):
-        '''Sends the config file for this channel.
+    async def show_config(self, ctx, identifier: str = ''):
+        """Sends the config file for this channel.
         **WARNING!**
         This file contains everyone's responses, as well as their votes, so
         don't use this command out of DMs.
-        '''
+        """
         if identifier:
             s_ids = {i[1]:i[0] for i in ctx.bot.servers.items()}
             id = s_ids[identifier]
@@ -203,10 +208,10 @@ class Host():
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def set_elim(self, ctx, amount):
-        '''Sets the default elimination threshold.
+        """Sets the default elimination threshold.
         Use a number to specify number of contestants, e.g. `3`
         Add a percentage to specify percentage of contestants, e.g. `20%`
-        '''
+        """
         try:
             if amount[-1] == '%': _ = int(amount[:-1])
             else: _ = int(amount)
@@ -225,7 +230,7 @@ class Host():
     @checks.can_queue()
     @checks.is_twow_host()
     async def skip_host(self, ctx):
-        '''Skip to next host'''
+        """Skip to next host"""
         sd = ctx.bot.server_data[ctx.channel.id]
         await twow_helper.next_host(ctx.bot, ctx.channel, sd)
         ctx.bot.save_data()
@@ -235,9 +240,9 @@ class Host():
     @checks.twow_exists()
     @checks.is_twow_host()
     async def set_prompt(self, ctx, *, prompt):
-        '''Set the prompt for this round.
+        """Set the prompt for this round.
         *Summon unicorns*
-        '''
+        """
         
         sd = ctx.bot.server_data[ctx.channel.id]
         
@@ -266,8 +271,8 @@ class Host():
     @commands.command(aliases=['setwords'])
     @checks.twow_exists()
     @checks.is_twow_host()
-    async def set_words(self, ctx, words:int):
-        '''Set the maximum words for a response.'''
+    async def set_words(self, ctx, words: int):
+        """Set the maximum words for a response."""
         sd = ctx.bot.server_data[ctx.channel.id]
         
         if words > 0:
@@ -281,7 +286,7 @@ class Host():
     @commands.group(pass_context=True, invoke_without_command=True)
     @checks.twow_exists()
     async def blacklist(self, ctx):
-        '''Are rude words banned?'''
+        """Are rude words banned?"""
         sd = ctx.bot.server_data[ctx.channel.id]
         if sd['blacklist']:
             await ctx.bot.send_message(ctx.channel, 'The blacklist is **enabled**.')
@@ -291,8 +296,8 @@ class Host():
     @blacklist.command(pass_context=True, aliases=['enable'])
     @checks.twow_exists()
     @checks.is_twow_owner()
-    async def on(ctx):
-        '''Enable the blacklist'''
+    async def on(self, ctx):
+        """Enable the blacklist"""
         sd = ctx.bot.server_data[ctx.channel.id]
         sd['blacklist'] = True
         await ctx.bot.send_message(ctx.channel, 'The blacklist has been **enabled** for this mTWOW.')
@@ -301,8 +306,8 @@ class Host():
     @blacklist.command(pass_context=True, aliases=['dissable'])
     @checks.twow_exists()
     @checks.is_twow_owner()
-    async def off(ctx):
-        '''Dissable the blacklist'''
+    async def off(self, ctx):
+        """Dissable the blacklist"""
         sd = ctx.bot.server_data[ctx.channel.id]
         sd['blacklist'] = False
         await ctx.bot.send_message(ctx.channel, 'The blacklist has been **dissabled** for this mTWOW.')
@@ -312,14 +317,14 @@ class Host():
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def can_queue(self, ctx):
-        '''Sets if there is a hosting queue. There is none by default'''
+        """Sets if there is a hosting queue. There is none by default"""
         pass
                 
     @can_queue.command(pass_context=True)
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def on(self, ctx):
-        '''Allows queue'''
+        """Allows queue"""
         sd = ctx.bot.server_data[ctx.channel.id]
         sd['canqueue'] = True
         await ctx.bot.send_message(ctx.channel, 'Anyone can now host in this channel!')
@@ -329,7 +334,7 @@ class Host():
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def off(self, ctx):
-        '''Disallows queue'''
+        """Disallows queue"""
         sd = ctx.bot.server_data[ctx.channel.id]
         sd['canqueue'] = False
         sd['queue'] = []
@@ -340,7 +345,7 @@ class Host():
     @commands.command(aliases=['joinqueue'])
     @checks.can_queue()
     async def join_queue(self, ctx):
-        '''Puts yourself in queue for hosting.'''
+        """Puts yourself in queue for hosting."""
         sd = ctx.bot.server_data[ctx.channel.id]
         queue = sd['queue']
         if ctx.author.id in queue:
@@ -349,7 +354,7 @@ class Host():
             queue.append(ctx.author.id)
             await ctx.bot.send_message(ctx.channel, 'You have been added to the hosting queue.')
             if len(ctx.bot.server_data[ctx.channel.id]['queue']) == 1:
-                if sd['queuetimer']['prompt'] != None:
+                if sd['queuetimer']['prompt'] is not None:
                     sd['hosttimer'] = datetime.datetime.utcnow()+sd['queuetimer']['prompt']
                 name = ctx.author.mention
                 await ctx.bot.send_message(ctx.channel, '{} is now hosting!'.format(name))
@@ -360,9 +365,9 @@ class Host():
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def transfer(self, ctx):
-        '''Transfer ownership of this mTWOW.
+        """Transfer ownership of this mTWOW.
         Do `transfer @mention`.
-        '''
+        """
         
         sd = ctx.bot.server_data[ctx.channel.id]
         
@@ -375,11 +380,15 @@ class Host():
             return
         
         def check(m):
-            return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y','n']
+            return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y', 'n']
         
-        await ctx.bot.send_message(ctx.channel, 
-            'You are about to transfer your mTWOW to {}. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.'.format(ctx.message.mentions[0].name))
-        resp = None
+        await ctx.bot.send_message(
+            ctx.channel,
+            'You are about to transfer your mTWOW to {}. '.format(ctx.message.mentions[0].name) +
+            'Are you 100 percent, no regrets, absolutely and completely sure about this? ' +
+            '(y/N) Choice will default to no in 60 seconds.'
+        )
+
         try:
             resp = await ctx.bot.wait_for('message', check=check, timeout=60)
         except asyncio.TimeoutError:
@@ -399,17 +408,19 @@ class Host():
     @checks.twow_exists()
     @checks.is_twow_owner()
     async def delete(self, ctx):
-        '''Delete the mTWOW.
-        An archive will be stored and can be located by the hoster of the bot.'''
-        
-        sd = ctx.bot.server_data[ctx.channel.id]
+        """Delete the mTWOW.
+        An archive will be stored and can be located by the hoster of the bot."""
         
         def check(m):
-            return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y','n']
+            return m.channel == ctx.channel and m.author == ctx.author and m.content[0].lower() in ['y', 'n']
         
-        await ctx.bot.send_message(ctx.channel, 
-            'You are about to delete your mTWOW. Are you 100 percent, no regrets, absolutely and completely sure about this? (y/N) Choice will default to no in 60 seconds.')
-        resp = None
+        await ctx.bot.send_message(
+            ctx.channel,
+            'You are about to delete your mTWOW ' +
+            'Are you 100 percent, no regrets, absolutely and completely sure about this? ' +
+            '(y/N) Choice will default to no in 60 seconds.'
+        )
+
         try:
             resp = await ctx.bot.wait_for('message', check=check, timeout=60)
         except asyncio.TimeoutError:
@@ -422,9 +433,10 @@ class Host():
         
         ctx.bot.save_archive(ctx.channel.id)
         ctx.bot.servers.pop(ctx.channel.id, None)
-        ctx.bot.server_data.pop(ctx.channel.id,None)
+        ctx.bot.server_data.pop(ctx.channel.id, None)
         ctx.bot.save_data()
         await ctx.bot.send_message(ctx.channel, 'mTWOW has been deleted.')
-        
+
+
 def setup(bot):
     bot.add_cog(Host())
