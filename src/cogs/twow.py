@@ -130,7 +130,7 @@ class TWOW:
 
         if not response:  # New slides needed!
             if ctx.author.id not in round['slides']:
-                success = twow_helper.create_slides(ctx.bot, round, ctx.author.id)
+                success = twow_helper.create_slides(ctx.bot, round, ctx.author.id, sd.get('self_voting'))
                 if not success:
                     await ctx.bot.send_message(ctx.author, 'I don\'t have enough responses to formulate a slide. Sorry.')
                     return

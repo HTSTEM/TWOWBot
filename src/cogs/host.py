@@ -236,6 +236,21 @@ class Host:
         ctx.bot.save_data()
 
     @category('hosting')
+    @commands.command(aliases=['selfvoting'])
+    @checks.twow_exists()
+    @checks.is_twow_host()
+    async def self_voting(self, ctx):
+        """Skip to next host"""
+        sd = ctx.bot.server_data[ctx.channel.id]
+        if sd.get('self_voting'):
+            sd['self_voting'] = False
+            await ctx.send('You can no longer vote on your own responses.')
+        else:
+            sd['self_voting'] = True
+            await ctx.send('You can now vote on your own responses.')
+        ctx.bot.save_data()
+
+    @category('hosting')
     @commands.command(aliases=['setprompt'])
     @checks.twow_exists()
     @checks.is_twow_host()

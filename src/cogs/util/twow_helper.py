@@ -6,6 +6,7 @@ from cogs.util import timed_funcs, templates
 
 RESPONSES_PER_SLIDE = 10
 
+
 def new_twow(db, identifier, channel, owner):
     s = dict(templates.twow())
     s['owner'] = owner
@@ -72,28 +73,26 @@ def respond(db, id, responder, response): # 1 = no twow, 3 = voting started, 5 =
         
     return success, response
 
-def create_slides(db, round, voter):
+def create_slides(db, round, voter, self_voting=False):
 # Sort all responses based off their number of votes
-    responses = [[i, 0] for i in round['responses']]
-    for i in responses:
-        if i[0] == voter:
-            responses.remove(i)
+    responses = {i: 0 for i in round['responses'].keys() if self_voting or i != voter}
     for vote in round['votes']:
         # Each vote is a list of user IDs going from best to worst
         for i in vote['vote']:
-            for r in responses:
-                if r[0] == i:
-                    r[1] += 1
-                    break
-            else:
-                if i != voter:
-                    responses.append([i, 1])
-    responses.sort(key=lambda x:x[1])
+            try:
+                responses[i] += 1
+            except KeyError:
+                responses[i] = 1
+
+    responses = sorted(
+        [(r, c) for r, c in responses.items()],
+        key=lambda x:x[1]
+    )
 
     if len(responses) < 2:
         return False
     
-    # ~~Calculate the nubmer of responses per slide~~ Global at start of file.
+    # ~~Calculate the number of responses per slide~~ Global at start of file.
     # Take that many items from the list of responses.
     
     slide = responses[:RESPONSES_PER_SLIDE]
