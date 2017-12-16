@@ -81,12 +81,6 @@ class Core:
                     d += '\n**Description:**\n'
                     d += '{}\n'.format('None' if cmd.help is None else cmd.help.strip())
 
-                    if cmd.checks:
-                        d += '\n**Checks:**'
-                        for check in cmd.checks:
-                            d += '\n{}'.format(check.__qualname__.split('.')[0])
-                        d += '\n'
-
                     if cmd.aliases:
                         d += '\n**Aliases:**'
                         for alias in cmd.aliases:
@@ -135,12 +129,6 @@ class Core:
 
                 d += '\n**Description:**\n'
                 d += '{}\n'.format('None' if cmd.help is None else cmd.help.strip())
-
-                if cmd.checks:
-                    d += '\n**Checks:**'
-                    for check in cmd.checks:
-                        d += '\n{}'.format(check.__qualname__.split('.')[0])
-                    d += '\n'
 
                 if cmd.aliases:
                     d += '\n**Aliases:**'
