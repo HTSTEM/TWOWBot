@@ -53,7 +53,7 @@ async def do_results(bot, channel, guild, nums='', message=None):
             bot.save_data()
         return
 
-    totals = results.count_votes(round, round['alive'])
+    totals = results.count_votes(round)
     msg = '**Results for round {}, season {}:**'.format(sd['round'], sd['season'])
     if message is not None:
         try: await message.delete()

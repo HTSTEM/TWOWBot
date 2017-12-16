@@ -2,7 +2,7 @@ import builtins
 
 SUPERSCRIPT = ['ˢᵗ', 'ᶮᵈ', 'ʳᵈ', 'ᵗʰ']
 
-def count_votes(round, alive):
+def count_votes(round):
     def f(v):
         perc = (v['borda'] / v['votes'])
         stdv = (sum((i - perc) ** 2 for i in v['raw_borda']) / len(v['raw_borda']))**0.5
@@ -51,14 +51,38 @@ def count_votes(round, alive):
         print('Weeeeeee-Woooooooo! Percentiles don\'t average to 50%.')
         print('Here are the votes cast for debugging:')
 
+
     totals.sort(key=f, reverse=True)
-    for twower in alive:
-        if twower not in round['responses']:
-            round['responses'][twower] = '*DNP*'.encode('UTF-8')
-            totals.append({'name': twower, 'borda': 0, 'votes': 1, 'raw_borda': [0]})
-    
+
     return totals
 
+def format_msg(n, response, score, stdev, dead):
+    if str(n + 1)[-1] == '1':
+        if n + 1 == 11:
+            symbol = SUPERSCRIPT[3]
+        else:
+            symbol = SUPERSCRIPT[0]
+    elif str(n + 1)[-1] == '2':
+        if n + 1 == 12:
+            symbol = SUPERSCRIPT[3]
+        else:
+            symbol = SUPERSCRIPT[1]
+    elif str(n + 1)[-1] == '3':
+        if n + 1 == 13:
+            symbol = SUPERSCRIPT[3]
+        else:
+            symbol = SUPERSCRIPT[2]
+    else:
+        symbol = SUPERSCRIPT[3]
+
+    return '\n{}\n{} **{}{} place**: {}\n**{}** ({}% σ={})'.format(
+        '=' * 50,
+        ':skull_crossbones:' if (dead and n != 0) else ':white_check_mark:',
+        n + 1, symbol, response,
+        '{}',
+        builtins.round(score, 2),
+        builtins.round(stdev, 2)
+    )
 
 def get_results(totals, elim, round):
     def f(v):
@@ -70,37 +94,18 @@ def get_results(totals, elim, round):
             stdv = 0
         return (perc, stdv)
 
-    for n, v in list(enumerate(totals)):
-        score, stdev = f(v)
+    n = 0
+    if len(totals) == 1:
+        twower = list(totals.values())[0]
+        return [(
+            format_msg(n, round['responses'][twower].decode('utf-8'), 50, 0, False),
+            False, twower, n
+        )]
 
-        # Formatting
-        if str(n + 1)[-1] == '1':
-            if n + 1 == 11:
-                symbol = SUPERSCRIPT[3]
-            else:
-                symbol = SUPERSCRIPT[0]
-        elif str(n + 1)[-1] == '2':
-            if n + 1 == 12:
-                symbol = SUPERSCRIPT[3]
-            else:
-                symbol = SUPERSCRIPT[1]
-        elif str(n + 1)[-1] == '3':
-            if n + 1 == 13:
-                symbol = SUPERSCRIPT[3]
-            else:
-                symbol = SUPERSCRIPT[2]
-        else:
-            symbol = SUPERSCRIPT[3]
+    alive = round['alive']
+    for twower in alive:
+        if twower not in round['responses']:
+            n += 1
+            yield (format_msg(n, '*DNP*', 0, 0, True), True, twower, n)
 
-        dead = n >= elim
 
-        # :blobeyes:
-        msg = '\n{}\n{} **{}{} place**: {}\n**{}** ({}% σ={})'.format(
-            '=' * 50,
-            ':skull_crossbones:' if (dead and n!=0) else ':white_check_mark:',
-            n + 1, symbol, round['responses'][v['name']].decode('utf-8'),
-            '{}',
-            builtins.round(score, 2),
-            builtins.round(stdev, 2)
-            )
-        yield (msg, dead, v['name'], n)
