@@ -18,24 +18,37 @@ class Timer():
         while True:
             current_time = datetime.datetime.utcnow()
             for cid, sd in self.bot.server_data.items():
-                round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
-                votetime = round['votetimer']
-                restime = round['restimer']
-                if type(votetime) == datetime.datetime and current_time > votetime:
-                    asyncio.ensure_future(timed_funcs.start_voting(self.bot, self.bot.get_channel(cid)))
-                elif type(restime) == datetime.datetime and current_time > restime:
-                    if votetime != 'waiting':
+                try:
+                    round = sd['seasons']['season-{}'.format(sd['season'])]['rounds']['round-{}'.format(sd['round'])]
+
+                    votetime = round['votetimer']
+                    restime = round['restimer']
+                    if isinstance(votetime, datetime.datetime) and current_time > votetime:
+                        asyncio.ensure_future(timed_funcs.start_voting(self.bot, self.bot.get_channel(cid)))
+                    elif isinstance(restime, datetime.datetime) and current_time > restime:
+                        if votetime != 'waiting':
+                            channel = self.bot.get_channel(cid)
+                            asyncio.ensure_future(timed_funcs.do_results(
+                                self.bot,
+                                channel,
+                                channel.guild,
+                                sd['elim']
+                            ))
+                    elif (sd['canqueue'] and round['prompt'] == None and
+                      type(sd['hosttimer']) == datetime.datetime and sd['hosttimer'] < current_time):
                         channel = self.bot.get_channel(cid)
-                        asyncio.ensure_future(timed_funcs.do_results(
-                            self.bot, 
-                            channel, 
-                            channel.guild, 
-                            sd['elim']
-                        ))
-                elif (sd['canqueue'] and round['prompt'] == None and 
-                  type(sd['hosttimer']) == datetime.datetime and sd['hosttimer'] < current_time):
-                    channel = self.bot.get_channel(cid)
-                    asyncio.ensure_future(twow_helper.next_host(self.bot, channel, sd))
+                        asyncio.ensure_future(twow_helper.next_host(self.bot, channel, sd))
+
+                except Exception as e:
+                    import traceback
+                    mess = traceback.format_exception(
+                        type(e),
+                        e,
+                        e.__traceback__
+                    )
+                    self.bot.logger.error(mess)
+                    await self.bot.notify_devs(mess)
+                    continue
             
             await asyncio.sleep(5)
     
