@@ -101,6 +101,13 @@ def get_results(totals, elim, round):
             format_msg(n, round['responses'][twower].decode('utf-8'), 50, 0, False),
             False, twower, n
         )]
+    for n, v in list(enumerate(totals)):
+        score, stdev = f(v)
+        dead = n >= elim
+
+        # :blobeyes:
+        msg = format_msg(n, round['responses'][v['name']].decode('utf-8'), score, stdev, dead)
+        yield (msg, dead, v['name'], n)
 
     alive = round['alive']
     for twower in alive:
