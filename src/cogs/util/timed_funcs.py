@@ -145,7 +145,8 @@ async def do_results(bot, channel, guild, nums='', message=None):
         living = []
     if 'round-{}'.format(sd['round']) not in sd['seasons']['season-{}'.format(sd['season'])]['rounds']:  # new round
         sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}'] = dict(templates.round())
-        sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}']['alive'] = [t[1] for t in living]
+
+    sd['seasons'][f'season-{sd["season"]}']['rounds'][f'round-{sd["round"]}']['alive'] = [t[1] for t in living]
 
     if advance:
         await twow_helper.next_host(bot, channel, sd)
