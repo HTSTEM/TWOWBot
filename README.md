@@ -5,8 +5,8 @@
 <h1 align="center">TWOWBot</h1>
 
 A simple bot for hosting miniTWOWs on [Discord](https://discordapp.com). **You can add the bot to your
-server using [this link.](https://is.gd/twowbot)** Or, if you would like to help test experimental
-features, you can invite the beta/unstable bot using [this link.](https://is.gd/twowbeta)
+server using [this link.](https://htcraft.ml/twowbot)** Or, if you would like to help test experimental
+features, you can invite the beta/unstable bot using [this link.](https://htcraft.ml/twowbeta)
 
 ![Python3.6](https://img.shields.io/badge/python-3.6-blue.svg)
 ![Discord.py rewrite](https://img.shields.io/badge/discord.py-rewrite-orange.svg)
