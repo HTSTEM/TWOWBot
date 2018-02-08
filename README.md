@@ -16,8 +16,8 @@ bot from [here](https://discordapp.com/oauth2/authorize?client_id=22286981565041
 * [Bottersnike#3605](https://github.com/Bottersnike)
 * [hanss314#0128](https://github.com/hanss314)
 * [Noahkiq#0493](https://github.com/Noahkiq)
-#### The main bot is being hosted by:
-* [Bottersnike#3605](https://github.com/Bottersnike) (unstable bot)
+#### The bots are being hosted by:
+* [hanss314#0128](https://github.com/hanss314)
 
 ---
 ### How to use TWOWBot:
