@@ -363,6 +363,14 @@ class TWOW:
             await ctx.bot.send_message(ctx.channel, 'No one is in the queue!')
         else:
             mess = '**Hosting Queue:**\n'
+            changed = False
+            for i in list(lineup):
+                if ctx.bot.get_user(uid) is None:
+                    lineup.remove(i)
+                    changed = True
+            if changed:
+                ctx.bot.save_data()
+
             mess += '1.) **{}**\n'.format(ctx.bot.get_user(lineup[0]).name)
             for n, uid in enumerate(lineup[1:]):
                 mess += '{}.) {}\n'.format(n+2, ctx.bot.get_user(uid).name)
