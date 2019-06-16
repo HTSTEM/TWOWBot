@@ -16,7 +16,7 @@ features, you can invite the beta/unstable bot using [this link.](https://htcraf
 #### This bot is being developed by:
 * [Bottersnike#3605](https://github.com/Bottersnike)
 * [hanss314#0128](https://github.com/hanss314)
-* [Noahkiq#0493](https://github.com/Noahkiq)
+* [noellekiq#0493](https://github.com/noellekiq)
 #### The bots are being hosted by:
 * [hanss314#0128](https://github.com/hanss314)
 

@@ -178,14 +178,14 @@ class Bot(discord.Client):
                                 d += '`{}{}` - Command not found\n'.format(PREFIX, i.replace('@', '@\u200b').replace('`', '`\u200b'))
                         d = d[:-1]
                         
-                    d += '\n*Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493*'
+                    d += '\n*Made by Bottersnike#3605, hanss314#0128 and noellekiq#0493*'
                     await send_message(message.channel, d)
                     
                 elif command == 'about':  # Get the RickBot invite url
                     mess = '**This bot was developed by:**\n'
                     mess += 'Bottersnike#3605\n'
                     mess += 'hanss314#0128\n'
-                    mess += 'Noahkiq#0493\n'
+                    mess += 'noellekiq#0493\n'
                     mess += '\n**This bot is being hosted by:**\n'
                     mess += '{}\n'.format(self.get_user(BOT_HOSTER))
                     #mess +='**\nTWOWBot\'s avatar by:**\n'

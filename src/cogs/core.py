@@ -155,7 +155,7 @@ class Core:
                 else:
                     d += '\n`{}{}` - Command not found'.format(ctx.prefix, i.replace('@', '@\u200b').replace('`', '`\u200b'))
             '''
-        d += '\n*Made by Bottersnike#3605, hanss314#0128 and Noahkiq#0493*'
+        d += '\n*Made by Bottersnike#3605, hanss314#0128 and noellekiq#0493*'
         await ctx.bot.send_message(ctx.channel, d)
 
     @category('info')
@@ -173,7 +173,7 @@ class Core:
         mess = '**This bot was developed by:**\n'
         mess += 'Bottersnike#3605\n'
         mess += 'hanss314#0128\n'
-        mess += 'Noahkiq#0493\n'
+        mess += 'noellekiq#0493\n'
         mess += '\n**This bot is being hosted by:**\n'
         mess += '{}\n'.format(ctx.bot.get_user(ctx.bot.BOT_HOSTER))
         mess +='**\n(Official) TWOWBot\'s avatar by:**\n'
